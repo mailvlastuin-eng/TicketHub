@@ -180,26 +180,63 @@ function MyTicketDetail() {
         }
       `}</style>
 
-      <div className="max-w-md mx-auto h-[100dvh] relative flex flex-col bg-[#F3F4F6] select-none overflow-hidden">
-        {/* Top Section (Hero & Blue Button) */}
-        <div className="w-full flex flex-col shrink-0 relative bg-[#F3F4F6]">
-          {/* Back/Help Buttons Overlay */}
-          <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 pointer-events-none">
-            <Link
-              to="/my-tickets"
-              className="h-[42px] w-[42px] rounded-full bg-black/60 text-white flex items-center justify-center pointer-events-auto z-10 transition-colors"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-[18px] w-[18px]" />
-            </Link>
+      <div className="max-w-md mx-auto h-[100dvh] relative bg-[#F3F4F6] select-none overflow-hidden">
+        {/* Sticky Top Header (Back/Help buttons & title) */}
+        <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 text-white overflow-hidden pointer-events-none">
+          {/* Header background image slice that covers the scrolling text */}
+          <div 
+            className="absolute inset-0 z-0 transition-opacity duration-150 pointer-events-none"
+            style={{ opacity: scrollOffset > 80 ? 1 : 0 }}
+          >
+            {ticket.image ? (
+              <img
+                src={ticket.image}
+                alt=""
+                className="w-full aspect-[4/3] object-cover absolute top-0 left-0"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary" />
+            )}
+            <div className="absolute inset-0 bg-black/10" />
+            <div 
+              className="absolute inset-0 bg-black/60 transition-opacity duration-150"
+              style={{ opacity: dimmerOpacity }}
+            />
+          </div>
+
+          <Link
+            to="/my-tickets"
+            className="h-[42px] w-[42px] rounded-full bg-black/60 text-white flex items-center justify-center pointer-events-auto z-10 transition-colors"
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-[18px] w-[18px]" />
+          </Link>
+
+          {/* Title and Venue info that fades in as the bottom sheet slides up */}
+          <div 
+            className="flex flex-col items-center justify-center text-center max-w-[200px] pointer-events-auto z-10 select-none transition-opacity duration-150"
+            style={{ opacity: headerTextOpacity }}
+          >
+            <span className="font-bold text-sm text-white truncate w-full uppercase">
+              {ticket.title}
+            </span>
+            <span className="text-[11px] text-zinc-300 truncate w-full mt-0.5">
+              {ticket.venue}{ticket.city ? `, ${ticket.city}` : ""}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 pointer-events-auto z-10">
             <button
               onClick={() => showToast("Support: support@tickethub.app")}
-              className="h-[42px] px-5 rounded-full bg-black/60 text-white text-[14px] font-semibold pointer-events-auto z-10"
+              className="h-[42px] px-5 rounded-full bg-black/60 text-white text-[14px] font-semibold"
             >
               Help
             </button>
           </div>
+        </div>
 
+        {/* 1. [Fixed Background Layer] */}
+        <div className="absolute top-0 left-0 w-full z-0 flex flex-col bg-[#F3F4F6]">
           {/* Hero image wrapper */}
           <div className="w-full aspect-[4/3] overflow-hidden relative bg-primary pointer-events-none">
             {ticket.image ? (
@@ -210,55 +247,73 @@ function MyTicketDetail() {
               />
             ) : null}
             <div className="absolute inset-0 bg-black/10" />
-            <div className="absolute inset-0 bg-black/40" />
-            {/* Big title in center */}
-            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center px-6">
+            <div 
+              className="absolute inset-0 bg-black/60 transition-opacity duration-150"
+              style={{ opacity: dimmerOpacity }}
+            />
+            {/* Big title in center that fades out as we scroll */}
+            <div 
+              className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center px-6 transition-opacity duration-150"
+              style={{ opacity: 1 - dimmerOpacity }}
+            >
               <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight leading-none uppercase drop-shadow">
                 {ticket.title}
               </h1>
             </div>
           </div>
 
-          {/* Date bar */}
-          <div className="bg-black text-white px-4 py-2 -mt-8 relative w-fit z-10 self-start">
-            <p className="text-[11px] font-semibold tracking-wide">
-              {formatDateBar(ticket)}
-            </p>
-          </div>
-
-          {/* Title block */}
-          <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative">
-            <div>
-              <h2 className="text-base font-bold uppercase leading-tight">
-                {ticket.title}
-              </h2>
-              <p className="mt-4 text-xs text-white/70">
-                {ticket.venue}
-                {ticket.city ? `, ${ticket.city}` : ""}
+          {/* Wrapper for dynamic measurement */}
+          <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6]">
+            {/* Date bar */}
+            <div className="bg-black text-white px-4 py-2 -mt-8 relative w-fit z-10 self-start">
+              <p className="text-[11px] font-semibold tracking-wide">
+                {formatDateBar(ticket)}
               </p>
             </div>
-            <div className="flex items-center gap-1 text-white/80 shrink-0">
-              <ScanBarcode className="h-4 w-4" />
-              <span className="text-xs">x{qty}</span>
-            </div>
-          </div>
 
-          {/* View Tickets CTA */}
-          <button
-            onClick={() => showToast("Tickets ready to scan")}
-            className="w-full bg-primary text-primary-foreground py-3.5 flex items-center justify-center gap-2 text-sm font-semibold z-10 relative pointer-events-auto mb-0"
-          >
-            <ScanBarcode className="h-4 w-4" />
-            View Tickets
-          </button>
+            {/* Title block */}
+            <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative">
+              <div>
+                <h2 className="text-base font-bold uppercase leading-tight">
+                  {ticket.title}
+                </h2>
+                <p className="mt-4 text-xs text-white/70">
+                  {ticket.venue}
+                  {ticket.city ? `, ${ticket.city}` : ""}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 text-white/80 shrink-0">
+                <ScanBarcode className="h-4 w-4" />
+                <span className="text-xs">x{qty}</span>
+              </div>
+            </div>
+
+            {/* View Tickets CTA */}
+            <button
+              onClick={() => showToast("Tickets ready to scan")}
+              className="w-full bg-primary text-primary-foreground py-3.5 flex items-center justify-center gap-2 text-sm font-semibold z-10 relative pointer-events-auto mb-0"
+            >
+              <ScanBarcode className="h-4 w-4" />
+              View Tickets
+            </button>
+          </div>
         </div>
 
-        {/* Bottom White Sheet - Eliminate Middle Gap */}
-        <div className="w-full flex-1 bg-white rounded-t-[16px] shadow-2xl flex flex-col overflow-hidden mt-0">
-          {/* Scrollable Container */}
-          <div className="w-full flex-1 overflow-y-auto scrollbar-none pb-40">
+        {/* 2. [The Scrolling Overlay Layer] */}
+        <div 
+          onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
+          className="absolute top-0 left-0 w-full h-[100dvh] overflow-y-auto z-10 scrollbar-none"
+        >
+          {/* 3. [Spacer matching fixed background section height] */}
+          <div className="w-full shrink-0 pointer-events-none flex flex-col mb-0 pb-0">
+            <div className="w-full aspect-[4/3] mb-0 pb-0" />
+            <div style={{ height: detailsHeight }} className="w-full mb-0 pb-0" />
+          </div>
+
+          {/* Solid White Sheet Container */}
+          <div className="bg-white w-full min-h-screen -mt-[2px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
             {/* Sticky Tabs */}
-            <div className="grid grid-cols-2 sticky top-0 z-20 bg-white border-b border-zinc-200">
+            <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
                 label="Tickets"
                 active={tab === "tickets"}
