@@ -167,7 +167,7 @@ function MyTicketDetail() {
 
       <div className="max-w-md mx-auto h-full relative flex flex-col bg-[#F3F4F6] select-none">
         {/* Sticky Top Header (Back/Help buttons & title) */}
-        <div className="absolute top-0 left-0 right-0 h-[100px] z-30 flex items-center justify-between px-4 text-white overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 text-white overflow-hidden pointer-events-none">
           {/* Header background image slice that covers the scrolling text */}
           <div 
             className="absolute inset-0 z-0 transition-opacity duration-150 pointer-events-none"
@@ -286,19 +286,19 @@ function MyTicketDetail() {
         {/* Scrollable Container (Nested Scrolling Sheet) */}
         <div 
           onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
-          className="h-full overflow-y-auto z-10 relative scrollbar-none"
+          className="h-full overflow-y-auto z-10 relative scrollbar-none pb-[env(safe-area-inset-bottom,24px)]"
         >
-          {/* Top spacer matching background card height (aspect-[16/10] + 154px of static content) */}
+          {/* Top spacer matching background card height (aspect-[16/10] + 136px of static content) */}
           <div className="w-full shrink-0 pointer-events-none flex flex-col">
             <div className="w-full aspect-[16/10]" />
-            <div className="h-[154px] w-full" />
+            <div className="h-[136px] w-full" />
           </div>
 
           {/* Scroll Sheet Body */}
-          <div className="bg-white min-h-[calc(100vh-100px)] relative z-10 flex flex-col pb-24 shadow-2xl rounded-t-[16px]">
+          <div className="bg-white min-h-[calc(100dvh-calc(48px+env(safe-area-inset-top,48px)))] relative z-10 flex flex-col pb-24 shadow-2xl rounded-t-[16px]">
             
             {/* Sticky Tabs */}
-            <div className="grid grid-cols-2 sticky top-[100px] z-20 bg-white border-b border-zinc-200">
+            <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
                 label="Tickets"
                 active={tab === "tickets"}
