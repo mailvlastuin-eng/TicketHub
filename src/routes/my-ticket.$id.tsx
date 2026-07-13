@@ -165,7 +165,7 @@ function MyTicketDetail() {
         }
       `}</style>
 
-      <div className="max-w-md mx-auto h-full relative flex flex-col bg-[#F3F4F6] select-none">
+      <div className="max-w-md mx-auto h-[100dvh] relative flex flex-col bg-[#F3F4F6] select-none overflow-hidden">
         {/* Sticky Top Header (Back/Help buttons & title) */}
         <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 text-white overflow-hidden pointer-events-none">
           {/* Header background image slice that covers the scrolling text */}
@@ -288,10 +288,10 @@ function MyTicketDetail() {
           onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
           className="h-full overflow-y-auto z-10 relative scrollbar-none"
         >
-          {/* Top spacer matching background card height (aspect-[4/3] + 136px of static content) */}
+          {/* Top spacer matching background card height (aspect-[4/3] + 156px of static content) */}
           <div className="w-full shrink-0 pointer-events-none flex flex-col">
             <div className="w-full aspect-[4/3]" />
-            <div className="h-[136px] w-full" />
+            <div className="h-[156px] w-full" />
           </div>
 
           {/* Scroll Sheet Body */}
