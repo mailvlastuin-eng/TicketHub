@@ -1,9 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Ticket as TicketIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { signIn, useUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
@@ -28,53 +24,62 @@ function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen grid lg:grid-cols-2 bg-background">
-      <section className="hidden lg:flex relative items-end p-12 text-white overflow-hidden"
-        style={{ background: "var(--gradient-primary)" }}>
-        <div className="relative z-10 max-w-md">
-          <div className="flex items-center gap-2 mb-8">
-            <TicketIcon className="h-7 w-7" />
-            <span className="text-2xl font-bold tracking-tight">TicketHub</span>
-          </div>
-          <h1 className="text-4xl font-bold leading-tight">
-            Live music. Big games. Unforgettable nights.
-          </h1>
-          <p className="mt-4 text-white/80">
-            Discover events near you and grab tickets in seconds.
-          </p>
-        </div>
-      </section>
+    <main className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 relative overflow-hidden select-none">
+      {/* Background ambient glow matching the pink/blue ticket theme */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[#1A56DB]/15 blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/3 w-[250px] h-[250px] rounded-full bg-pink-500/10 blur-[80px] pointer-events-none" />
 
-      <section className="flex items-center justify-center p-6 sm:p-12">
-        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6">
-          <div className="flex items-center gap-2 lg:hidden">
-            <TicketIcon className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">TicketHub</span>
-          </div>
-          <div>
-            <h2 className="text-2xl font-semibold">Welcome back</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+      {/* Login Card */}
+      <div className="w-full max-w-sm bg-[#111] border border-zinc-800/80 rounded-2xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] relative z-10">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="text-left">
+            <h1 className="text-white text-2xl font-black uppercase tracking-tight">
+              Welcome back
+            </h1>
+            <p className="text-xs text-zinc-400 mt-1 font-semibold">
               Sign in to see what's happening near you.
             </p>
           </div>
+
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required placeholder="you@example.com"
-                value={email} onChange={(e) => setEmail(e.target.value)} />
+            <div>
+              <label className="text-[12px] font-extrabold text-zinc-300 uppercase tracking-wide">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full h-[46px] border border-zinc-700 bg-zinc-900/60 rounded-[4px] px-3.5 text-[16px] text-white mt-[6px] placeholder-zinc-500 focus:border-[#1A56DB] outline-none transition-all"
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required placeholder="••••••••"
-                value={password} onChange={(e) => setPassword(e.target.value)} />
+            <div>
+              <label className="text-[12px] font-extrabold text-zinc-300 uppercase tracking-wide">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full h-[46px] border border-zinc-700 bg-zinc-900/60 rounded-[4px] px-3.5 text-[16px] text-white mt-[6px] placeholder-zinc-500 focus:border-[#1A56DB] outline-none transition-all"
+              />
             </div>
           </div>
-          <Button type="submit" className="w-full" size="lg">Sign in</Button>
-          <p className="text-xs text-center text-muted-foreground">
-            Demo app — any email and password works.
-          </p>
+
+          <button 
+            type="submit" 
+            className="w-full bg-[#1A56DB] hover:bg-[#1e40af] text-white font-bold text-[14px] tracking-wide py-[14px] rounded-[4px] uppercase transition-colors mt-6 cursor-pointer"
+          >
+            Sign in
+          </button>
         </form>
-      </section>
+      </div>
     </main>
   );
 }
