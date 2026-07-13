@@ -216,7 +216,7 @@ function CreateTicketSearchPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search by artist, team, or show..."
-                className="flex-1 bg-transparent outline-none text-sm placeholder:text-foreground/45 text-black font-medium"
+                className="flex-1 bg-transparent outline-none text-[16px] md:text-sm placeholder:text-foreground/45 text-black font-medium"
               />
               <Search className="h-5 w-5 text-primary shrink-0" />
             </div>
@@ -255,7 +255,7 @@ function CreateTicketSearchPage() {
               Event Details
             </h3>
 
-            <div className="space-y-3">
+             <div className="space-y-3">
               <div>
                 <label className="text-xs font-semibold text-zinc-700">Event Title</label>
                 <input
@@ -263,7 +263,7 @@ function CreateTicketSearchPage() {
                   placeholder="World Cup Round of 16..."
                   value={form.title}
                   onChange={(e) => setField("title", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
 
@@ -275,7 +275,7 @@ function CreateTicketSearchPage() {
                     placeholder="Soccer"
                     value={form.category}
                     onChange={(e) => setField("category", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
                 <div>
@@ -285,7 +285,7 @@ function CreateTicketSearchPage() {
                     placeholder="49"
                     value={form.priceFrom}
                     onChange={(e) => setField("priceFrom", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
               </div>
@@ -298,7 +298,7 @@ function CreateTicketSearchPage() {
                     placeholder="Lincoln Financial Field"
                     value={form.venue}
                     onChange={(e) => setField("venue", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
                 <div>
@@ -308,7 +308,7 @@ function CreateTicketSearchPage() {
                     placeholder="Philadelphia, PA"
                     value={form.city}
                     onChange={(e) => setField("city", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
               </div>
@@ -321,7 +321,7 @@ function CreateTicketSearchPage() {
                     placeholder="Sat, Jul 4, 2026"
                     value={form.date}
                     onChange={(e) => setField("date", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
                 <div>
@@ -331,7 +331,7 @@ function CreateTicketSearchPage() {
                     placeholder="5:00 PM"
                     value={form.time}
                     onChange={(e) => setField("time", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
               </div>
@@ -343,7 +343,7 @@ function CreateTicketSearchPage() {
                   placeholder="https://images.unsplash.com/..."
                   value={form.image}
                   onChange={(e) => setField("image", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
 
@@ -353,7 +353,7 @@ function CreateTicketSearchPage() {
                   value={form.description}
                   onChange={(e) => setField("description", e.target.value)}
                   rows={2}
-                  className="mt-1 w-full rounded-[4px] border border-foreground/20 px-3 py-2 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full rounded-[4px] border border-foreground/20 px-3 py-2 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
             </div>
@@ -373,7 +373,7 @@ function CreateTicketSearchPage() {
                   placeholder="Floor A"
                   value={form.section}
                   onChange={(e) => setField("section", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
               <div>
@@ -383,7 +383,7 @@ function CreateTicketSearchPage() {
                   placeholder="12"
                   value={form.row}
                   onChange={(e) => setField("row", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
             </div>
@@ -396,7 +396,7 @@ function CreateTicketSearchPage() {
                   placeholder="Verified OnSale"
                   value={form.ticketType}
                   onChange={(e) => setField("ticketType", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
               <div>
@@ -406,7 +406,7 @@ function CreateTicketSearchPage() {
                   placeholder="Gate 1, Verizon Gate"
                   value={form.entryInfo}
                   onChange={(e) => setField("entryInfo", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
             </div>
@@ -426,7 +426,7 @@ function CreateTicketSearchPage() {
                       placeholder={`Seat ${idx + 1}`}
                       value={seatVal}
                       onChange={(e) => handleSeatChange(idx, e.target.value)}
-                      className="flex-1 h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                      className="flex-1 h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                     />
                     {seats.length > 1 && (
                       <button
