@@ -85,7 +85,7 @@ function DiscoverPage() {
     <main className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
         {/* Logo bar */}
-        <div className="px-5 pt-6 pb-4 flex items-center justify-center">
+        <div className="px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 flex items-center justify-center">
           <Link to="/discover" className="flex items-center gap-2 text-primary">
             <TicketIcon className="h-5 w-5" />
             <span className="font-bold text-xl tracking-tight italic">TicketHub</span>
