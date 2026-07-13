@@ -295,7 +295,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Scroll Sheet Body */}
-          <div className="bg-white min-h-[calc(100dvh-calc(48px+env(safe-area-inset-top,48px)))] relative z-10 flex flex-col pb-24 shadow-2xl rounded-t-[16px]">
+          <div className="bg-white relative z-10 flex flex-col pb-0 shadow-2xl rounded-t-[16px]">
             
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
