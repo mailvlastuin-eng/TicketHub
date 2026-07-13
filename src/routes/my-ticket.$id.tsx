@@ -165,9 +165,30 @@ function MyTicketDetail() {
         }
       `}</style>
 
-      <div className="max-w-md mx-auto h-full relative flex flex-col bg-[#F3F4F6] select-none overflow-hidden">
+      <div className="max-w-md mx-auto h-full relative flex flex-col bg-[#F3F4F6] select-none">
         {/* Sticky Top Header (Back/Help buttons & title) */}
         <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 text-white overflow-hidden pointer-events-none">
+          {/* Header background image slice that covers the scrolling text */}
+          <div 
+            className="absolute inset-0 z-0 transition-opacity duration-150 pointer-events-none"
+            style={{ opacity: scrollOffset > 0 ? 1 : 0 }}
+          >
+            {ticket.image ? (
+              <img
+                src={ticket.image}
+                alt=""
+                className="w-full aspect-[4/3] object-cover absolute top-0 left-0"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary" />
+            )}
+            <div className="absolute inset-0 bg-black/10" />
+            <div 
+              className="absolute inset-0 bg-black/60 transition-opacity duration-150"
+              style={{ opacity: dimmerOpacity }}
+            />
+          </div>
+
           <Link
             to="/my-tickets"
             className="h-[42px] w-[42px] rounded-full bg-black/60 text-white flex items-center justify-center pointer-events-auto z-10 transition-colors"
@@ -175,6 +196,19 @@ function MyTicketDetail() {
           >
             <ArrowLeft className="h-[18px] w-[18px]" />
           </Link>
+
+          {/* Title and Venue info that fades in as the bottom sheet slides up */}
+          <div 
+            className="flex flex-col items-center justify-center text-center max-w-[200px] pointer-events-auto z-10 select-none transition-opacity duration-150"
+            style={{ opacity: headerTextOpacity }}
+          >
+            <span className="font-bold text-sm text-white truncate w-full uppercase">
+              {ticket.title}
+            </span>
+            <span className="text-[11px] text-zinc-300 truncate w-full mt-0.5">
+              {ticket.venue}{ticket.city ? `, ${ticket.city}` : ""}
+            </span>
+          </div>
 
           <div className="flex items-center gap-2 pointer-events-auto z-10">
             <button
@@ -186,21 +220,35 @@ function MyTicketDetail() {
           </div>
         </div>
 
-        {/* Hero image wrapper - Taller (aspect-4/3) and responsive */}
-        <div className="w-full aspect-[4/3] overflow-hidden relative bg-primary pointer-events-none shrink-0">
-          {ticket.image ? (
-            <img
-              src={ticket.image}
-              alt={ticket.title}
-              className="h-full w-full object-cover"
+        {/* Static Event Background Card (Layer 1) - Everything in this is static */}
+        <div className="absolute top-0 left-0 right-0 z-0 select-none flex flex-col bg-[#F3F4F6]">
+          {/* Hero image wrapper - Taller (aspect-4/3) and responsive */}
+          <div className="w-full aspect-[4/3] overflow-hidden relative bg-primary pointer-events-none">
+            {ticket.image ? (
+              <img
+                src={ticket.image}
+                alt={ticket.title}
+                className="h-full w-full object-cover"
+              />
+            ) : null}
+            {/* Static minimal black overlay */}
+            <div className="absolute inset-0 bg-black/10" />
+            {/* Dynamic dark tint dimmer overlay */}
+            <div 
+              className="absolute inset-0 bg-black/60 transition-opacity duration-150"
+              style={{ opacity: dimmerOpacity }}
             />
-          ) : null}
-          {/* Static minimal black overlay */}
-          <div className="absolute inset-0 bg-black/10" />
-        </div>
+            {/* Big title in center that fades out as we scroll */}
+            <div 
+              className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center px-6 transition-opacity duration-150"
+              style={{ opacity: 1 - dimmerOpacity }}
+            >
+              <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight leading-none uppercase drop-shadow">
+                {ticket.title}
+              </h1>
+            </div>
+          </div>
 
-        {/* Details and Actions Block */}
-        <div className="bg-[#F3F4F6] flex flex-col shrink-0">
           {/* Date bar */}
           <div className="bg-black text-white px-4 py-2 -mt-8 relative w-fit z-10 self-start">
             <p className="text-[11px] font-semibold tracking-wide">
@@ -235,31 +283,37 @@ function MyTicketDetail() {
           </button>
         </div>
 
-        {/* Bottom White Sheet Container - grows dynamically and handles scrolling */}
-        <div className="flex-1 bg-white rounded-t-[16px] shadow-2xl z-10 flex flex-col overflow-hidden">
-          
-          {/* Sticky Tabs */}
-          <div className="grid grid-cols-2 bg-white border-b border-zinc-200 shrink-0">
-            <TabHeader
-              label="Tickets"
-              active={tab === "tickets"}
-              onClick={() => setTab("tickets")}
-            />
-            <TabHeader
-              label="Extras"
-              active={tab === "extras"}
-              onClick={() => setTab("extras")}
-            />
+        {/* Scrollable Container (Nested Scrolling Sheet) */}
+        <div 
+          onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
+          className="h-full overflow-y-auto z-10 relative scrollbar-none"
+        >
+          {/* Top spacer matching background card height (aspect-[4/3] + 136px of static content) */}
+          <div className="w-full shrink-0 pointer-events-none flex flex-col">
+            <div className="w-full aspect-[4/3]" />
+            <div className="h-[136px] w-full" />
           </div>
 
-          {/* Scrollable Container (Nested Scrolling Sheet) */}
-          <div 
-            onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
-            className="flex-1 overflow-y-auto scrollbar-none pb-[calc(100px+env(safe-area-inset-bottom,32px))] px-4 pt-5 bg-white"
-          >
+          {/* Scroll Sheet Body */}
+          <div className="bg-white min-h-[calc(100dvh-calc(48px+env(safe-area-inset-top,48px)))] relative z-10 flex flex-col pb-24 shadow-2xl rounded-t-[16px]">
+            
+            {/* Sticky Tabs */}
+            <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
+              <TabHeader
+                label="Tickets"
+                active={tab === "tickets"}
+                onClick={() => setTab("tickets")}
+              />
+              <TabHeader
+                label="Extras"
+                active={tab === "extras"}
+                onClick={() => setTab("extras")}
+              />
+            </div>
+
             {/* Tab content inside the sheet */}
             {tab === "tickets" ? (
-              <div className="px-4 pt-5 bg-white">
+              <div className="px-4 pt-5 bg-white pb-[calc(100px+env(safe-area-inset-bottom,32px))]">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-base font-bold">Order #{orderId}</p>
@@ -382,7 +436,7 @@ function MyTicketDetail() {
                 )}
               </div>
             ) : (
-              <div className="px-4 py-10 text-center text-sm text-muted-foreground bg-white">
+              <div className="px-4 py-10 text-center text-sm text-muted-foreground bg-white pb-[calc(100px+env(safe-area-inset-bottom,32px))]">
                 No extras available.
               </div>
             )}
