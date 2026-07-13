@@ -503,27 +503,27 @@ function MyTicketDetail() {
                   </div>
                 </div>
 
-                {/* Horizontal Seat Selection Carousel */}
-                <div className="flex gap-[12px] px-[20px] py-[16px] overflow-x-auto no-scrollbar">
+                {/* Responsive wrapping Seat Grid */}
+                <div className="grid grid-cols-4 gap-[8px] px-[20px] py-[16px]">
                   {seatRows.map((s) => {
                     const isSelected = selectedSeats.includes(s.seat);
                     return (
                       <button
                         key={s.seat}
                         onClick={() => toggleSeatSelection(s.seat)}
-                        className="w-[94px] shrink-0 border border-zinc-200 rounded-xl overflow-hidden flex flex-col bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+                        className="w-full border border-zinc-200 rounded-[8px] overflow-hidden flex flex-col bg-white shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
                       >
-                        <div className="bg-[#1A56DB] text-white text-[12px] font-bold text-center py-2.5 uppercase tracking-wide w-full">
+                        <div className="bg-[#1A56DB] text-white text-[10px] font-bold text-center py-1.5 uppercase tracking-wide w-full">
                           Seat {s.seat}
                         </div>
-                        <div className="h-[68px] flex items-center justify-center w-full">
+                        <div className="h-[46px] flex items-center justify-center w-full">
                           <div
-                            className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all ${
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
                               isSelected ? "border-[#1A56DB] bg-[#1A56DB]" : "border-[1.5px] border-zinc-300 bg-white"
                             }`}
                           >
                             {isSelected && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                              <div className="w-2 h-2 rounded-full bg-white" />
                             )}
                           </div>
                         </div>
@@ -568,8 +568,8 @@ function MyTicketDetail() {
                   </p>
                 </div>
 
-                {/* Form Fields */}
-                <div className="p-[20px] space-y-[20px]">
+                {/* Form Fields - Darker borders, closer items, double-height textarea note */}
+                <div className="p-[20px] space-y-[12px]">
                   <div>
                     <label className="text-[14px] font-bold text-[#374151]">
                       First Name
@@ -579,7 +579,7 @@ function MyTicketDetail() {
                       placeholder="First Name"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full h-[46px] border border-zinc-400 rounded-[4px] px-3.5 text-[16px] text-black mt-[4px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
                     />
                   </div>
 
@@ -592,7 +592,7 @@ function MyTicketDetail() {
                       placeholder="Last Name"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full h-[46px] border border-zinc-400 rounded-[4px] px-3.5 text-[16px] text-black mt-[4px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
                     />
                   </div>
 
@@ -605,7 +605,7 @@ function MyTicketDetail() {
                       placeholder="Email or Mobile Number"
                       value={emailPhone}
                       onChange={(e) => setEmailPhone(e.target.value)}
-                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full h-[46px] border border-zinc-400 rounded-[4px] px-3.5 text-[16px] text-black mt-[4px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
                     />
                   </div>
 
@@ -613,12 +613,11 @@ function MyTicketDetail() {
                     <label className="text-[14px] font-bold text-[#374151]">
                       Note
                     </label>
-                    <input
-                      type="text"
+                    <textarea
                       placeholder="Note"
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
-                      className="w-full border-b border-zinc-300 pb-2 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full h-[92px] border border-zinc-400 rounded-[4px] px-3.5 py-2.5 text-[16px] text-black mt-[4px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all resize-none"
                     />
                   </div>
                 </div>
