@@ -154,7 +154,7 @@ function MyTicketDetail() {
   const headerTextOpacity = Math.min(1, Math.max(0, (scrollOffset - 80) / 100));
 
   return (
-    <main className="h-screen w-full overflow-hidden bg-zinc-950 relative">
+    <main className="h-[100dvh] w-full overflow-hidden bg-zinc-950 relative">
       <style>{`
         .scrollbar-none::-webkit-scrollbar {
           display: none;
@@ -533,7 +533,7 @@ function MyTicketDetail() {
                 </div>
 
                 {/* Bottom Actions Bar */}
-                <div className="mt-auto border-t border-zinc-200 px-[20px] py-[16px] flex items-center justify-between bg-white">
+                <div className="mt-auto border-t border-zinc-200 px-[20px] pt-[16px] pb-[calc(16px+env(safe-area-inset-bottom))] flex items-center justify-between bg-white">
                   <span className="text-[15px] font-normal text-black">
                     {selectedSeats.length} Selected
                   </span>
@@ -579,7 +579,7 @@ function MyTicketDetail() {
                       placeholder="First Name"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[15px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
                     />
                   </div>
 
@@ -592,7 +592,7 @@ function MyTicketDetail() {
                       placeholder="Last Name"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[15px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
                     />
                   </div>
 
@@ -605,7 +605,7 @@ function MyTicketDetail() {
                       placeholder="Email or Mobile Number"
                       value={emailPhone}
                       onChange={(e) => setEmailPhone(e.target.value)}
-                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[15px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full h-[46px] border border-zinc-300 rounded-[4px] px-3.5 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
                     />
                   </div>
 
@@ -618,13 +618,13 @@ function MyTicketDetail() {
                       placeholder="Note"
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
-                      className="w-full border-b border-zinc-300 pb-2 text-[15px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
+                      className="w-full border-b border-zinc-300 pb-2 text-[16px] text-black mt-[8px] placeholder-zinc-400 bg-white focus:border-blue-600 outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Bottom Actions Bar */}
-                <div className="mt-auto border-t border-zinc-200 px-[20px] py-[16px] flex items-center justify-between bg-white">
+                <div className="mt-auto border-t border-zinc-200 px-[20px] pt-[16px] pb-[calc(16px+env(safe-area-inset-bottom))] flex items-center justify-between bg-white">
                   <button
                     onClick={() => setTransferStep("select")}
                     className="text-[15px] font-bold text-[#1A56DB] uppercase flex items-center gap-0.5 tracking-wider"

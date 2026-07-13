@@ -188,7 +188,7 @@ function EditTicketPage() {
                   placeholder="World Cup Round of 16..."
                   value={form.title}
                   onChange={(e) => setField("title", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
 
@@ -200,7 +200,7 @@ function EditTicketPage() {
                     placeholder="Soccer"
                     value={form.category}
                     onChange={(e) => setField("category", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
                 <div>
@@ -210,7 +210,7 @@ function EditTicketPage() {
                     placeholder="49"
                     value={form.priceFrom}
                     onChange={(e) => setField("priceFrom", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
               </div>
@@ -223,7 +223,7 @@ function EditTicketPage() {
                     placeholder="Lincoln Financial Field"
                     value={form.venue}
                     onChange={(e) => setField("venue", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
                 <div>
@@ -233,7 +233,7 @@ function EditTicketPage() {
                     placeholder="Philadelphia, PA"
                     value={form.city}
                     onChange={(e) => setField("city", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
               </div>
@@ -246,7 +246,7 @@ function EditTicketPage() {
                     placeholder="Sat, Jul 4, 2026"
                     value={form.date}
                     onChange={(e) => setField("date", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
                 <div>
@@ -256,7 +256,7 @@ function EditTicketPage() {
                     placeholder="5:00 PM"
                     value={form.time}
                     onChange={(e) => setField("time", e.target.value)}
-                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                    className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                   />
                 </div>
               </div>
@@ -268,7 +268,7 @@ function EditTicketPage() {
                   placeholder="https://images.unsplash.com/..."
                   value={form.image}
                   onChange={(e) => setField("image", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
 
@@ -278,7 +278,7 @@ function EditTicketPage() {
                   value={form.description}
                   onChange={(e) => setField("description", e.target.value)}
                   rows={3}
-                  className="mt-1 w-full rounded-[4px] border border-foreground/20 px-3 py-2 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full rounded-[4px] border border-foreground/20 px-3 py-2 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
             </div>
@@ -298,7 +298,7 @@ function EditTicketPage() {
                   placeholder="Floor A"
                   value={form.section}
                   onChange={(e) => setField("section", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
               <div>
@@ -308,7 +308,7 @@ function EditTicketPage() {
                   placeholder="12"
                   value={form.row}
                   onChange={(e) => setField("row", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
             </div>
@@ -321,7 +321,7 @@ function EditTicketPage() {
                   placeholder="Verified OnSale"
                   value={form.ticketType}
                   onChange={(e) => setField("ticketType", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
               <div>
@@ -331,7 +331,7 @@ function EditTicketPage() {
                   placeholder="Gate 1, Verizon Gate"
                   value={form.entryInfo}
                   onChange={(e) => setField("entryInfo", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                 />
               </div>
             </div>
@@ -351,7 +351,7 @@ function EditTicketPage() {
                       placeholder={`Seat ${idx + 1}`}
                       value={seatVal}
                       onChange={(e) => handleSeatChange(idx, e.target.value)}
-                      className="flex-1 h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background text-black"
+                      className="flex-1 h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
                     />
                     {seats.length > 1 && (
                       <button

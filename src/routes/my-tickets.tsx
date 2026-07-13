@@ -111,7 +111,7 @@ function MyTicketsPage() {
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 inset-x-0 border-t bg-background z-40">
+      <nav className="fixed bottom-0 inset-x-0 border-t bg-background z-40 pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-md mx-auto grid grid-cols-4">
           <NavItem
             icon={<Search className="h-5 w-5" />}
