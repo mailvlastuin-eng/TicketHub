@@ -59,7 +59,7 @@ function MyTicketsPage() {
     <main className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
         {/* Top bar */}
-        <div className="grid grid-cols-3 items-center px-5 pt-6 pb-4">
+        <div className="grid grid-cols-3 items-center px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4">
           <span />
           <h1 className="text-center text-base font-medium flex items-center justify-center gap-1.5">
             My Events <span aria-hidden>🇺🇸</span>

@@ -75,7 +75,7 @@ function MyAccountPage() {
     <main className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
         {/* Blue header */}
-        <header className="bg-primary text-primary-foreground px-5 pt-6 pb-6">
+        <header className="bg-primary text-primary-foreground px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-6">
           <h1 className="text-center text-base font-medium">My Account</h1>
           <div className="mt-6">
             {editing === "name" ? (

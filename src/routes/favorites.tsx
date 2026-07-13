@@ -140,7 +140,7 @@ function FavoritesPage() {
     <main className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="bg-primary text-primary-foreground py-5 text-center">
+        <div className="bg-primary text-primary-foreground pt-[calc(16px+env(safe-area-inset-top,20px))] pb-5 text-center">
           <h1 className="text-lg font-medium">Manager</h1>
         </div>
 
