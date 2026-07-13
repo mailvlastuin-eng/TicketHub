@@ -1,0 +1,17 @@
+{
+  "name": "TicketHub",
+  "short_name": "TicketHub",
+  "description": "Discover live events near you and manage your tickets.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ]
+}
