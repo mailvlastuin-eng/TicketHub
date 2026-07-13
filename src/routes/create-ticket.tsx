@@ -207,18 +207,37 @@ function CreateTicketSearchPage() {
 
         <div className="p-5 space-y-5">
           {/* Search bar */}
-          <div className="border border-foreground/20 rounded-[4px] px-4 py-3 bg-card shadow-sm">
+          <div className="border border-foreground/20 rounded-[4px] p-4 bg-card shadow-sm">
             <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/60">
               Search Event from Ticketmaster
             </p>
-            <div className="flex items-center gap-2 mt-1">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by artist, team, or show..."
-                className="flex-1 bg-transparent outline-none text-[16px] md:text-sm placeholder:text-foreground/45 text-black font-medium"
-              />
-              <Search className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex-1 flex items-center gap-2 border border-zinc-300 rounded-[4px] px-3.5 h-[46px] bg-white">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by artist, team, or show..."
+                  className="flex-1 bg-transparent outline-none text-[16px] placeholder-zinc-400 text-black font-medium"
+                />
+                <Search className="h-5 w-5 text-zinc-400 shrink-0" />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const q = query.trim();
+                  if (q) {
+                    setLoading(true);
+                    setError(null);
+                    searchTMEvents({ data: { keyword: q } })
+                      .then((res) => setSearchResults(res))
+                      .catch((err) => setError(err?.message ?? "Failed to search events"))
+                      .finally(() => setLoading(false));
+                  }
+                }}
+                className="h-[46px] px-5 bg-primary hover:opacity-90 text-white font-bold rounded-[4px] flex items-center justify-center uppercase tracking-wide text-xs shrink-0 cursor-pointer shadow-sm transition-opacity"
+              >
+                Search
+              </button>
             </div>
           </div>
 
