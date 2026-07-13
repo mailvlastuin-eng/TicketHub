@@ -71,6 +71,21 @@ function MyTicketDetail() {
   const [mapsKey, setMapsKey] = useState<string>("");
   const [mapLoadError, setMapLoadError] = useState(false);
   const [scrollOffset, setScrollOffset] = useState(0);
+  const [detailsHeight, setDetailsHeight] = useState(156);
+  const detailsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!detailsRef.current) return;
+    setDetailsHeight(detailsRef.current.offsetHeight);
+
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setDetailsHeight(entry.target.clientHeight);
+      }
+    });
+    observer.observe(detailsRef.current);
+    return () => observer.disconnect();
+  }, [ticket?.id]);
 
   useEffect(() => {
     getGoogleMapsKey().then((key) => {
@@ -220,7 +235,7 @@ function MyTicketDetail() {
           </div>
         </div>
 
-        {/* Static Event Background Card (Layer 1) - Everything in this is static */}
+         {/* Static Event Background Card (Layer 1) - Everything in this is static */}
         <div className="absolute top-0 left-0 right-0 z-0 select-none flex flex-col bg-[#F3F4F6]">
           {/* Hero image wrapper - Taller (aspect-4/3) and responsive */}
           <div className="w-full aspect-[4/3] overflow-hidden relative bg-primary pointer-events-none">
@@ -249,38 +264,41 @@ function MyTicketDetail() {
             </div>
           </div>
 
-          {/* Date bar */}
-          <div className="bg-black text-white px-4 py-2 -mt-8 relative w-fit z-10 self-start">
-            <p className="text-[11px] font-semibold tracking-wide">
-              {formatDateBar(ticket)}
-            </p>
-          </div>
-
-          {/* Title block */}
-          <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative">
-            <div>
-              <h2 className="text-base font-bold uppercase leading-tight">
-                {ticket.title}
-              </h2>
-              <p className="mt-4 text-xs text-white/70">
-                {ticket.venue}
-                {ticket.city ? `, ${ticket.city}` : ""}
+          {/* Wrapper for dynamic measurement */}
+          <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6]">
+            {/* Date bar */}
+            <div className="bg-black text-white px-4 py-2 -mt-8 relative w-fit z-10 self-start">
+              <p className="text-[11px] font-semibold tracking-wide">
+                {formatDateBar(ticket)}
               </p>
             </div>
-            <div className="flex items-center gap-1 text-white/80 shrink-0">
-              <ScanBarcode className="h-4 w-4" />
-              <span className="text-xs">x{qty}</span>
-            </div>
-          </div>
 
-          {/* View Tickets CTA */}
-          <button
-            onClick={() => showToast("Tickets ready to scan")}
-            className="w-full bg-primary text-primary-foreground py-3.5 flex items-center justify-center gap-2 text-sm font-semibold z-10 relative pointer-events-auto"
-          >
-            <ScanBarcode className="h-4 w-4" />
-            View Tickets
-          </button>
+            {/* Title block */}
+            <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative">
+              <div>
+                <h2 className="text-base font-bold uppercase leading-tight">
+                  {ticket.title}
+                </h2>
+                <p className="mt-4 text-xs text-white/70">
+                  {ticket.venue}
+                  {ticket.city ? `, ${ticket.city}` : ""}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 text-white/80 shrink-0">
+                <ScanBarcode className="h-4 w-4" />
+                <span className="text-xs">x{qty}</span>
+              </div>
+            </div>
+
+            {/* View Tickets CTA */}
+            <button
+              onClick={() => showToast("Tickets ready to scan")}
+              className="w-full bg-primary text-primary-foreground py-3.5 flex items-center justify-center gap-2 text-sm font-semibold z-10 relative pointer-events-auto"
+            >
+              <ScanBarcode className="h-4 w-4" />
+              View Tickets
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Container (Nested Scrolling Sheet) */}
@@ -288,14 +306,14 @@ function MyTicketDetail() {
           onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
           className="h-full overflow-y-auto z-10 relative scrollbar-none"
         >
-          {/* Top spacer matching background card height (aspect-[4/3] + 156px of static content) */}
+          {/* Top spacer matching background card height (aspect-[4/3] + detailsHeight of static content) */}
           <div className="w-full shrink-0 pointer-events-none flex flex-col">
             <div className="w-full aspect-[4/3]" />
-            <div className="h-[156px] w-full" />
+            <div style={{ height: detailsHeight }} className="w-full" />
           </div>
 
           {/* Scroll Sheet Body */}
-          <div className="bg-white relative z-10 flex flex-col pb-0 shadow-2xl rounded-t-[16px]">
+          <div className="bg-white min-h-[calc(100dvh-calc(48px+env(safe-area-inset-top,48px)))] relative z-10 flex flex-col pb-0 shadow-2xl rounded-t-[16px]">
             
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
