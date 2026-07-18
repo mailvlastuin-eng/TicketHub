@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
+import { checkSessionFn } from "../admin/functions";
 
 const KEY = "tm_user";
 
-export type SessionUser = { email: string; name: string };
+export type SessionUser = { 
+  email: string; 
+  name: string; 
+  sessionId?: string; 
+  loginMode?: 'single' | 'multiple';
+};
 
 export function getUser(): SessionUser | null {
   if (typeof window === "undefined") return null;
@@ -28,8 +34,27 @@ export function useUser() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    setUser(getUser());
+    const initialUser = getUser();
+    setUser(initialUser);
     setReady(true);
+
+    if (initialUser && initialUser.sessionId) {
+      checkSessionFn({
+        data: {
+          email: initialUser.email,
+          sessionId: initialUser.sessionId,
+        },
+      })
+        .then((res) => {
+          if (!res.valid) {
+            signOut();
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to validate user session in background:", err);
+        });
+    }
+
     const onChange = () => setUser(getUser());
     window.addEventListener("tm-auth", onChange);
     window.addEventListener("storage", onChange);

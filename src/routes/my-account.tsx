@@ -195,6 +195,15 @@ function MyAccountPage() {
             icon={<LogOut className="h-5 w-5" />}
             label="Sign out"
             onClick={() => {
+              if (user?.loginMode === "single") {
+                if (
+                  !confirm(
+                    "Are you sure you want to sign out? This account is configured for Single Sign-In. Once you sign out, you will be permanently locked out and cannot log back in with these credentials."
+                  )
+                ) {
+                  return;
+                }
+              }
               signOut();
               navigate({ to: "/", replace: true });
             }}
