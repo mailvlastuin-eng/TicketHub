@@ -308,3 +308,11 @@ export const deleteUserAccessFn = createServerFn({ method: 'POST' })
     deleteUser(data.userId);
     return { success: true };
   });
+
+// 8. Get App Build Version/Timestamp
+export const getAppVersionFn = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    return {
+      version: process.env.VERCEL_GIT_COMMIT_SHA || process.env.BUILD_ID || '1.0.0-dev',
+    };
+  });
