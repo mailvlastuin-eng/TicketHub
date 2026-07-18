@@ -182,7 +182,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
           />
         </div>
       )}
-      <div className="bg-black/85 text-white px-4 py-2 -mt-8 relative w-fit">
+      <div className="bg-black/85 text-white px-4 py-2 mt-0 relative w-fit">
         <p className="text-[11px] font-semibold tracking-wide">
           {formatHeaderDate(ticket)}
         </p>
