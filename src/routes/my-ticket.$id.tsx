@@ -251,17 +251,16 @@ function MyTicketDetail() {
               className="absolute inset-0 bg-black/60 transition-opacity duration-150"
               style={{ opacity: dimmerOpacity }}
             />
-          </div>
-
-          {/* Wrapper for dynamic measurement */}
-          <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6]">
-            {/* Date bar */}
-            <div className="bg-black text-white px-4 py-2 mt-0 relative w-fit z-10 self-start">
+            {/* Date badge absolutely over the photo */}
+            <div className="absolute bottom-0 left-0 bg-black text-white px-4 py-2 z-10">
               <p className="text-[11px] font-semibold tracking-wide">
                 {formatDateBar(ticket)}
               </p>
             </div>
+          </div>
 
+          {/* Wrapper for dynamic measurement */}
+          <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6]">
             {/* Title block */}
             <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative">
               <div>
@@ -302,7 +301,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full min-h-screen -mt-[2px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
+          <div className="bg-white w-full min-h-screen -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
