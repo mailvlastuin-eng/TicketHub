@@ -7,10 +7,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { getAppVersionFn } from "../admin/functions";
 
 function NotFoundComponent() {
   return (
@@ -119,11 +120,74 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [hasUpdate, setHasUpdate] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let initialVersion: string | null = null;
+    let intervalId: any = null;
+
+    const checkVersion = async () => {
+      try {
+        const res = await getAppVersionFn();
+        const currentVersion = res.version;
+        if (!initialVersion) {
+          initialVersion = currentVersion;
+        } else if (initialVersion !== currentVersion) {
+          setHasUpdate(true);
+        }
+      } catch (err) {
+        console.error('Failed to check app version:', err);
+      }
+    };
+
+    // Check version immediately on mount
+    checkVersion();
+
+    // Check version every 60 seconds
+    intervalId = setInterval(checkVersion, 60000);
+
+    // Also check version whenever tab gains focus (e.g. when opening homescreen app)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkVersion();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+
+      {hasUpdate && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[340px] px-4 animate-bounce">
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-slate-900/95 text-white py-3.5 px-5 rounded-xl border border-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.36)] flex items-center justify-between gap-3 text-xs cursor-pointer backdrop-blur-md"
+          >
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="font-bold text-slate-100 uppercase tracking-wide text-left">
+                New Update Available
+              </span>
+            </div>
+            <span className="text-blue-400 font-bold uppercase tracking-wider text-[11px] hover:text-blue-300 transition-colors shrink-0">
+              Reload now
+            </span>
+          </button>
+        </div>
+      )}
     </QueryClientProvider>
   );
 }
