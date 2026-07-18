@@ -251,21 +251,12 @@ function MyTicketDetail() {
               className="absolute inset-0 bg-black/60 transition-opacity duration-150"
               style={{ opacity: dimmerOpacity }}
             />
-            {/* Big title in center that fades out as we scroll */}
-            <div 
-              className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center px-6 transition-opacity duration-150"
-              style={{ opacity: 1 - dimmerOpacity }}
-            >
-              <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight leading-none uppercase drop-shadow">
-                {ticket.title}
-              </h1>
-            </div>
           </div>
 
           {/* Wrapper for dynamic measurement */}
           <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6]">
             {/* Date bar */}
-            <div className="bg-black text-white px-4 py-2 -mt-8 relative w-fit z-10 self-start">
+            <div className="bg-black text-white px-4 py-2 mt-0 relative w-fit z-10 self-start">
               <p className="text-[11px] font-semibold tracking-wide">
                 {formatDateBar(ticket)}
               </p>
@@ -419,33 +410,33 @@ function MyTicketDetail() {
                   <Link
                     to="/my-ticket/$id"
                     params={{ id: related[0].id }}
-                    className="mt-5 block relative overflow-hidden rounded-[4px]"
+                    className="mt-5 block overflow-hidden rounded-[4px] border border-foreground/10 bg-white"
                   >
                     {related[0].image && (
-                      <img
-                        src={related[0].image}
-                        alt={related[0].title}
-                        className="w-full aspect-[16/10] object-cover"
-                      />
+                      <div className="w-full aspect-[16/10] overflow-hidden">
+                        <img
+                          src={related[0].image}
+                          alt={related[0].title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     )}
-                    <div className="absolute inset-0 flex flex-col justify-end p-4">
-                      <div className="bg-black/80 text-white p-3 max-w-[75%]">
-                        <p className="text-[10px] font-semibold">
+                    <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-semibold text-white/70">
                           {formatDateBar(related[0])}
                         </p>
                         <p className="mt-1 text-sm font-bold uppercase leading-tight">
                           {related[0].title}
                         </p>
-                        <p className="mt-2 text-[10px] text-white/70">
+                        <p className="mt-2 text-[10px] text-white/50">
                           {related[0].venue}
                           {related[0].city ? `, ${related[0].city}` : ""}
                         </p>
                       </div>
-                    </div>
-                    <div className="absolute inset-y-0 right-0 w-1/3 bg-primary/85 flex items-center justify-center">
-                      <span className="text-white text-sm font-bold uppercase text-center leading-tight">
+                      <div className="bg-primary px-3 py-1.5 rounded text-[10px] font-bold uppercase shrink-0 text-center leading-tight">
                         You got<br />tickets
-                      </span>
+                      </div>
                     </div>
                   </Link>
                 )}
