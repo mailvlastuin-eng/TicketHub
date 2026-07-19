@@ -683,7 +683,9 @@ export function AdminDashboardApp() {
                 </div>
               </div>
             )}
-            {/* Creation Form Column */}
+          </div>
+
+          {/* Creation Form Column */}
           <div className="space-y-6">
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md">
               <h3 className="font-bold text-sm uppercase tracking-wider text-slate-800 mb-5 flex items-center gap-2">
