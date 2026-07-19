@@ -478,6 +478,7 @@ export function AdminDashboardApp() {
               >
                 Live Login Logs ({filteredAttempts.length})
               </button>
+            </div>
                 {/* User Accounts Tab */}
             {activeTab === 'users' && (
               <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-md">
