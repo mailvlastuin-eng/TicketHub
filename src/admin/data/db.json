@@ -1,0 +1,108 @@
+{
+  "users": [
+    {
+      "id": "usr_78uwv6nol",
+      "email": "jane.smith@example.com",
+      "password": "secure123",
+      "duration": "1m",
+      "status": "active",
+      "createdAt": "2026-07-18T23:00:51.141Z",
+      "activatedAt": "2026-07-18T23:01:15.625Z",
+      "expiresAt": "2026-08-18T23:01:15.625Z",
+      "sessionId": "sess_nvgugnkzay00f1cv5rgvnle",
+      "deviceInfo": "Unknown Device"
+    },
+    {
+      "id": "usr_wrbnckpoo",
+      "email": "megy@megy.com",
+      "password": "megy123",
+      "duration": "1m",
+      "status": "active",
+      "createdAt": "2026-07-19T00:06:45.063Z",
+      "activatedAt": "2026-07-19T00:07:58.280Z",
+      "expiresAt": "2026-08-19T00:07:58.280Z",
+      "sessionId": "sess_vufeidz8u0ad9ivnsvp1x",
+      "deviceInfo": "Unknown Device",
+      "loginMode": "single"
+    }
+  ],
+  "attempts": [
+    {
+      "email": "megy@megy.com",
+      "passwordAttempted": "megy123",
+      "timestamp": "2026-07-19T00:07:58.284Z",
+      "success": true,
+      "status": "success",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_bsiiwumva"
+    },
+    {
+      "email": "megy@magy.com",
+      "passwordAttempted": "megy123",
+      "timestamp": "2026-07-19T00:07:25.474Z",
+      "success": false,
+      "status": "failed_incorrect_password",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_7b48ij9k2"
+    },
+    {
+      "email": "jane.smith@example.com",
+      "passwordAttempted": "secure123",
+      "timestamp": "2026-07-18T23:01:15.650Z",
+      "success": true,
+      "status": "success",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_70ytvzpc6"
+    },
+    {
+      "email": "you@gmail.com",
+      "passwordAttempted": "jhfukchvj",
+      "timestamp": "2026-07-18T22:59:39.863Z",
+      "success": false,
+      "status": "failed_incorrect_password",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_tjd5b0b1r"
+    },
+    {
+      "email": "jane.smith@example.com",
+      "passwordAttempted": "AKSNKSNKD",
+      "timestamp": "2026-07-18T22:24:03.973Z",
+      "success": false,
+      "status": "failed_incorrect_password",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_x97s1eo9w"
+    },
+    {
+      "email": "jane.smith@example.com",
+      "passwordAttempted": "ksssd",
+      "timestamp": "2026-07-18T22:23:56.022Z",
+      "success": false,
+      "status": "failed_incorrect_password",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_luxvwztdb"
+    },
+    {
+      "email": "test-admin-check@example.com",
+      "passwordAttempted": "password-123",
+      "timestamp": "2026-07-14T08:28:32.654Z",
+      "success": true,
+      "status": "success",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Safari on macOS (Desktop)",
+      "id": "att_vjxi1192w"
+    }
+  ]
+}
