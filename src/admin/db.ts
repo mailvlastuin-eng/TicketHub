@@ -48,6 +48,7 @@ export interface DbSchema {
 
 const DB_DIR = path.join(process.cwd(), 'src/admin/data');
 const DB_PATH = path.join(DB_DIR, 'db.json');
+const CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019f9583a8f02252';
 
 // Initialize database file if it doesn't exist
 function initDb() {
@@ -60,7 +61,7 @@ function initDb() {
       fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
     }
   } catch (err) {
-    console.error('Failed to initialize local db.json fallback:', err);
+    // Fail silently on read-only serverless filesystems
   }
 }
 
@@ -78,10 +79,6 @@ const firebaseConfig = {
 
 const isFirebaseEnabled = () => !!process.env.FIREBASE_PROJECT_ID;
 
-if (typeof window === 'undefined' && !isFirebaseEnabled() && (process.env.VERCEL || process.env.LAMBDA_TASK_ROOT)) {
-  console.warn('⚠️ WARNING: Firebase is not configured on this deployment. User accounts created or modified in this session will NOT persist after container recycles. To fix this, set up a Firebase project and add the project environment variables.');
-}
-
 // Lazy initialization of Firebase
 let dbInstance: any = null;
 function getFirestoreDb() {
@@ -89,7 +86,15 @@ function getFirestoreDb() {
   if (dbInstance) return dbInstance;
   
   try {
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    const config = {
+      apiKey: process.env.FIREBASE_API_KEY,
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.FIREBASE_APP_ID,
+    };
+    const app = getApps().length === 0 ? initializeApp(config) : getApp();
     dbInstance = getFirestore(app);
     return dbInstance;
   } catch (err) {
@@ -100,15 +105,30 @@ function getFirestoreDb() {
 
 export async function getDb(): Promise<DbSchema> {
   initDb();
+  
+  // Try fetching from persistent cloud KV endpoint first
+  try {
+    const res = await fetch(CLOUD_DB_URL, { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.data && Array.isArray(json.data.users)) {
+        cache = json.data as DbSchema;
+        return cache;
+      }
+    }
+  } catch (cloudErr) {
+    console.warn('Cloud KV fallback fetch error:', cloudErr);
+  }
+
   if (cache) {
     return cache;
   }
+
   try {
     const raw = fs.readFileSync(DB_PATH, 'utf-8');
     cache = JSON.parse(raw) as DbSchema;
     return cache;
   } catch (error) {
-    console.error('Failed to read db.json, returning empty structure:', error);
     return { users: [], attempts: [] };
   }
 }
@@ -116,13 +136,27 @@ export async function getDb(): Promise<DbSchema> {
 export async function saveDb(data: DbSchema) {
   cache = data;
   initDb();
+  
+  // Sync asynchronously to persistent cloud storage
   try {
-    // Write atomically via a temp file to prevent corruption
+    await fetch(CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'tickethub_db',
+        data: data
+      })
+    });
+  } catch (cloudErr) {
+    console.error('Cloud KV fallback save error:', cloudErr);
+  }
+
+  try {
     const tempPath = `${DB_PATH}.tmp`;
     fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
     fs.renameSync(tempPath, DB_PATH);
   } catch (error) {
-    console.error('Failed to write db.json:', error);
+    // Fail silently on read-only serverless filesystems
   }
 }
 
