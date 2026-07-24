@@ -448,7 +448,7 @@ export function AdminDashboardApp() {
                 {diagnostics.dbError ? (
                   <p className="text-xs font-mono mt-0.5 opacity-90">{diagnostics.dbError}</p>
                 ) : (
-                  <p className="text-xs opacity-90">Firebase Project: {diagnostics.projectId} (API Key: {diagnostics.hasApiKey ? 'Loaded' : 'Missing'})</p>
+                  <p className="text-xs opacity-90">Database: {diagnostics.projectId}</p>
                 )}
               </div>
             </div>
