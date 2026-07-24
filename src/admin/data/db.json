@@ -1,0 +1,38 @@
+{
+  "users": [],
+  "attempts": [
+    {
+      "email": "jane.smith@example.com",
+      "passwordAttempted": "secure123",
+      "timestamp": "2026-07-24T13:10:42.687Z",
+      "success": true,
+      "status": "success",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_wq5qm7n80"
+    },
+    {
+      "email": "jane.smith@example.com",
+      "passwordAttempted": "secure123",
+      "timestamp": "2026-07-24T13:00:35.091Z",
+      "success": true,
+      "status": "success",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_7zew2ml2m"
+    },
+    {
+      "email": "jane.smith@example.com",
+      "passwordAttempted": "ajjjdd",
+      "timestamp": "2026-07-24T12:56:22.159Z",
+      "success": false,
+      "status": "failed_incorrect_password",
+      "userAgent": "Unknown",
+      "ip": "127.0.0.1",
+      "deviceInfo": "Unknown Device",
+      "id": "att_fbztiinjp"
+    }
+  ]
+}
