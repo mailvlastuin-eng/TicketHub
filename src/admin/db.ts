@@ -14,6 +14,13 @@ import {
   orderBy, 
   limit 
 } from 'firebase/firestore';
+import { 
+  getDatabase, 
+  ref as dbRef, 
+  set as dbSet, 
+  get as dbGet,
+  child
+} from 'firebase/database';
 
 export interface UserAccess {
   id: string;
@@ -51,11 +58,13 @@ const DB_PATH = path.join(DB_DIR, 'db.json');
 const CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019f9640-4c3f-7901-ba90-e701ebfb29eb';
 
 function getFirebaseConfig() {
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'tickethub';
   return {
     apiKey: process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
+    databaseURL: process.env.FIREBASE_DATABASE_URL || `https://${projectId}-default-rtdb.firebaseio.com` || `https://${projectId}-default-rtdb.us-central1.firebasedatabase.app`,
+    projectId: projectId,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`,
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   };
@@ -77,7 +86,23 @@ function getFirestoreDb() {
     dbInstance = getFirestore(app);
     return dbInstance;
   } catch (err) {
-    console.error('Failed to initialize Firebase app:', err);
+    console.error('Failed to initialize Firebase Firestore app:', err);
+    return null;
+  }
+}
+
+let rtdbInstance: any = null;
+function getRealtimeDb() {
+  if (!isFirebaseEnabled()) return null;
+  if (rtdbInstance) return rtdbInstance;
+  
+  try {
+    const config = getFirebaseConfig();
+    const app = getApps().length === 0 ? initializeApp(config) : getApp();
+    rtdbInstance = getDatabase(app);
+    return rtdbInstance;
+  } catch (err) {
+    console.error('Failed to initialize Firebase Realtime Database:', err);
     return null;
   }
 }
@@ -147,8 +172,27 @@ export async function saveDb(data: DbSchema) {
   }
 }
 
-// Direct Firebase Firestore CRUD with Cloud Fallback
+// Direct Firebase Firestore & Realtime Database CRUD with Cloud Fallback
 export async function getAllUsers(): Promise<UserAccess[]> {
+  const rtdb = getRealtimeDb();
+  if (rtdb) {
+    try {
+      const snapshot = await dbGet(dbRef(rtdb, 'users'));
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        const users: UserAccess[] = [];
+        for (const key in val) {
+          if (val[key]) {
+            users.push({ id: key, ...val[key] } as UserAccess);
+          }
+        }
+        if (users.length > 0) return users;
+      }
+    } catch (err) {
+      console.error('Failed to get users directly from Firebase Realtime Database:', err);
+    }
+  }
+
   const db = getFirestoreDb();
   if (db) {
     try {
@@ -158,7 +202,7 @@ export async function getAllUsers(): Promise<UserAccess[]> {
       snapshot.forEach((docSnap) => {
         users.push({ id: docSnap.id, ...docSnap.data() } as UserAccess);
       });
-      return users;
+      if (users.length > 0) return users;
     } catch (err) {
       console.error('Failed to get users directly from Firebase Firestore:', err);
     }
@@ -174,6 +218,23 @@ export async function getAllUsers(): Promise<UserAccess[]> {
 export async function getUserByEmail(email: string): Promise<UserAccess | undefined> {
   const normalizedEmail = email.trim().toLowerCase();
   
+  const rtdb = getRealtimeDb();
+  if (rtdb) {
+    try {
+      const snapshot = await dbGet(dbRef(rtdb, 'users'));
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        for (const key in val) {
+          if (val[key] && val[key].email && val[key].email.toLowerCase() === normalizedEmail) {
+            return { id: key, ...val[key] } as UserAccess;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to get user by email directly from Firebase Realtime Database:', err);
+    }
+  }
+
   const db = getFirestoreDb();
   if (db) {
     try {
@@ -183,7 +244,6 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
         const docSnap = snapshot.docs[0];
         return { id: docSnap.id, ...docSnap.data() } as UserAccess;
       }
-      return undefined;
     } catch (err) {
       console.error('Failed to get user by email directly from Firebase Firestore:', err);
     }
@@ -199,6 +259,23 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
 }
 
 export async function getUserByPassword(password: string): Promise<UserAccess | undefined> {
+  const rtdb = getRealtimeDb();
+  if (rtdb) {
+    try {
+      const snapshot = await dbGet(dbRef(rtdb, 'users'));
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        for (const key in val) {
+          if (val[key] && val[key].password === password) {
+            return { id: key, ...val[key] } as UserAccess;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to get user by password directly from Firebase Realtime Database:', err);
+    }
+  }
+
   const db = getFirestoreDb();
   if (db) {
     try {
@@ -208,7 +285,6 @@ export async function getUserByPassword(password: string): Promise<UserAccess | 
         const docSnap = snapshot.docs[0];
         return { id: docSnap.id, ...docSnap.data() } as UserAccess;
       }
-      return undefined;
     } catch (err) {
       console.error('Failed to get user by password directly from Firebase Firestore:', err);
     }
@@ -224,6 +300,15 @@ export async function getUserByPassword(password: string): Promise<UserAccess | 
 }
 
 export async function saveUser(user: UserAccess) {
+  const rtdb = getRealtimeDb();
+  if (rtdb) {
+    try {
+      await dbSet(dbRef(rtdb, `users/${user.id}`), user);
+    } catch (err) {
+      console.error('Failed to save user directly to Firebase Realtime Database:', err);
+    }
+  }
+
   const db = getFirestoreDb();
   if (db) {
     try {
@@ -245,6 +330,15 @@ export async function saveUser(user: UserAccess) {
 }
 
 export async function deleteUser(id: string) {
+  const rtdb = getRealtimeDb();
+  if (rtdb) {
+    try {
+      await dbSet(dbRef(rtdb, `users/${id}`), null);
+    } catch (err) {
+      console.error('Failed to delete user directly from Firebase Realtime Database:', err);
+    }
+  }
+
   const db = getFirestoreDb();
   if (db) {
     try {
@@ -266,6 +360,15 @@ export async function addLoginAttempt(attempt: Omit<LoginAttempt, 'id'>) {
     id: attemptId,
   };
 
+  const rtdb = getRealtimeDb();
+  if (rtdb) {
+    try {
+      await dbSet(dbRef(rtdb, `attempts/${attemptId}`), newAttempt);
+    } catch (err) {
+      console.error('Failed to add login attempt directly to Firebase Realtime Database:', err);
+    }
+  }
+
   const db = getFirestoreDb();
   if (db) {
     try {
@@ -284,6 +387,26 @@ export async function addLoginAttempt(attempt: Omit<LoginAttempt, 'id'>) {
 }
 
 export async function getAllAttempts(): Promise<LoginAttempt[]> {
+  const rtdb = getRealtimeDb();
+  if (rtdb) {
+    try {
+      const snapshot = await dbGet(dbRef(rtdb, 'attempts'));
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        const attempts: LoginAttempt[] = [];
+        for (const key in val) {
+          if (val[key]) {
+            attempts.push({ id: key, ...val[key] } as LoginAttempt);
+          }
+        }
+        attempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        if (attempts.length > 0) return attempts;
+      }
+    } catch (err) {
+      console.error('Failed to get attempts directly from Firebase Realtime Database:', err);
+    }
+  }
+
   const db = getFirestoreDb();
   if (db) {
     try {
@@ -293,7 +416,7 @@ export async function getAllAttempts(): Promise<LoginAttempt[]> {
       snapshot.forEach((docSnap) => {
         attempts.push(docSnap.data() as LoginAttempt);
       });
-      return attempts;
+      if (attempts.length > 0) return attempts;
     } catch (err) {
       console.error('Failed to get attempts directly from Firebase Firestore:', err);
     }
