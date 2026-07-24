@@ -8,9 +8,12 @@ import {
   getAllUsers,
   getAllAttempts,
   deleteUser,
+  getFirebaseConfig,
+  getFirestoreDb,
   type UserAccess,
 } from './db';
 import { getDeviceString } from './utils';
+import { collection, query, limit, getDocs } from 'firebase/firestore';
 
 // Helper to generate a random 8-character password
 function generatePassword(): string {
@@ -313,5 +316,35 @@ export const getAppVersionFn = createServerFn({ method: 'GET' })
   .handler(async () => {
     return {
       version: process.env.VERCEL_GIT_COMMIT_SHA || process.env.BUILD_ID || '1.0.0-dev',
+    };
+  });
+
+// 9. Get Database Diagnostics
+export const getDiagnosticsFn = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const config = getFirebaseConfig();
+    const db = getFirestoreDb();
+    
+    let dbStatus = 'Disconnected';
+    let dbError = null;
+    
+    if (db) {
+      try {
+        const q = query(collection(db, 'users'), limit(1));
+        await getDocs(q);
+        dbStatus = 'Connected to Cloud Firestore';
+      } catch (err: any) {
+        dbStatus = 'Error connecting to Firestore';
+        dbError = err.message || String(err);
+      }
+    }
+    
+    return {
+      hasProjectId: !!config.projectId && config.projectId !== 'tickethub',
+      projectId: config.projectId,
+      hasApiKey: !!config.apiKey,
+      dbStatus,
+      dbError,
+      envKeys: Object.keys(process.env).filter(k => k.includes('FIREBASE'))
     };
   });

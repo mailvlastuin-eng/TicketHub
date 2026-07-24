@@ -28,6 +28,7 @@ import {
   createUserAccessFn,
   terminateUserAccessFn,
   deleteUserAccessFn,
+  getDiagnosticsFn,
 } from './functions';
 
 export function AdminDashboardApp() {
@@ -35,6 +36,7 @@ export function AdminDashboardApp() {
   const [adminPass, setAdminPass] = useState('');
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [loggingIn, setLoggingIn] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<any>(null);
 
   // Dashboard Data
   const [users, setUsers] = useState<any[]>([]);
@@ -105,7 +107,6 @@ export function AdminDashboardApp() {
     }
   };
 
-  // Fetch when authorized
   useEffect(() => {
     if (isAdmin) {
       fetchDashboardData();
@@ -116,6 +117,14 @@ export function AdminDashboardApp() {
       }, 10000);
 
       return () => clearInterval(interval);
+    }
+  }, [isAdmin, adminPass]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      getDiagnosticsFn()
+        .then((res) => setDiagnostics(res))
+        .catch((err) => console.error('Failed to load diagnostics:', err));
     }
   }, [isAdmin, adminPass]);
 
@@ -417,6 +426,40 @@ export function AdminDashboardApp() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 pt-8">
+        {/* Database Status Banner */}
+        {diagnostics && (
+          <div className={`mb-6 p-4 rounded-xl border flex items-center justify-between shadow-sm ${
+            diagnostics.dbStatus.includes('Connected') 
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+              : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
+                diagnostics.dbStatus.includes('Connected') ? 'bg-emerald-100' : 'bg-rose-100'
+              }`}>
+                {diagnostics.dbStatus.includes('Connected') ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5 text-rose-600" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-bold">{diagnostics.dbStatus}</p>
+                {diagnostics.dbError ? (
+                  <p className="text-xs font-mono mt-0.5 opacity-90">{diagnostics.dbError}</p>
+                ) : (
+                  <p className="text-xs opacity-90">Firebase Project: {diagnostics.projectId} (API Key: {diagnostics.hasApiKey ? 'Loaded' : 'Missing'})</p>
+                )}
+              </div>
+            </div>
+            {!diagnostics.dbStatus.includes('Connected') && (
+              <span className="text-[10px] font-black tracking-wide bg-rose-200 text-rose-800 px-2.5 py-1 rounded-md uppercase">
+                Configuration Error
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Statistics Widgets */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
