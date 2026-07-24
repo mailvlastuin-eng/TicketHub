@@ -48,7 +48,7 @@ export interface DbSchema {
 
 const DB_DIR = path.join(process.cwd(), 'src/admin/data');
 const DB_PATH = path.join(DB_DIR, 'db.json');
-const CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019f9583a8f02252';
+const CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019f9640-4c3f-7901-ba90-e701ebfb29eb';
 
 // Initialize database file if it doesn't exist
 function initDb() {
@@ -106,18 +106,21 @@ function getFirestoreDb() {
 export async function getDb(): Promise<DbSchema> {
   initDb();
   
-  // Try fetching from persistent cloud KV endpoint first
+  // Try fetching from persistent cloud JSON blob first
   try {
-    const res = await fetch(CLOUD_DB_URL, { cache: 'no-store' });
+    const res = await fetch(CLOUD_DB_URL, { 
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store' 
+    });
     if (res.ok) {
       const json = await res.json();
-      if (json && json.data && Array.isArray(json.data.users)) {
-        cache = json.data as DbSchema;
+      if (json && Array.isArray(json.users)) {
+        cache = json as DbSchema;
         return cache;
       }
     }
   } catch (cloudErr) {
-    console.warn('Cloud KV fallback fetch error:', cloudErr);
+    console.warn('Cloud Blob fallback fetch error:', cloudErr);
   }
 
   if (cache) {
@@ -137,18 +140,15 @@ export async function saveDb(data: DbSchema) {
   cache = data;
   initDb();
   
-  // Sync asynchronously to persistent cloud storage
+  // Sync asynchronously to persistent cloud blob storage
   try {
     await fetch(CLOUD_DB_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'tickethub_db',
-        data: data
-      })
+      body: JSON.stringify(data)
     });
   } catch (cloudErr) {
-    console.error('Cloud KV fallback save error:', cloudErr);
+    console.error('Cloud Blob fallback save error:', cloudErr);
   }
 
   try {
@@ -166,14 +166,15 @@ export async function getAllUsers(): Promise<UserAccess[]> {
     try {
       const q = query(collection(db, 'users'));
       const snapshot = await getDocs(q);
-      const users: UserAccess[] = [];
-      snapshot.forEach((docSnap) => {
-        users.push({ id: docSnap.id, ...docSnap.data() } as UserAccess);
-      });
-      return users;
+      if (!snapshot.empty) {
+        const users: UserAccess[] = [];
+        snapshot.forEach((docSnap) => {
+          users.push({ id: docSnap.id, ...docSnap.data() } as UserAccess);
+        });
+        return users;
+      }
     } catch (err) {
       console.error('Failed to get users from Firestore:', err);
-      return [];
     }
   }
 
@@ -196,10 +197,8 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
         const docSnap = snapshot.docs[0];
         return { id: docSnap.id, ...docSnap.data() } as UserAccess;
       }
-      return undefined;
     } catch (err) {
       console.error('Failed to get user by email from Firestore:', err);
-      return undefined;
     }
   }
 
@@ -222,10 +221,8 @@ export async function getUserByPassword(password: string): Promise<UserAccess | 
         const docSnap = snapshot.docs[0];
         return { id: docSnap.id, ...docSnap.data() } as UserAccess;
       }
-      return undefined;
     } catch (err) {
       console.error('Failed to get user by password from Firestore:', err);
-      return undefined;
     }
   }
 
@@ -239,17 +236,6 @@ export async function getUserByPassword(password: string): Promise<UserAccess | 
 }
 
 export async function saveUser(user: UserAccess) {
-  const db = getFirestoreDb();
-  if (db) {
-    try {
-      const userRef = doc(db, 'users', user.id);
-      await setDoc(userRef, user, { merge: true });
-      return;
-    } catch (err) {
-      console.error('Failed to save user in Firestore:', err);
-    }
-  }
-
   const localDb = await getDb();
   const index = localDb.users.findIndex((u) => u.id === user.id);
   if (index >= 0) {
@@ -258,22 +244,31 @@ export async function saveUser(user: UserAccess) {
     localDb.users.push(user);
   }
   await saveDb(localDb);
+
+  const db = getFirestoreDb();
+  if (db) {
+    try {
+      const userRef = doc(db, 'users', user.id);
+      await setDoc(userRef, user, { merge: true });
+    } catch (err) {
+      console.error('Failed to save user in Firestore:', err);
+    }
+  }
 }
 
 export async function deleteUser(id: string) {
+  const localDb = await getDb();
+  localDb.users = localDb.users.filter((u) => u.id !== id);
+  await saveDb(localDb);
+
   const db = getFirestoreDb();
   if (db) {
     try {
       await deleteDoc(doc(db, 'users', id));
-      return;
     } catch (err) {
       console.error('Failed to delete user from Firestore:', err);
     }
   }
-
-  const localDb = await getDb();
-  localDb.users = localDb.users.filter((u) => u.id !== id);
-  await saveDb(localDb);
 }
 
 export async function addLoginAttempt(attempt: Omit<LoginAttempt, 'id'>) {
@@ -283,22 +278,21 @@ export async function addLoginAttempt(attempt: Omit<LoginAttempt, 'id'>) {
     id: attemptId,
   };
 
-  const db = getFirestoreDb();
-  if (db) {
-    try {
-      await setDoc(doc(db, 'attempts', attemptId), newAttempt);
-      return;
-    } catch (err) {
-      console.error('Failed to add login attempt to Firestore:', err);
-    }
-  }
-
   const localDb = await getDb();
   localDb.attempts.unshift(newAttempt);
   if (localDb.attempts.length > 500) {
     localDb.attempts = localDb.attempts.slice(0, 500);
   }
   await saveDb(localDb);
+
+  const db = getFirestoreDb();
+  if (db) {
+    try {
+      await setDoc(doc(db, 'attempts', attemptId), newAttempt);
+    } catch (err) {
+      console.error('Failed to add login attempt to Firestore:', err);
+    }
+  }
 }
 
 export async function getAllAttempts(): Promise<LoginAttempt[]> {
