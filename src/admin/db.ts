@@ -51,12 +51,16 @@ const DB_PATH = path.join(DB_DIR, 'db.json');
 
 // Initialize database file if it doesn't exist
 function initDb() {
-  if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(DB_PATH)) {
-    const initialData: DbSchema = { users: [], attempts: [] };
-    fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
+  try {
+    if (!fs.existsSync(DB_DIR)) {
+      fs.mkdirSync(DB_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(DB_PATH)) {
+      const initialData: DbSchema = { users: [], attempts: [] };
+      fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
+    }
+  } catch (err) {
+    console.error('Failed to initialize local db.json fallback:', err);
   }
 }
 
