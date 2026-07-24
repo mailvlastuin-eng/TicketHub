@@ -1,18 +1,3 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  deleteDoc, 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  limit 
-} from 'firebase/firestore';
-
 export interface UserAccess {
   id: string;
   email: string;
@@ -44,95 +29,105 @@ export interface DbSchema {
   attempts: LoginAttempt[];
 }
 
-export function getFirebaseConfig() {
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'tickethub';
-  return {
-    apiKey: process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
-    projectId: projectId,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID || process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+const SUPABASE_URL = 'https://dzrtttgdpcunckuuobmu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cnR0dGdkcGN1bmNrdXVvYm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MjcxODEsImV4cCI6MjEwMDUwMzE4MX0.7Km-pRohbCcUB83PuTmCDsBRj4xAJmEnnbwpqaMD6V0';
+
+async function supabaseFetch(path: string, options: RequestInit = {}) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    ...options.headers
   };
-}
-
-export let dbInstance: any = null;
-export function getFirestoreDb() {
-  try {
-    const config = getFirebaseConfig();
-    const app = getApps().length === 0 ? initializeApp(config) : getApp();
-    dbInstance = getFirestore(app);
-    return dbInstance;
-  } catch (err) {
-    console.error('Failed to initialize Firebase Firestore app:', err);
-    return null;
-  }
-}
-
-// Explicit Firebase Firestore CRUD Operations
-export async function getAllUsers(): Promise<UserAccess[]> {
-  const db = getFirestoreDb();
-  if (!db) {
-    throw new Error('Firebase Firestore is not initialized');
-  }
-  
-  const q = query(collection(db, 'users'));
-  const snapshot = await getDocs(q);
-  const users: UserAccess[] = [];
-  snapshot.forEach((docSnap) => {
-    users.push({ id: docSnap.id, ...docSnap.data() } as UserAccess);
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers
   });
-  return users;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase request failed: ${res.status} ${res.statusText} - ${text}`);
+  }
+  return res;
+}
+
+// Supabase REST helper methods to keep DB operations clean
+export async function getDb(): Promise<DbSchema> {
+  const users = await getAllUsers();
+  const attempts = await getAllAttempts();
+  return { users, attempts };
+}
+
+export async function getAllUsers(): Promise<UserAccess[]> {
+  try {
+    const res = await supabaseFetch('users?select=*');
+    const data = await res.json();
+    return data.map((u: any) => ({
+      ...u,
+      loginMode: u.loginMode || 'single'
+    }));
+  } catch (err) {
+    console.error('Failed to fetch users from Supabase:', err);
+    return [];
+  }
 }
 
 export async function getUserByEmail(email: string): Promise<UserAccess | undefined> {
-  const normalizedEmail = email.trim().toLowerCase();
-  const db = getFirestoreDb();
-  if (!db) {
-    throw new Error('Firebase Firestore is not initialized');
-  }
-
-  const q = query(collection(db, 'users'), where('email', '==', normalizedEmail));
-  const snapshot = await getDocs(q);
-  if (!snapshot.empty) {
-    const docSnap = snapshot.docs[0];
-    return { id: docSnap.id, ...docSnap.data() } as UserAccess;
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    const res = await supabaseFetch(`users?email=ilike.${normalizedEmail}`);
+    const data = await res.json();
+    if (data.length > 0) {
+      return {
+        ...data[0],
+        loginMode: data[0].loginMode || 'single'
+      };
+    }
+  } catch (err) {
+    console.error('Failed to get user by email from Supabase:', err);
   }
   return undefined;
 }
 
 export async function getUserByPassword(password: string): Promise<UserAccess | undefined> {
-  const db = getFirestoreDb();
-  if (!db) {
-    throw new Error('Firebase Firestore is not initialized');
-  }
-
-  const q = query(collection(db, 'users'), where('password', '==', password));
-  const snapshot = await getDocs(q);
-  if (!snapshot.empty) {
-    const docSnap = snapshot.docs[0];
-    return { id: docSnap.id, ...docSnap.data() } as UserAccess;
+  try {
+    const res = await supabaseFetch(`users?password=eq.${password}`);
+    const data = await res.json();
+    if (data.length > 0) {
+      return {
+        ...data[0],
+        loginMode: data[0].loginMode || 'single'
+      };
+    }
+  } catch (err) {
+    console.error('Failed to get user by password from Supabase:', err);
   }
   return undefined;
 }
 
 export async function saveUser(user: UserAccess) {
-  const db = getFirestoreDb();
-  if (!db) {
-    throw new Error('Firebase Firestore is not initialized');
+  try {
+    await supabaseFetch('users', {
+      method: 'POST',
+      headers: {
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(user)
+    });
+  } catch (err) {
+    console.error('Failed to save user in Supabase:', err);
+    throw err;
   }
-  
-  const userRef = doc(db, 'users', user.id);
-  await setDoc(userRef, user, { merge: true });
 }
 
 export async function deleteUser(id: string) {
-  const db = getFirestoreDb();
-  if (!db) {
-    throw new Error('Firebase Firestore is not initialized');
+  try {
+    await supabaseFetch(`users?id=eq.${id}`, {
+      method: 'DELETE'
+    });
+  } catch (err) {
+    console.error('Failed to delete user in Supabase:', err);
+    throw err;
   }
-  
-  await deleteDoc(doc(db, 'users', id));
 }
 
 export async function addLoginAttempt(attempt: Omit<LoginAttempt, 'id'>) {
@@ -141,26 +136,22 @@ export async function addLoginAttempt(attempt: Omit<LoginAttempt, 'id'>) {
     ...attempt,
     id: attemptId,
   };
-
-  const db = getFirestoreDb();
-  if (!db) {
-    throw new Error('Firebase Firestore is not initialized');
+  try {
+    await supabaseFetch('attempts', {
+      method: 'POST',
+      body: JSON.stringify(newAttempt)
+    });
+  } catch (err) {
+    console.error('Failed to save login attempt in Supabase:', err);
   }
-  
-  await setDoc(doc(db, 'attempts', attemptId), newAttempt);
 }
 
 export async function getAllAttempts(): Promise<LoginAttempt[]> {
-  const db = getFirestoreDb();
-  if (!db) {
-    throw new Error('Firebase Firestore is not initialized');
+  try {
+    const res = await supabaseFetch('attempts?select=*&order=timestamp.desc&limit=500');
+    return await res.json();
+  } catch (err) {
+    console.error('Failed to fetch attempts from Supabase:', err);
+    return [];
   }
-  
-  const q = query(collection(db, 'attempts'), orderBy('timestamp', 'desc'), limit(500));
-  const snapshot = await getDocs(q);
-  const attempts: LoginAttempt[] = [];
-  snapshot.forEach((docSnap) => {
-    attempts.push(docSnap.data() as LoginAttempt);
-  });
-  return attempts;
 }
