@@ -32,39 +32,17 @@ export interface DbSchema {
   attempts: LoginAttempt[];
 }
 
-// Check if running in Vercel or other lambda environment
-const isVercel = process.env.VERCEL || process.env.NOW_BUILD || (typeof window === 'undefined' && !process.env.LOCAL_DEV && (process.env.LAMBDA_TASK_ROOT || process.env.HOME === '/var/task'));
-
-// The bundle path where the original db.json is located
-const BUNDLE_DB_PATH = path.join(process.cwd(), 'src/admin/data/db.json');
-
-// Writable database path
-const DB_PATH = isVercel ? '/tmp/db.json' : BUNDLE_DB_PATH;
+const DB_DIR = path.join(process.cwd(), 'src/admin/data');
+const DB_PATH = path.join(DB_DIR, 'db.json');
 
 // Initialize database file if it doesn't exist
 function initDb() {
-  if (isVercel) {
-    if (!fs.existsSync(DB_PATH)) {
-      try {
-        if (fs.existsSync(BUNDLE_DB_PATH)) {
-          fs.copyFileSync(BUNDLE_DB_PATH, DB_PATH);
-        } else {
-          const initialData: DbSchema = { users: [], attempts: [] };
-          fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
-        }
-      } catch (err) {
-        console.error('Failed to initialize db in /tmp:', err);
-      }
-    }
-  } else {
-    const DB_DIR = path.dirname(DB_PATH);
-    if (!fs.existsSync(DB_DIR)) {
-      fs.mkdirSync(DB_DIR, { recursive: true });
-    }
-    if (!fs.existsSync(DB_PATH)) {
-      const initialData: DbSchema = { users: [], attempts: [] };
-      fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
-    }
+  if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(DB_PATH)) {
+    const initialData: DbSchema = { users: [], attempts: [] };
+    fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
   }
 }
 
