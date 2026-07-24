@@ -44,7 +44,7 @@ export interface DbSchema {
   attempts: LoginAttempt[];
 }
 
-function getFirebaseConfig() {
+export function getFirebaseConfig() {
   const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'tickethub';
   return {
     apiKey: process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -56,8 +56,8 @@ function getFirebaseConfig() {
   };
 }
 
-let dbInstance: any = null;
-function getFirestoreDb() {
+export let dbInstance: any = null;
+export function getFirestoreDb() {
   try {
     const config = getFirebaseConfig();
     const app = getApps().length === 0 ? initializeApp(config) : getApp();
