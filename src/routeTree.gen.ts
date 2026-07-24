@@ -14,6 +14,7 @@ import { Route as MyAccountRouteImport } from './routes/my-account'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CreateTicketRouteImport } from './routes/create-ticket'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketIdRouteImport } from './routes/ticket.$id'
 import { Route as MyTicketIdRouteImport } from './routes/my-ticket.$id'
@@ -45,6 +46,11 @@ const CreateTicketRoute = CreateTicketRouteImport.update({
   path: '/create-ticket',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -73,6 +79,7 @@ const CreateTicketTmIdRoute = CreateTicketTmIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/create-ticket': typeof CreateTicketRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/favorites': typeof FavoritesRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/create-ticket': typeof CreateTicketRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/favorites': typeof FavoritesRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/create-ticket': typeof CreateTicketRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/favorites': typeof FavoritesRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/create-ticket'
     | '/discover'
     | '/favorites'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/create-ticket'
     | '/discover'
     | '/favorites'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/create-ticket'
     | '/discover'
     | '/favorites'
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   CreateTicketRoute: typeof CreateTicketRouteWithChildren
   DiscoverRoute: typeof DiscoverRoute
   FavoritesRoute: typeof FavoritesRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/create-ticket'
       fullPath: '/create-ticket'
       preLoaderRoute: typeof CreateTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -248,6 +268,7 @@ const CreateTicketRouteWithChildren = CreateTicketRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   CreateTicketRoute: CreateTicketRouteWithChildren,
   DiscoverRoute: DiscoverRoute,
   FavoritesRoute: FavoritesRoute,

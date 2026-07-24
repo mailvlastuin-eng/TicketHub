@@ -35,11 +35,11 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     const ip = (headers['x-forwarded-for'] as string) || (headers['x-real-ip'] as string) || '127.0.0.1';
     const deviceInfo = getDeviceString(userAgent);
 
-    const user = getUserByEmail(email);
+    const user = await getUserByEmail(email);
 
     // 1. Check if user exists
     if (!user || user.password !== password) {
-      addLoginAttempt({
+      await addLoginAttempt({
         email,
         passwordAttempted: password,
         timestamp: new Date().toISOString(),
@@ -57,13 +57,13 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       const isExpired = new Date() > new Date(user.expiresAt);
       if (isExpired) {
         user.status = 'expired';
-        saveUser(user);
+        await saveUser(user);
       }
     }
 
     // 3. Handle different access states
     if (user.status === 'expired') {
-      addLoginAttempt({
+      await addLoginAttempt({
         email,
         passwordAttempted: password,
         timestamp: new Date().toISOString(),
@@ -77,7 +77,7 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     }
 
     if (user.status === 'terminated') {
-      addLoginAttempt({
+      await addLoginAttempt({
         email,
         passwordAttempted: password,
         timestamp: new Date().toISOString(),
@@ -91,7 +91,7 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     }
 
     if (user.status === 'active' && user.loginMode !== 'multiple') {
-      addLoginAttempt({
+      await addLoginAttempt({
         email,
         passwordAttempted: password,
         timestamp: new Date().toISOString(),
@@ -120,9 +120,9 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     user.sessionId = sessionId;
     user.deviceInfo = deviceInfo;
 
-    saveUser(user);
+    await saveUser(user);
 
-    addLoginAttempt({
+    await addLoginAttempt({
       email,
       passwordAttempted: password,
       timestamp: new Date().toISOString(),
@@ -151,7 +151,7 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
   }))
   .handler(async ({ data }) => {
     const { email, sessionId } = data;
-    const user = getUserByEmail(email);
+    const user = await getUserByEmail(email);
 
     if (!user || user.sessionId !== sessionId || user.status !== 'active') {
       return { valid: false };
@@ -163,7 +163,7 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       if (isExpired) {
         user.status = 'expired';
         user.sessionId = null;
-        saveUser(user);
+        await saveUser(user);
         return { valid: false };
       }
     }
@@ -195,32 +195,31 @@ export const getAdminDashboardDataFn = createServerFn({ method: 'POST' })
       throw new Error('Unauthorized access');
     }
 
-    const users = getAllUsers();
-    const attempts = getAllAttempts();
+    const users = await getAllUsers();
+    const attempts = await getAllAttempts();
 
     // Check and update expired users
-    const updatedUsers = users.map((u) => {
+    for (const u of users) {
       if (u.status === 'active' && u.expiresAt) {
         const isExpired = new Date() > new Date(u.expiresAt);
         if (isExpired) {
           u.status = 'expired';
           u.sessionId = null;
-          saveUser(u);
+          await saveUser(u);
         }
       }
-      return u;
-    });
+    }
 
-    const activeCount = updatedUsers.filter((u) => u.status === 'active').length;
-    const pendingCount = updatedUsers.filter((u) => u.status === 'pending').length;
-    const terminatedCount = updatedUsers.filter((u) => u.status === 'terminated').length;
-    const expiredCount = updatedUsers.filter((u) => u.status === 'expired').length;
+    const activeCount = users.filter((u) => u.status === 'active').length;
+    const pendingCount = users.filter((u) => u.status === 'pending').length;
+    const terminatedCount = users.filter((u) => u.status === 'terminated').length;
+    const expiredCount = users.filter((u) => u.status === 'expired').length;
 
     return {
-      users: updatedUsers,
+      users,
       attempts,
       stats: {
-        total: updatedUsers.length,
+        total: users.length,
         active: activeCount,
         pending: pendingCount,
         terminated: terminatedCount,
@@ -245,7 +244,7 @@ export const createUserAccessFn = createServerFn({ method: 'POST' })
       throw new Error('Unauthorized access');
     }
 
-    const existingUser = getUserByEmail(data.email);
+    const existingUser = await getUserByEmail(data.email);
     if (existingUser) {
       throw new Error('A user with this email already exists.');
     }
@@ -264,7 +263,7 @@ export const createUserAccessFn = createServerFn({ method: 'POST' })
       loginMode: data.loginMode,
     };
 
-    saveUser(newUser);
+    await saveUser(newUser);
     return { success: true, user: newUser };
   });
 
@@ -280,7 +279,7 @@ export const terminateUserAccessFn = createServerFn({ method: 'POST' })
       throw new Error('Unauthorized access');
     }
 
-    const users = getAllUsers();
+    const users = await getAllUsers();
     const user = users.find((u) => u.id === data.userId);
     if (!user) {
       throw new Error('User not found');
@@ -288,7 +287,7 @@ export const terminateUserAccessFn = createServerFn({ method: 'POST' })
 
     user.status = 'terminated';
     user.sessionId = null;
-    saveUser(user);
+    await saveUser(user);
 
     return { success: true };
   });
@@ -305,7 +304,7 @@ export const deleteUserAccessFn = createServerFn({ method: 'POST' })
       throw new Error('Unauthorized access');
     }
 
-    deleteUser(data.userId);
+    await deleteUser(data.userId);
     return { success: true };
   });
 
