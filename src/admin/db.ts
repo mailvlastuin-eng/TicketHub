@@ -84,6 +84,7 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
     }
   } catch (err) {
     console.error('Failed to get user by email from Supabase:', err);
+    throw err;
   }
   return undefined;
 }
@@ -100,6 +101,7 @@ export async function getUserByPassword(password: string): Promise<UserAccess | 
     }
   } catch (err) {
     console.error('Failed to get user by password from Supabase:', err);
+    throw err;
   }
   return undefined;
 }
