@@ -291,91 +291,87 @@
     </header>
 
     <!-- Ticket device frame and scanning card -->
-    <main class="w-full max-w-md px-4 py-6 flex-1 flex flex-col justify-center items-center">
-      <!-- White card wrapping the entry ticket details -->
-      <div class="bg-white w-full rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
-        
-        <!-- Screenshots warn banner -->
-        <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
-          Screenshots won't get you in
-          <button onclick="handleReloadBarcode()" class="p-1 focus:outline-none text-gray-500 hover:text-black">
-            <i data-lucide="rotate-cw" id="reload-icon" class="h-4.5 w-4.5"></i>
-          </button>
-        </div>
-
-        <!-- Barcode frame bracket -->
-        <div class="my-6 px-8 relative flex flex-col items-center">
-          <div class="border-[2px] border-black border-dashed rounded-none px-6 py-4 relative flex justify-center w-full max-w-[280px]">
-            <!-- Vertical Barcode placeholder graphic -->
-            <div id="barcode-container" class="relative w-full h-24 bg-white flex items-center justify-between px-2 overflow-hidden select-none">
-              <!-- Animated neon-green laser line (Scanning line) -->
-              <div class="laser-line"></div>
-              <!-- Simulated barcode vertical strips -->
-              <div class="w-1.5 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-              <div class="w-1 h-full bg-black"></div>
-              <div class="w-2 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-              <div class="w-1 h-full bg-black"></div>
-              <div class="w-1.5 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-              <div class="w-2.5 h-full bg-black"></div>
-              <div class="w-1.5 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-              <div class="w-1.5 h-full bg-black"></div>
-              <div class="w-2 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-              <div class="w-1 h-full bg-black"></div>
-              <div class="w-1.5 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-              <div class="w-1.5 h-full bg-black"></div>
-              <div class="w-2 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-              <div class="w-1 h-full bg-black"></div>
-              <div class="w-1.5 h-full bg-black"></div>
-              <div class="w-0.5 h-full bg-black"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Detail preview -->
-        <div class="px-5 text-left">
-          <!-- Small event photo -->
-          <div class="w-full aspect-[16/10] overflow-hidden rounded-none">
-            <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover" alt="Ariana Grande" />
-          </div>
-          <!-- Info block -->
-          <div class="mt-4 pb-3">
-            <h4 id="view-event-title" class="font-outfit font-bold text-lg text-black uppercase leading-snug">
-              ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR
-            </h4>
-            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4">Section</p>
-            <p id="view-seat-details" class="font-outfit font-bold text-base text-black mt-0.5">
-              B23, Row 14, Seats: 5
-            </p>
-          </div>
-        </div>
-
-        <!-- Ticket info CTA -->
-        <div class="px-5 mt-3">
-          <button onclick="alert('Ticket Details:\nSection B23, Row 14, Seats: 5-8')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors">
-            Ticket info
-          </button>
-        </div>
-
-        <!-- Swiper Seat Pagination Dots -->
-        <div id="seat-dots" class="flex justify-center items-center gap-2 mt-5">
-          <!-- Dots will be dynamically injected -->
-        </div>
-
+    <main class="w-full max-w-md py-6 flex-1 flex flex-col justify-center items-center overflow-hidden">
+      <!-- Carousel Container (CSS Snap scroll) -->
+      <div id="carousel-container" class="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-none gap-6 px-6" style="scroll-behavior: smooth;">
+        <!-- Dynamically populated cards -->
+      </div>
+      
+      <!-- Swiper Seat Pagination Dots -->
+      <div id="seat-dots" class="flex justify-center items-center gap-2 mt-6">
+        <!-- Dots will be dynamically injected -->
       </div>
     </main>
   </div>
 
   <!-- ================= APP ROUTING AND CONTROLLERS ================= -->
   <script>
+    // Mock database for standard fallback events
+    const mockupEvents = {
+      ariana: {
+        id: "ariana",
+        title: "ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR",
+        category: "Pop",
+        venue: "AT&T Stadium",
+        city: "Texas",
+        date: "Mon • Jun 22, 2026 • 12:00 PM",
+        image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
+        seats: ["5", "6", "7", "8"],
+        section: "B23",
+        row: "14"
+      },
+      wicked: {
+        id: "wicked",
+        title: "Wicked: The Musical",
+        category: "Theater",
+        venue: "Bass Performance Hall",
+        city: "Fort Worth, TX",
+        date: "Sat • Aug 15, 2026 • 8:00 PM",
+        image: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&auto=format&fit=crop",
+        seats: ["10", "11", "12"],
+        section: "Orchestra",
+        row: "G"
+      },
+      mavs: {
+        id: "mavs",
+        title: "Dallas Mavericks vs. Lakers",
+        category: "Basketball",
+        venue: "American Airlines Center",
+        city: "Dallas, TX",
+        date: "Wed • Oct 22, 2026 • 7:00 PM",
+        image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop",
+        seats: ["1", "2"],
+        section: "Loge 104",
+        row: "D"
+      },
+      foo: {
+        id: "foo",
+        title: "Foo Fighters - Everything Or Nothing Tour",
+        category: "Rock",
+        venue: "Moody Center",
+        city: "Austin, TX",
+        date: "Sat • Nov 1, 2026 • 8:00 PM",
+        image: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&auto=format&fit=crop",
+        seats: ["15", "16", "17", "18"],
+        section: "Floor",
+        row: "GA"
+      },
+      comedy: {
+        id: "comedy",
+        title: "John Mulaney Live",
+        category: "Comedy",
+        venue: "The Majestic Theatre",
+        city: "San Antonio, TX",
+        date: "Thu • Aug 28, 2026 • 9:00 PM",
+        image: "https://images.unsplash.com/photo-1585699324551-f6c309eed262?w=800&auto=format&fit=crop",
+        seats: ["20", "21"],
+        section: "Mezzanine",
+        row: "J"
+      }
+    };
+
     // State management
-    const seatsList = ["5", "6", "7", "8"];
+    let activeTicket = mockupEvents.ariana;
     let activeSeatIndex = 0;
 
     // Route config
@@ -385,6 +381,81 @@
       dashboard: 'page-dashboard',
       ticketView: 'page-ticket-view'
     };
+
+    // Helper: Parse URL parameters
+    function getEventIdFromUrl() {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('eventId')) {
+        return searchParams.get('eventId');
+      }
+      const hash = window.location.hash;
+      if (hash.includes('?')) {
+        const hashQuery = hash.split('?')[1];
+        const hashParams = new URLSearchParams(hashQuery);
+        if (hashParams.has('eventId')) {
+          return hashParams.get('eventId');
+        }
+      }
+      return null;
+    }
+
+    // Helper: Parse local storage custom tickets
+    function getTicketFromStorage(id) {
+      try {
+        const stored = localStorage.getItem('tm_custom_tickets');
+        if (stored) {
+          const list = JSON.parse(stored);
+          return list.find(t => t.id === id);
+        }
+      } catch(e) {}
+      return null;
+    }
+
+    function loadActiveTicket() {
+      const id = getEventIdFromUrl();
+      if (!id) {
+        activeTicket = mockupEvents.ariana;
+        return;
+      }
+
+      // Check localStorage first
+      const storedTicket = getTicketFromStorage(id);
+      if (storedTicket) {
+        activeTicket = {
+          id: storedTicket.id,
+          title: storedTicket.title || "Ticket Transfer Event",
+          category: storedTicket.category || "Concert",
+          venue: storedTicket.venue || "TBD Stadium",
+          city: storedTicket.city || "",
+          date: storedTicket.date || "Mon, Jun 22 @ 12:00 PM",
+          image: storedTicket.image || "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
+          seats: storedTicket.seats || ["5", "6", "7", "8"],
+          section: storedTicket.section || "B23",
+          row: storedTicket.row || "14"
+        };
+        return;
+      }
+
+      // Case insensitive mapping for mockups
+      const cleanId = id.toLowerCase();
+      for (const key of Object.keys(mockupEvents)) {
+        if (cleanId.includes(key) || key.includes(cleanId)) {
+          activeTicket = mockupEvents[key];
+          return;
+        }
+      }
+
+      // Fallback
+      activeTicket = mockupEvents.ariana;
+    }
+
+    // Helper: format seat list nicely
+    function formatSeats(seats) {
+      if (!seats || seats.length === 0) return '';
+      if (seats.length === 1) return seats[0];
+      if (seats.length === 2) return `${seats[0]} and ${seats[1]}`;
+      return seats.slice(0, -1).join(', ') + ' and ' + seats[seats.length - 1];
+    }
 
     function showPage(pageId) {
       // Hide all pages
@@ -396,27 +467,192 @@
       lucide.createIcons();
     }
 
+    // Prepopulate Acceptance Screen details
+    function renderAcceptancePage() {
+      const page = document.getElementById('page-acceptance');
+      if (!page) return;
+      page.querySelector('h3').textContent = activeTicket.title;
+      page.querySelectorAll('p')[0].textContent = activeTicket.date;
+      page.querySelectorAll('p')[1].textContent = activeTicket.venue + (activeTicket.city ? `, ${activeTicket.city}` : '');
+      page.querySelector('.font-bold.text-sm.text-gray-900').textContent = `Section ${activeTicket.section}, Row ${activeTicket.row}, Seats: ${formatSeats(activeTicket.seats)}`;
+      page.querySelector('img').src = activeTicket.image;
+      page.querySelector('img').alt = activeTicket.title;
+    }
+
+    // Prepopulate Dashboard Screen details
+    function renderDashboardPage() {
+      const page = document.getElementById('page-dashboard');
+      if (!page) return;
+      const card = page.querySelector('.border.border-gray-300');
+      if (!card) return;
+      card.querySelector('img').src = activeTicket.image;
+      card.querySelector('img').alt = activeTicket.title;
+      card.querySelector('.absolute.bottom-3').textContent = activeTicket.date.toUpperCase();
+      card.querySelector('h3').textContent = activeTicket.title;
+      card.querySelector('.text-white\\/70').textContent = activeTicket.venue + (activeTicket.city ? `, ${activeTicket.city}` : '');
+      card.querySelector('.text-white\\/80 span').textContent = `x${activeTicket.seats.length}`;
+    }
+
+    // Dynamic split barcode cards for Live Ticket View Page
+    function renderBarcodeCarousel() {
+      const container = document.getElementById('carousel-container');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const seats = activeTicket.seats || ["5"];
+      
+      seats.forEach((seatNumber, idx) => {
+        const cardHtml = `
+        <div class="snap-center shrink-0 w-[calc(100vw-48px)] max-w-[340px] bg-white rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
+          <!-- Screenshots warn banner -->
+          <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
+            Screenshots won't get you in
+            <button onclick="handleReloadBarcode(this)" class="p-1 focus:outline-none text-gray-500 hover:text-black">
+              <i data-lucide="rotate-cw" class="h-4.5 w-4.5"></i>
+            </button>
+          </div>
+
+          <!-- Barcode frame bracket -->
+          <div class="my-6 px-8 relative flex flex-col items-center">
+            <div class="border-[2px] border-black border-dashed rounded-none px-6 py-4 relative flex justify-center w-full max-w-[280px]">
+              <div class="relative w-full h-24 bg-white flex items-center justify-between px-2 overflow-hidden select-none">
+                <div class="laser-line"></div>
+                <!-- Simulated barcode vertical strips -->
+                <div class="w-1.5 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+                <div class="w-1 h-full bg-black"></div>
+                <div class="w-2 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+                <div class="w-1 h-full bg-black"></div>
+                <div class="w-1.5 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+                <div class="w-2.5 h-full bg-black"></div>
+                <div class="w-1.5 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+                <div class="w-1.5 h-full bg-black"></div>
+                <div class="w-2 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+                <div class="w-1 h-full bg-black"></div>
+                <div class="w-1.5 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+                <div class="w-1.5 h-full bg-black"></div>
+                <div class="w-2 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+                <div class="w-1 h-full bg-black"></div>
+                <div class="w-1.5 h-full bg-black"></div>
+                <div class="w-0.5 h-full bg-black"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detail preview -->
+          <div class="px-5 text-left">
+            <!-- Small event photo -->
+            <div class="w-full aspect-[16/10] overflow-hidden rounded-none">
+              <img src="${activeTicket.image}" class="w-full h-full object-cover" alt="${activeTicket.title}" />
+            </div>
+            <!-- Info block -->
+            <div class="mt-4 pb-3">
+              <h4 class="font-outfit font-bold text-lg text-black uppercase leading-snug">
+                ${activeTicket.title}
+              </h4>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4">Section</p>
+              <p class="font-outfit font-bold text-base text-black mt-0.5">
+                SECTION ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}
+              </p>
+            </div>
+          </div>
+
+          <!-- Ticket info CTA -->
+          <div class="px-5 mt-3">
+            <button onclick="alert('Ticket Details:\\nSection ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors">
+              Ticket info
+            </button>
+          </div>
+        </div>
+        `;
+        container.insertAdjacentHTML('beforeend', cardHtml);
+      });
+
+      // Update dots indicator
+      updateDotsIndicator();
+      lucide.createIcons();
+    }
+
+    function updateDotsIndicator() {
+      const dotsContainer = document.getElementById('seat-dots');
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      
+      const seats = activeTicket.seats || ["5"];
+      
+      seats.forEach((seat, idx) => {
+        const dot = document.createElement('button');
+        dot.className = `h-2 rounded-full transition-all ${idx === activeSeatIndex ? 'w-6 bg-primary' : 'w-2 bg-gray-300'}`;
+        dot.addEventListener('click', () => {
+          scrollToSeat(idx);
+        });
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    function scrollToSeat(idx) {
+      activeSeatIndex = idx;
+      const carousel = document.getElementById('carousel-container');
+      const card = carousel.children[idx];
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+      updateDotsIndicator();
+    }
+
+    // Scroll snap detection on Page 4
+    let scrollTimeout;
+    const carouselContainer = document.getElementById('carousel-container');
+    
+    carouselContainer.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const containerLeft = carouselContainer.getBoundingClientRect().left;
+        const containerCenter = containerLeft + carouselContainer.clientWidth / 2;
+        
+        let closestIdx = 0;
+        let closestDist = Infinity;
+        
+        Array.from(carouselContainer.children).forEach((card, idx) => {
+          const cardCenter = card.getBoundingClientRect().left + card.clientWidth / 2;
+          const dist = Math.abs(cardCenter - containerCenter);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestIdx = idx;
+          }
+        });
+        
+        if (closestIdx !== activeSeatIndex) {
+          activeSeatIndex = closestIdx;
+          updateDotsIndicator();
+        }
+      }, 80);
+    });
+
     // Hash Router Listener
     function router() {
+      loadActiveTicket();
+      
       const hash = window.location.hash || '#/';
       
-      switch(hash) {
-        case '#/':
-        case '#':
-          showPage(routes.acceptance);
-          break;
-        case '#/login':
-          showPage(routes.login);
-          break;
-        case '#/my-tickets':
-          showPage(routes.dashboard);
-          break;
-        case '#/ticket-view':
-          showPage(routes.ticketView);
-          renderSeatPagination();
-          break;
-        default:
-          showPage(routes.acceptance);
+      if (hash.startsWith('#/login')) {
+        showPage(routes.login);
+      } else if (hash.startsWith('#/my-tickets')) {
+        renderDashboardPage();
+        showPage(routes.dashboard);
+      } else if (hash.startsWith('#/ticket-view')) {
+        activeSeatIndex = 0;
+        showPage(routes.ticketView);
+        renderBarcodeCarousel();
+      } else {
+        renderAcceptancePage();
+        showPage(routes.acceptance);
       }
     }
 
@@ -442,67 +678,17 @@
     // Page 2: Auth Submission (Simulated, logs in instantly)
     function handleLoginSubmit(event) {
       event.preventDefault();
-      // Redirect to dashboard instantly as requested
       window.location.hash = '#/my-tickets';
     }
 
     // Page 4: Refresh/Reload click simulation
-    function handleReloadBarcode() {
-      const reloadIcon = document.getElementById('reload-icon');
-      reloadIcon.classList.add('animate-spin');
-      setTimeout(() => {
-        reloadIcon.classList.remove('animate-spin');
-      }, 1000);
-    }
-
-    // Page 4: Seat swiper rendering
-    function renderSeatPagination() {
-      const dotsContainer = document.getElementById('seat-dots');
-      dotsContainer.innerHTML = '';
-      
-      // Update Seat string details
-      document.getElementById('view-seat-details').textContent = `B23, Row 14, Seats: ${seatsList[activeSeatIndex]}`;
-
-      seatsList.forEach((seat, idx) => {
-        const dot = document.createElement('button');
-        dot.className = `h-2 rounded-full transition-all ${idx === activeSeatIndex ? 'w-6 bg-primary' : 'w-2 bg-gray-300'}`;
-        dot.addEventListener('click', () => {
-          activeSeatIndex = idx;
-          renderSeatPagination();
-        });
-        dotsContainer.appendChild(dot);
-      });
-    }
-
-    // Swipe interaction setup for Page 4
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    const barcodeCard = document.getElementById('page-ticket-view');
-    barcodeCard.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-
-    barcodeCard.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipeGesture();
-    }, { passive: true });
-
-    function handleSwipeGesture() {
-      const minSwipeDistance = 50;
-      if (touchStartX - touchEndX > minSwipeDistance) {
-        // Swipe left -> Next seat
-        if (activeSeatIndex < seatsList.length - 1) {
-          activeSeatIndex++;
-          renderSeatPagination();
-        }
-      }
-      if (touchEndX - touchStartX > minSwipeDistance) {
-        // Swipe right -> Prev seat
-        if (activeSeatIndex > 0) {
-          activeSeatIndex--;
-          renderSeatPagination();
-        }
+    function handleReloadBarcode(button) {
+      const reloadIcon = button.querySelector('svg');
+      if (reloadIcon) {
+        reloadIcon.classList.add('animate-spin');
+        setTimeout(() => {
+          reloadIcon.classList.remove('animate-spin');
+        }, 1000);
       }
     }
   </script>
