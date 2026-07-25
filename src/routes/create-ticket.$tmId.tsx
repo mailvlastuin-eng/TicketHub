@@ -128,7 +128,8 @@ function CreateTicketPage() {
   return (
     <main className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
-        <div className="bg-primary text-primary-foreground py-4 px-4 flex items-center gap-3">
+        {/* Header (iOS Safe Area Collision Fix) */}
+        <div className="bg-primary text-primary-foreground pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 px-4 flex items-center gap-3">
           <Link
             to="/discover"
             className="inline-flex items-center gap-1 text-primary-foreground/90 text-sm"
