@@ -672,6 +672,7 @@ function MyTicketDetail() {
                             eventDetailsUrl: typeof window !== "undefined" 
                               ? `${window.location.origin}/my-ticket/${ticket.id}`
                               : "",
+                            senderName: user?.name || "JACQUELINE",
                           }
                         });
 
