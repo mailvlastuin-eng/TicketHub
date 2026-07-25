@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Ticket Claim — TicketHub</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0053CD',
+            background: '#F6F6F6',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Custom stylesheet for laser animation -->
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    /* Prevent default text selection on touch devices */
+    body {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">
+
+  <!-- ================= PAGE 1: TICKET ACCEPTANCE ================= -->
+  <div id="page-acceptance" class="w-full flex-1 flex flex-col items-center bg-background hidden fade-in">
+    <!-- Blue Header Bar -->
+    <header class="w-full bg-primary py-4 text-center">
+      <h1 class="text-2xl font-bold italic text-white tracking-tight lowercase">
+        ticketmaster<span class="text-[10px] align-super font-normal not-italic ml-0.5">®</span>
+      </h1>
+    </header>
+
+    <!-- Main Card Body -->
+    <main class="w-full max-w-[600px] bg-white flex-1 flex flex-col items-center shadow-md pb-12">
+      <!-- Title -->
+      <div class="px-5 pt-8 pb-5 text-center">
+        <h2 class="text-[22px] font-bold leading-snug">
+          Your Ticket Transfer From JACQUELINE is Ready To Be Accepted!
+        </h2>
+      </div>
+
+      <!-- Stepper timeline -->
+      <div class="w-full max-w-[340px] px-5 py-4 flex items-center justify-between">
+        <!-- Step 1: Sent -->
+        <div class="flex flex-col items-center text-center">
+          <div class="h-9 w-9 rounded-full bg-primary flex items-center justify-center">
+            <i data-lucide="ticket" class="h-4 w-4 text-white"></i>
+          </div>
+          <span class="text-[10px] font-bold text-primary mt-1.5">Sent</span>
+        </div>
+        <!-- Divider Line -->
+        <div class="flex-1 h-[1px] border-t border-gray-300 -mt-5"></div>
+        <!-- Step 2: Accepted -->
+        <div class="flex flex-col items-center text-center">
+          <div class="h-9 w-9 rounded-full border-[1.2px] border-dashed border-gray-400 bg-white flex items-center justify-center">
+            <i data-lucide="check" class="h-4.5 w-4.5 text-gray-400"></i>
+          </div>
+          <span class="text-[10px] font-bold text-gray-400 mt-1.5">Accepted</span>
+        </div>
+        <!-- Divider Line -->
+        <div class="flex-1 h-[1px] border-t border-gray-300 -mt-5"></div>
+        <!-- Step 3: Complete -->
+        <div class="flex flex-col items-center text-center">
+          <div class="h-9 w-9 rounded-full border-[1.2px] border-dashed border-gray-400 bg-white flex items-center justify-center">
+            <i data-lucide="ticket" class="h-4.5 w-4.5 text-gray-400"></i>
+          </div>
+          <span class="text-[10px] font-bold text-gray-400 mt-1.5">Complete</span>
+        </div>
+      </div>
+
+      <!-- Event Ticket Card -->
+      <div class="w-full px-5 mt-4">
+        <div class="border border-gray-300 bg-white w-full rounded-none overflow-hidden flex flex-col">
+          <!-- Text Details -->
+          <div class="p-5 text-left">
+            <h3 class="font-bold text-lg leading-tight text-gray-900">
+              Ariana Grande - The eternal sunshine Tour
+            </h3>
+            <p class="mt-3 text-[15px] font-bold text-primary">
+              Mon, Jun 22 @ 12:00 PM
+            </p>
+            <p class="mt-2 text-[15px] text-gray-700">
+              AT&T Stadium, Texas
+            </p>
+          </div>
+          <!-- Divider -->
+          <div class="border-t border-gray-200"></div>
+          <!-- Seat Info -->
+          <div class="px-5 py-3.5 font-bold text-sm text-gray-900 text-left">
+            Section B23, Row 14, Seats: 5,6 and 7
+          </div>
+          <!-- Image Cover (Placed at the bottom) -->
+          <div class="w-full h-56 bg-gray-200 relative">
+            <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover" alt="Ariana Grande" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Action Button (Zero border-radius) -->
+      <div class="w-full px-5 mt-5">
+        <button onclick="window.location.hash = '#/login'" class="w-full bg-primary hover:bg-blue-700 text-white font-bold text-base py-3.5 rounded-none uppercase tracking-wide transition-colors">
+          ACCEPT TICKETS
+        </button>
+      </div>
+
+      <!-- Legal Disclaimers -->
+      <div class="w-full px-5 mt-6 text-sm text-gray-700 leading-relaxed text-left space-y-4">
+        <p>
+          By Clicking “ACCEPT TICKETS”, you agree to our <a href="#" class="text-primary hover:underline">Terms of Use</a> and any applicable ticket back terms.
+        </p>
+        <p>
+          Please note that it can take anywhere from <strong>4</strong> to <strong>12</strong> hours for the tickets to officially process and appear inside your Ticketmaster account/app.
+        </p>
+        <p>
+          If you don't see them immediately after accepting, don't worry! This delay is standard security and sync window between systems.
+        </p>
+        <p>
+          This email is <strong>NOT</strong> your ticket.
+        </p>
+      </div>
+
+      <!-- Help Section (Light grey bg centered box) -->
+      <div class="w-full bg-background border-y border-gray-200 py-6 mt-8 text-center text-sm text-gray-700 leading-relaxed">
+        We're here to help.<br>
+        If you have any questions, please <a href="#" class="text-primary font-bold hover:underline">contact</a><br>
+        Ticketmaster Fan Support
+      </div>
+
+      <!-- Footer Info -->
+      <footer class="w-full bg-primary py-8 text-center text-xs text-white/90 leading-relaxed mt-6">
+        <p class="mb-4">
+          Ticketmaster, Attn: Fan Support<br>
+          1000 corporate Landing, Charleston, WV 25311
+        </p>
+        <p class="opacity-80">
+          ©2026 Ticketmaster. All rights reserved.
+        </p>
+      </footer>
+    </main>
+  </div>
+
+
+  <!-- ================= PAGE 2: SIGN IN ================= -->
+  <div id="page-login" class="w-full flex-1 flex flex-col items-center bg-white hidden fade-in">
+    <main class="w-full max-w-[420px] px-6 py-12 flex flex-col text-left">
+      <!-- Title -->
+      <h2 class="text-[32px] font-bold font-outfit text-black leading-none">Sign in</h2>
+      <p class="mt-3 text-sm text-gray-700 font-medium">
+        New to Ticketmaster? <a href="#" class="text-primary font-semibold hover:underline">Sign Up</a>
+      </p>
+
+      <!-- Form -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="mt-8 space-y-6">
+        <div>
+          <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Email</label>
+          <input type="email" required id="login-email" class="w-full mt-1.5 h-11 border border-gray-400 px-3.5 text-base rounded-none outline-none focus:border-primary text-black" />
+        </div>
+
+        <div class="relative">
+          <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Password</label>
+          <div class="relative w-full mt-1.5">
+            <input type="password" required id="login-password" class="w-full h-11 border border-gray-400 pl-3.5 pr-14 text-base rounded-none outline-none focus:border-primary text-black" />
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-700 font-semibold focus:outline-none hover:text-black">Show</button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-sm pt-1">
+          <label class="flex items-center gap-2 text-gray-700 font-semibold cursor-pointer">
+            <input type="checkbox" class="h-4.5 w-4.5 border-gray-400 rounded-none accent-primary" />
+            Remember me
+          </label>
+          <a href="#" class="text-primary font-semibold hover:underline">Forgot Password?</a>
+        </div>
+
+        <p class="text-xs text-gray-500 leading-relaxed">
+          By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" class="text-primary font-semibold hover:underline">Terms of Use</a> and <a href="#" class="text-primary font-semibold hover:underline">Privacy Policy</a>.
+        </p>
+
+        <button type="submit" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 rounded-none text-base uppercase tracking-wide transition-colors">
+          Sign in
+        </button>
+      </form>
+    </main>
+  </div>
+
+
+  <!-- ================= PAGE 3: MY TICKETS DASHBOARD ================= -->
+  <div id="page-dashboard" class="w-full flex-1 flex flex-col items-center bg-white hidden fade-in">
+    <!-- Header -->
+    <header class="w-full bg-primary text-white">
+      <div class="px-4 py-4 flex items-center justify-between max-w-md mx-auto">
+        <button class="p-1 focus:outline-none">
+          <i data-lucide="menu" class="h-6 w-6"></i>
+        </button>
+        <span class="font-outfit font-bold text-xl italic tracking-tight lowercase">
+          ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
+        </span>
+        <div class="flex items-center gap-4">
+          <button class="p-1"><i data-lucide="search" class="h-5 w-5"></i></button>
+          <button class="p-1"><i data-lucide="user" class="h-5 w-5"></i></button>
+        </div>
+      </div>
+      <!-- Breadcrumbs -->
+      <div class="bg-primary/95 text-[11px] font-semibold text-white/80 py-1.5 px-4 max-w-md mx-auto text-left border-t border-white/10">
+        Home / My Tickets
+      </div>
+      <!-- Headline -->
+      <div class="px-4 pt-6 pb-2 max-w-md mx-auto text-left">
+        <h2 class="text-3xl font-bold font-outfit">My Tickets</h2>
+      </div>
+      <!-- Tabs (Flat design) -->
+      <div class="grid grid-cols-3 max-w-md mx-auto text-center border-b border-white/20 mt-4 text-xs font-semibold uppercase tracking-wider">
+        <button class="py-3.5 border-b-2 border-white text-white">Upcoming Events</button>
+        <button class="py-3.5 text-white/60">Past Events</button>
+        <button class="py-3.5 text-white/60">My Listings</button>
+      </div>
+    </header>
+
+    <!-- Main List Container -->
+    <main class="w-full max-w-md p-4 space-y-6 flex-1 bg-white">
+      <!-- Ariana Grande Card -->
+      <div class="border border-gray-300 rounded-none overflow-hidden flex flex-col bg-[#1A1A1A]">
+        <!-- Event Photo wrapper -->
+        <div class="w-full aspect-[16/10] relative">
+          <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover" alt="Ariana Grande" />
+          <!-- Black Date stamp -->
+          <div class="absolute bottom-3 left-3 bg-[#111111] text-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider">
+            MON • JUN 22, 2026 • 12:00 PM
+          </div>
+        </div>
+        <!-- Card details -->
+        <div class="p-4 text-white text-left flex flex-col justify-between">
+          <h3 class="text-xl font-bold tracking-tight leading-snug font-outfit uppercase">
+            ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR
+          </h3>
+          <div class="flex items-center justify-between mt-4">
+            <span class="text-xs text-white/70 font-semibold">
+              AT&T Stadium, Texas
+            </span>
+            <div class="flex items-center gap-1.5 text-white/80">
+              <i data-lucide="copy" class="h-3.5 w-3.5 text-white/70"></i>
+              <span class="text-xs font-bold">x4</span>
+            </div>
+          </div>
+        </div>
+        <!-- Blue view ticket button (flat) -->
+        <button onclick="window.location.hash = '#/ticket-view'" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide transition-colors">
+          View Ticket
+        </button>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ================= PAGE 4: LIVE BARCODE VIEW ================= -->
+  <div id="page-ticket-view" class="w-full flex-1 flex flex-col items-center bg-[#1B2942] hidden fade-in">
+    <!-- Header -->
+    <header class="w-full bg-[#0d1627] text-white">
+      <div class="px-4 py-4 flex items-center justify-between max-w-md mx-auto">
+        <button onclick="window.location.hash = '#/my-tickets'" class="p-1 focus:outline-none">
+          <i data-lucide="arrow-left" class="h-6 w-6"></i>
+        </button>
+        <span class="font-outfit font-bold text-xl italic tracking-tight lowercase">
+          ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
+        </span>
+        <div class="flex items-center gap-4">
+          <button class="p-1"><i data-lucide="search" class="h-5 w-5"></i></button>
+          <button class="p-1"><i data-lucide="user" class="h-5 w-5"></i></button>
+        </div>
+      </div>
+      <!-- Breadcrumbs -->
+      <div class="bg-[#0b1220]/80 text-[11px] font-semibold text-white/70 py-1.5 px-4 max-w-md mx-auto text-left border-t border-white/10">
+        Home / My Tickets
+      </div>
+    </header>
+
+    <!-- Ticket device frame and scanning card -->
+    <main class="w-full max-w-md px-4 py-6 flex-1 flex flex-col justify-center items-center">
+      <!-- White card wrapping the entry ticket details -->
+      <div class="bg-white w-full rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
+        
+        <!-- Screenshots warn banner -->
+        <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
+          Screenshots won't get you in
+          <button onclick="handleReloadBarcode()" class="p-1 focus:outline-none text-gray-500 hover:text-black">
+            <i data-lucide="rotate-cw" id="reload-icon" class="h-4.5 w-4.5"></i>
+          </button>
+        </div>
+
+        <!-- Barcode frame bracket -->
+        <div class="my-6 px-8 relative flex flex-col items-center">
+          <div class="border-[2px] border-black border-dashed rounded-none px-6 py-4 relative flex justify-center w-full max-w-[280px]">
+            <!-- Vertical Barcode placeholder graphic -->
+            <div id="barcode-container" class="relative w-full h-24 bg-white flex items-center justify-between px-2 overflow-hidden select-none">
+              <!-- Animated neon-green laser line (Scanning line) -->
+              <div class="laser-line"></div>
+              <!-- Simulated barcode vertical strips -->
+              <div class="w-1.5 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+              <div class="w-1 h-full bg-black"></div>
+              <div class="w-2 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+              <div class="w-1 h-full bg-black"></div>
+              <div class="w-1.5 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+              <div class="w-2.5 h-full bg-black"></div>
+              <div class="w-1.5 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+              <div class="w-1.5 h-full bg-black"></div>
+              <div class="w-2 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+              <div class="w-1 h-full bg-black"></div>
+              <div class="w-1.5 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+              <div class="w-1.5 h-full bg-black"></div>
+              <div class="w-2 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+              <div class="w-1 h-full bg-black"></div>
+              <div class="w-1.5 h-full bg-black"></div>
+              <div class="w-0.5 h-full bg-black"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail preview -->
+        <div class="px-5 text-left">
+          <!-- Small event photo -->
+          <div class="w-full aspect-[16/10] overflow-hidden rounded-none">
+            <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover" alt="Ariana Grande" />
+          </div>
+          <!-- Info block -->
+          <div class="mt-4 pb-3">
+            <h4 id="view-event-title" class="font-outfit font-bold text-lg text-black uppercase leading-snug">
+              ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR
+            </h4>
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4">Section</p>
+            <p id="view-seat-details" class="font-outfit font-bold text-base text-black mt-0.5">
+              B23, Row 14, Seats: 5
+            </p>
+          </div>
+        </div>
+
+        <!-- Ticket info CTA -->
+        <div class="px-5 mt-3">
+          <button onclick="alert('Ticket Details:\nSection B23, Row 14, Seats: 5-8')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors">
+            Ticket info
+          </button>
+        </div>
+
+        <!-- Swiper Seat Pagination Dots -->
+        <div id="seat-dots" class="flex justify-center items-center gap-2 mt-5">
+          <!-- Dots will be dynamically injected -->
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= APP ROUTING AND CONTROLLERS ================= -->
+  <script>
+    // State management
+    const seatsList = ["5", "6", "7", "8"];
+    let activeSeatIndex = 0;
+
+    // Route config
+    const routes = {
+      acceptance: 'page-acceptance',
+      login: 'page-login',
+      dashboard: 'page-dashboard',
+      ticketView: 'page-ticket-view'
+    };
+
+    function showPage(pageId) {
+      // Hide all pages
+      Object.values(routes).forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      // Show requested page
+      document.getElementById(pageId).classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    // Hash Router Listener
+    function router() {
+      const hash = window.location.hash || '#/';
+      
+      switch(hash) {
+        case '#/':
+        case '#':
+          showPage(routes.acceptance);
+          break;
+        case '#/login':
+          showPage(routes.login);
+          break;
+        case '#/my-tickets':
+          showPage(routes.dashboard);
+          break;
+        case '#/ticket-view':
+          showPage(routes.ticketView);
+          renderSeatPagination();
+          break;
+        default:
+          showPage(routes.acceptance);
+      }
+    }
+
+    window.addEventListener('hashchange', router);
+    window.addEventListener('load', () => {
+      router();
+      lucide.createIcons();
+    });
+
+    // Page 2: Password Visibility Toggle
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('login-password');
+      const toggleBtn = pwdInput.nextElementSibling;
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        toggleBtn.textContent = 'Hide';
+      } else {
+        pwdInput.type = 'password';
+        toggleBtn.textContent = 'Show';
+      }
+    }
+
+    // Page 2: Auth Submission (Simulated, logs in instantly)
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      // Redirect to dashboard instantly as requested
+      window.location.hash = '#/my-tickets';
+    }
+
+    // Page 4: Refresh/Reload click simulation
+    function handleReloadBarcode() {
+      const reloadIcon = document.getElementById('reload-icon');
+      reloadIcon.classList.add('animate-spin');
+      setTimeout(() => {
+        reloadIcon.classList.remove('animate-spin');
+      }, 1000);
+    }
+
+    // Page 4: Seat swiper rendering
+    function renderSeatPagination() {
+      const dotsContainer = document.getElementById('seat-dots');
+      dotsContainer.innerHTML = '';
+      
+      // Update Seat string details
+      document.getElementById('view-seat-details').textContent = `B23, Row 14, Seats: ${seatsList[activeSeatIndex]}`;
+
+      seatsList.forEach((seat, idx) => {
+        const dot = document.createElement('button');
+        dot.className = `h-2 rounded-full transition-all ${idx === activeSeatIndex ? 'w-6 bg-primary' : 'w-2 bg-gray-300'}`;
+        dot.addEventListener('click', () => {
+          activeSeatIndex = idx;
+          renderSeatPagination();
+        });
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    // Swipe interaction setup for Page 4
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    const barcodeCard = document.getElementById('page-ticket-view');
+    barcodeCard.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    barcodeCard.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipeGesture();
+    }, { passive: true });
+
+    function handleSwipeGesture() {
+      const minSwipeDistance = 50;
+      if (touchStartX - touchEndX > minSwipeDistance) {
+        // Swipe left -> Next seat
+        if (activeSeatIndex < seatsList.length - 1) {
+          activeSeatIndex++;
+          renderSeatPagination();
+        }
+      }
+      if (touchEndX - touchStartX > minSwipeDistance) {
+        // Swipe right -> Prev seat
+        if (activeSeatIndex > 0) {
+          activeSeatIndex--;
+          renderSeatPagination();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
