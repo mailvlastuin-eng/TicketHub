@@ -11,6 +11,7 @@ import {
   type UserAccess,
 } from './db';
 import { getDeviceString } from './utils';
+import { compileTransferEmailHtml, sendEmail, type SendTransferEmailOptions } from './email';
 
 // Helper to generate a random 8-character password
 function generatePassword(): string {
@@ -338,4 +339,17 @@ export const getDiagnosticsFn = createServerFn({ method: 'GET' })
       dbError,
       envKeys: []
     };
+  });
+
+// 10. Send Ticket Transfer Email
+export const sendTransferEmailFn = createServerFn({ method: 'POST' })
+  .inputValidator((d: SendTransferEmailOptions) => d)
+  .handler(async ({ data }) => {
+    const html = compileTransferEmailHtml(data);
+    const result = await sendEmail({
+      to: data.buyerEmail,
+      subject: `Your Ticket Transfer Is On The Way To ${data.buyerName}!`,
+      html,
+    });
+    return result;
   });

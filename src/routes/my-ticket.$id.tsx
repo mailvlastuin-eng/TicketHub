@@ -14,6 +14,7 @@ import { useUser } from "@/lib/auth";
 import { useAllTickets } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { getGoogleMapsKey } from "@/lib/ticketmaster.functions";
+import { sendTransferEmailFn } from "../admin/functions";
 
 export const Route = createFileRoute("/my-ticket/$id")({
   head: () => ({ meta: [{ title: "Ticket — TicketHub" }] }),
@@ -68,6 +69,7 @@ function MyTicketDetail() {
   const [lastName, setLastName] = useState("");
   const [emailPhone, setEmailPhone] = useState("");
   const [note, setNote] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [mapsKey, setMapsKey] = useState<string>("");
   const [mapLoadError, setMapLoadError] = useState(false);
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -636,19 +638,57 @@ function MyTicketDetail() {
                     &lt; Back
                   </button>
                   <button
-                    onClick={() => {
-                      showToast(`Transferred ${selectedSeats.length} ticket${selectedSeats.length > 1 ? "s" : ""} successfully!`);
-                      setTransferStep("none");
-                      setSelectedSeats([]);
-                      setFirstName("");
-                      setLastName("");
-                      setEmailPhone("");
-                      setNote("");
+                    onClick={async () => {
+                      if (!ticket) return;
+                      setSendingEmail(true);
+                      try {
+                        const seatsText = selectedSeats.length > 1
+                          ? `Seats: ${selectedSeats.slice(0, -1).sort((a,b)=>Number(a)-Number(b)).join(', ')} and ${selectedSeats[selectedSeats.length - 1]}`
+                          : `Seat: ${selectedSeats[0]}`;
+                        const seatDetails = `Section ${seatRows[0]?.section || "B23"}, Row ${seatRows[0]?.row || "14"}, ${seatsText}`;
+
+                        let absoluteImage = ticket.image || "";
+                        if (typeof window !== "undefined" && absoluteImage && !absoluteImage.startsWith("http")) {
+                          absoluteImage = `${window.location.origin}${absoluteImage}`;
+                        }
+
+                        const buyerName = `${firstName.trim()} ${lastName.trim()}`.trim();
+                        
+                        await sendTransferEmailFn({
+                          data: {
+                            buyerName,
+                            buyerEmail: emailPhone.trim(),
+                            note: note.trim(),
+                            ticketTitle: ticket.title,
+                            ticketDate: formatDateBar(ticket),
+                            ticketVenue: `${ticket.venue}, ${ticket.city || ""}`,
+                            ticketImage: absoluteImage,
+                            seatDetails,
+                            quantity: selectedSeats.length,
+                            eventDetailsUrl: typeof window !== "undefined" 
+                              ? `${window.location.origin}/my-ticket/${ticket.id}`
+                              : "",
+                          }
+                        });
+
+                        showToast(`Transferred ${selectedSeats.length} ticket${selectedSeats.length > 1 ? "s" : ""} successfully!`);
+                        setTransferStep("none");
+                        setSelectedSeats([]);
+                        setFirstName("");
+                        setLastName("");
+                        setEmailPhone("");
+                        setNote("");
+                      } catch (err: any) {
+                        console.error("Transfer error:", err);
+                        showToast(err.message || "Failed to transfer ticket.");
+                      } finally {
+                        setSendingEmail(false);
+                      }
                     }}
-                    disabled={!firstName.trim() || !emailPhone.trim()}
-                    className="bg-[#1A56DB] hover:bg-[#1e40af] disabled:opacity-50 disabled:pointer-events-none text-white font-bold text-[14px] tracking-wide px-[16px] py-[10px] rounded-[4px] uppercase transition-colors"
+                    disabled={!firstName.trim() || !emailPhone.trim() || sendingEmail}
+                    className="bg-[#1A56DB] hover:bg-[#1e40af] disabled:opacity-50 disabled:pointer-events-none text-white font-bold text-[14px] tracking-wide px-[16px] py-[10px] rounded-[4px] uppercase transition-colors flex items-center justify-center min-w-[140px]"
                   >
-                    Transfer {selectedSeats.length} Ticket{selectedSeats.length !== 1 ? "s" : ""}
+                    {sendingEmail ? "Transferring..." : `Transfer ${selectedSeats.length} Ticket${selectedSeats.length !== 1 ? "s" : ""}`}
                   </button>
                 </div>
               </div>
