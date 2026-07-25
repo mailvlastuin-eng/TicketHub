@@ -228,8 +228,8 @@ function CreateTicketSearchPage() {
   return (
     <main className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="bg-primary text-primary-foreground py-4 px-4 flex items-center gap-3">
+        {/* Header (iOS Safe Area Collision Fix) */}
+        <div className="bg-primary text-primary-foreground pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 px-4 flex items-center gap-3">
           <Link
             to="/favorites"
             className="inline-flex items-center gap-1 text-primary-foreground/90 text-sm font-semibold"
@@ -240,18 +240,18 @@ function CreateTicketSearchPage() {
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Search bar */}
-          <div className="border border-foreground/20 rounded-[4px] p-4 bg-card shadow-sm">
+          {/* Search bar (Overflow Fix) */}
+          <div className="border border-foreground/20 rounded-[4px] p-4 bg-card shadow-sm max-w-full overflow-hidden">
             <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/60">
               Search Event from Ticketmaster
             </p>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex-1 flex items-center gap-2 border border-zinc-300 rounded-[4px] px-3.5 h-[46px] bg-white">
+            <div className="w-full flex flex-row items-center gap-2 mt-2">
+              <div className="flex-1 min-w-0 flex items-center gap-2 border border-zinc-300 rounded-[4px] px-3.5 h-[46px] bg-white">
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search by artist, team, or show..."
-                  className="flex-1 bg-transparent outline-none text-[16px] placeholder-zinc-400 text-black font-medium"
+                  className="w-full bg-transparent outline-none text-[16px] placeholder-zinc-400 text-black font-medium min-w-0 flex-1"
                 />
                 <Search className="h-5 w-5 text-zinc-400 shrink-0" />
               </div>
