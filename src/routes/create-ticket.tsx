@@ -3,11 +3,15 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Search, Plus, Trash2, Ticket as TicketIcon } from "lucide-react";
 import { useUser } from "@/lib/auth";
 import { searchTMEvents, getTMEvent, type TMEventSummary } from "@/lib/ticketmaster.functions";
-import { addCustomTicket } from "@/lib/ticket-store";
+import { addCustomTicket, useAllTickets } from "@/lib/ticket-store";
+import { featuredTickets } from "@/lib/tickets";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/create-ticket")({
   head: () => ({ meta: [{ title: "New Event — TicketHub" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    eventId: search.eventId ? String(search.eventId) : undefined,
+  }),
   component: CreateTicketSearchPage,
 });
 
@@ -49,6 +53,8 @@ const DEFAULT_FIELDS: FormFields = {
 function CreateTicketSearchPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const { eventId } = Route.useSearch();
+  const all = useAllTickets();
 
   // Search state
   const [query, setQuery] = useState("");
@@ -61,6 +67,34 @@ function CreateTicketSearchPage() {
   const [seats, setSeats] = useState<string[]>(["1"]); // starts with 1 seat
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Sync passed eventId template details on mount
+  useEffect(() => {
+    if (eventId) {
+      const found = all.find((t) => t.id === eventId) || featuredTickets.find((t) => t.id === eventId);
+      if (found) {
+        setForm({
+          title: found.title || "",
+          category: found.category || "Event",
+          venue: found.venue || "",
+          city: found.city || "",
+          date: found.date || "",
+          time: found.time || "",
+          priceFrom: found.priceFrom ? String(found.priceFrom) : "",
+          currency: found.currency || "USD",
+          description: found.description || "",
+          image: found.image || "",
+          ticketType: found.ticketType || "Verified Fan Onsale",
+          section: found.section || "",
+          row: found.row || "",
+          entryInfo: found.entryInfo || "",
+        });
+        if (found.seats && found.seats.length > 0) {
+          setSeats(found.seats);
+        }
+      }
+    }
+  }, [eventId, all]);
 
   useEffect(() => {
     if (ready && !user) navigate({ to: "/", replace: true });

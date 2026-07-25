@@ -157,8 +157,8 @@ function DiscoverPage() {
                 </span>
               </h2>
               <Link
-                to="/ticket/$id"
-                params={{ id: featured.id }}
+                to="/create-ticket"
+                search={{ eventId: featured.id }}
                 className="mt-3 inline-flex items-center justify-center rounded-[4px] bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
               >
                 Find tickets
@@ -235,8 +235,8 @@ function DiscoverPage() {
           {list.map((t) => (
             <Link
               key={t.id}
-              to="/ticket/$id"
-              params={{ id: t.id }}
+              to="/create-ticket"
+              search={{ eventId: t.id }}
               className="block"
             >
               <div className="aspect-[16/10] overflow-hidden rounded-sm">
