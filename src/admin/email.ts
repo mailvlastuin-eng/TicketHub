@@ -9,6 +9,7 @@ export interface SendTransferEmailOptions {
   seatDetails: string;
   quantity: number;
   eventDetailsUrl: string;
+  senderName?: string;
 }
 
 export function compileTransferEmailHtml(options: SendTransferEmailOptions): string {
@@ -22,30 +23,31 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
     seatDetails,
     quantity,
     eventDetailsUrl,
+    senderName = "JACQUELINE",
   } = options;
 
-  // Render a 1-of-1 pixel perfect Ticketmaster transfer template matching Figma
+  // Render a 1-of-1 pixel perfect Ticketmaster transfer template matching the screenshot
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Ticket Transfer Is On The Way</title>
+  <title>Your Ticket Transfer From ${senderName.toUpperCase()} is Ready To Be Accepted!</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F3F4F6; padding: 20px 0;">
+<body style="margin: 0; padding: 0; background-color: #F6F6F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F6F6F6; padding: 0; margin: 0; width: 100%;">
     <tr>
       <td align="center">
-        <!-- Main Card Container -->
-        <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+        <!-- Main Card Container (Absolutely 0px border-radius) -->
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0px; overflow: hidden; border-collapse: collapse; margin: 0 auto;">
           
-          <!-- Blue Ticketmaster Header (height increased by 30%) -->
+          <!-- Blue Ticketmaster Header Bar (Square corner) -->
           <tr>
-            <td align="center" style="background-color: #0053CD; padding: 24px 0;">
+            <td align="center" style="background-color: #0053CD; padding: 18px 0; border-radius: 0px; line-height: 1;">
               <!-- Stylized White Logo to render correctly across 100% of email clients without image blocking -->
-              <table border="0" cellpadding="0" cellspacing="0">
+              <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
-                  <td style="font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; font-style: italic; color: #ffffff; letter-spacing: -1.2px; text-transform: lowercase; line-height: 1;">
+                  <td style="font-family: Arial, sans-serif; font-size: 26px; font-weight: bold; font-style: italic; color: #ffffff; letter-spacing: -1.2px; text-transform: lowercase; line-height: 1;">
                     ticketmaster<span style="font-size: 10px; vertical-align: super; font-style: normal; font-weight: normal; margin-left: 2px;">®</span>
                   </td>
                 </tr>
@@ -53,27 +55,27 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
             </td>
           </tr>
 
-          <!-- Title -->
+          <!-- Title (Centred text matching screenshot font sizes) -->
           <tr>
-            <td align="center" style="padding: 24px 20px 10px 20px;">
-              <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #111827; line-height: 1.3; text-align: center;">
-                Your Ticket Transfer Is On The Way To<br>${buyerName}!
+            <td align="center" style="padding: 30px 20px 20px 20px;">
+              <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #000000; line-height: 1.35; text-align: center; letter-spacing: -0.2px;">
+                Your Ticket Transfer From ${senderName.toUpperCase()} is<br>Ready To Be Accepted!
               </h1>
             </td>
           </tr>
 
-          <!-- Horizontal Progress Bar (Fixed Aspect Ratios to enforce circles instead of ovals) -->
+          <!-- Horizontal Progress Bar (Fixed Aspect Ratios, 1.2px outline dashed circles) -->
           <tr>
-            <td align="center" style="padding: 10px 40px 24px 40px;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 320px;">
+            <td align="center" style="padding: 10px 40px 30px 40px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 320px; width: 100%;">
                 <tr>
                   <!-- Step 1: Sent -->
                   <td align="center" width="50" style="vertical-align: top;">
                     <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
                       <tr>
                         <td align="center" valign="middle" width="36" height="36">
-                          <div style="background-color: #0053CD; border-radius: 50%; width: 36px; height: 36px; margin: 0 auto; text-align: center;">
-                            <img src="https://img.icons8.com/ios-filled/32/ffffff/ticket.png" width="16" height="16" style="display: inline-block; vertical-align: middle; margin-top: 10px;" alt="Sent" />
+                          <div style="background-color: #0053CD; border-radius: 50%; width: 36px; height: 36px; margin: 0 auto; text-align: center; line-height: 36px;">
+                            <img src="https://img.icons8.com/ios-filled/32/ffffff/ticket.png" width="16" height="16" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Sent" />
                           </div>
                         </td>
                       </tr>
@@ -87,7 +89,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                   
                   <!-- Connection Line 1 -->
                   <td align="center" style="vertical-align: middle; padding-bottom: 16px;">
-                    <div style="border-top: 1px solid #D1D5DB; height: 1px; width: 100%;"></div>
+                    <div style="border-top: 1px solid #CCCCCC; height: 1px; width: 100%;"></div>
                   </td>
                   
                   <!-- Step 2: Accepted -->
@@ -95,8 +97,8 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                     <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
                       <tr>
                         <td align="center" valign="middle" width="36" height="36">
-                          <div style="border: 1.5px dashed #9CA3AF; border-radius: 50%; width: 33px; height: 33px; background-color: #ffffff; margin: 0 auto; text-align: center;">
-                            <img src="https://img.icons8.com/ios/32/9CA3AF/ok--v1.png" width="14" height="14" style="display: inline-block; vertical-align: middle; margin-top: 9px;" alt="Accepted" />
+                          <div style="border: 1.2px dashed #9CA3AF; border-radius: 50%; width: 34px; height: 34px; background-color: #ffffff; margin: 0 auto; text-align: center; line-height: 34px;">
+                            <img src="https://img.icons8.com/ios/32/9CA3AF/ok--v1.png" width="14" height="14" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Accepted" />
                           </div>
                         </td>
                       </tr>
@@ -110,7 +112,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                   
                   <!-- Connection Line 2 -->
                   <td align="center" style="vertical-align: middle; padding-bottom: 16px;">
-                    <div style="border-top: 1px solid #D1D5DB; height: 1px; width: 100%;"></div>
+                    <div style="border-top: 1px solid #CCCCCC; height: 1px; width: 100%;"></div>
                   </td>
                   
                   <!-- Step 3: Complete -->
@@ -118,8 +120,8 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                     <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
                       <tr>
                         <td align="center" valign="middle" width="36" height="36">
-                          <div style="border: 1.5px dashed #9CA3AF; border-radius: 50%; width: 33px; height: 33px; background-color: #ffffff; margin: 0 auto; text-align: center;">
-                            <img src="https://img.icons8.com/ios/32/9CA3AF/ticket.png" width="14" height="14" style="display: inline-block; vertical-align: middle; margin-top: 9px;" alt="Complete" />
+                          <div style="border: 1.2px dashed #9CA3AF; border-radius: 50%; width: 34px; height: 34px; background-color: #ffffff; margin: 0 auto; text-align: center; line-height: 34px;">
+                            <img src="https://img.icons8.com/ios/32/9CA3AF/ticket.png" width="14" height="14" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Complete" />
                           </div>
                         </td>
                       </tr>
@@ -135,81 +137,99 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
             </td>
           </tr>
 
-          <!-- Event Detail Card (Rounded edges removed) -->
+          <!-- Event Detail Card (0px border-radius, event image at the bottom) -->
           <tr>
             <td align="center" style="padding: 0 24px;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #E5E7EB; border-radius: 0px; overflow: hidden; background-color: #ffffff;">
-                <!-- Event Image -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #CCCCCC; border-radius: 0px; overflow: hidden; background-color: #ffffff; border-collapse: collapse;">
+                <!-- Event Header Info -->
                 <tr>
-                  <td align="center" style="line-height: 0;">
-                    <img src="${ticketImage}" width="100%" height="220" style="width: 100%; height: 220px; object-fit: cover; display: block;" alt="${ticketTitle}" />
-                  </td>
-                </tr>
-                <!-- Text Details -->
-                <tr>
-                  <td style="padding: 20px;">
-                    <h2 style="margin: 0 0 10px 0; font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: #111827; line-height: 1.3;">
+                  <td style="padding: 20px 20px 16px 20px; text-align: left;">
+                    <h2 style="margin: 0 0 10px 0; font-family: Arial, sans-serif; font-size: 19px; font-weight: bold; color: #111827; line-height: 1.25;">
                       ${ticketTitle}
                     </h2>
-                    <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 14px; color: #4B5563;">
+                    <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 15px; font-weight: bold; color: #0053CD; line-height: 1.25;">
                       ${ticketDate}
                     </p>
-                    <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; color: #4B5563;">
+                    <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; color: #333333; line-height: 1.25;">
                       ${ticketVenue}
                     </p>
                   </td>
                 </tr>
-                <!-- Section Seat Designation Header Block -->
+                <!-- Thin Divider Line -->
                 <tr>
-                  <td style="background-color: #F9FAFB; border-top: 1px solid #E5E7EB; padding: 12px 20px; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: #111827;">
+                  <td style="border-top: 1px solid #E5E7EB; padding: 0;"></td>
+                </tr>
+                <!-- Section Row Seat (Bold font, no background color matching screenshot) -->
+                <tr>
+                  <td style="padding: 14px 20px; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: #111827; text-align: left;">
                     ${seatDetails}
+                  </td>
+                </tr>
+                <!-- Event Image at the bottom of the card -->
+                <tr>
+                  <td align="center" style="line-height: 0; padding: 0;">
+                    <img src="${ticketImage}" width="100%" height="220" style="width: 100%; height: 220px; object-fit: cover; display: block; border-radius: 0px; border: 0;" alt="${ticketTitle}" />
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Body Descriptions -->
+          <!-- Accept Button Container (Zero border-radius matching screenshot) -->
           <tr>
-            <td style="padding: 24px; font-family: Arial, sans-serif;">
-              <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold; color: #111827;">
-                Transfer Status: Sent
-              </p>
-              <p style="margin: 0 20px 20px 0; font-size: 14px; color: #4B5563; line-height: 1.5;">
-                Your ticket transfer is in the world. There are now ${quantity} ticket(s) heading to ${buyerName} at <a href="mailto:${buyerEmail}" style="color: #0053CD; text-decoration: none;">${buyerEmail}</a>
-              </p>
+            <td align="center" style="padding: 16px 24px 24px 24px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center">
+                    <a href="${eventDetailsUrl}" style="display: block; width: 100%; background-color: #0053CD; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 0; text-align: center; border-radius: 0px; text-transform: uppercase; letter-spacing: 0.5px; border-collapse: collapse; box-sizing: border-box;">
+                      ACCEPT TICKETS
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-              <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold; color: #111827;">
-                What's next?
+          <!-- Legal / Instructions Disclaimers -->
+          <tr>
+            <td style="padding: 0 24px 24px 24px; font-family: Arial, sans-serif; text-align: left;">
+              <p style="margin: 0 0 20px 0; font-size: 13px; color: #333333; line-height: 1.45;">
+                By Clicking “ACCEPT TICKETS”, you agree to our <a href="#" style="color: #0053CD; text-decoration: none;">Terms of Use</a> and any applicable ticket back terms.
               </p>
-              <p style="margin: 0 20px 20px 0; font-size: 14px; color: #4B5563; line-height: 1.5;">
-                Once ${buyerName} accepts your ticket transfer - everything is all set. Just in case something changes, you can cancel your ticket transfer request - as long as the tickets have not been accepted.
+              
+              <p style="margin: 0 0 20px 0; font-size: 13px; color: #333333; line-height: 1.45;">
+                Please note that it can take anywhere from <strong>4</strong> to <strong>12</strong> hours for the tickets to officially process and appear inside your Ticketmaster account/app.
               </p>
-
-              <p style="margin: 0; font-size: 14px; color: #4B5563;">
-                To view and manage your ticket transfer, please visit <a href="${eventDetailsUrl}" style="color: #0053CD; font-weight: bold; text-decoration: none;">Event Details</a>
+              
+              <p style="margin: 0 0 20px 0; font-size: 13px; color: #333333; line-height: 1.45;">
+                If you don't see them immediately after accepting, don't worry! This delay is standard security and sync window between systems.
+              </p>
+              
+              <p style="margin: 0; font-size: 13px; color: #333333; line-height: 1.45;">
+                This email is <strong>NOT</strong> your ticket.
               </p>
             </td>
           </tr>
 
-          <!-- Help/Support section -->
+          <!-- Help/Support Section (Light grey background centered box) -->
           <tr>
-            <td align="center" style="padding: 10px 24px 30px 24px; border-top: 1px solid #E5E7EB;">
-              <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; color: #6B7280; line-height: 1.5; text-align: center;">
+            <td align="center" style="background-color: #F6F6F6; padding: 24px 20px; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;">
+              <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; color: #333333; line-height: 1.6; text-align: center;">
                 We're here to help.<br>
-                If you have any questions, please <a href="#" style="color: #0053CD; text-decoration: none; font-weight: bold;">contact</a> Ticketmaster Fan Support
+                If you have any questions, please <a href="#" style="color: #0053CD; text-decoration: none; font-weight: bold;">contact</a><br>
+                Ticketmaster Fan Support
               </p>
             </td>
           </tr>
 
-          <!-- Blue Footer -->
+          <!-- Solid Blue Footer (Zero border-radius) -->
           <tr>
-            <td align="center" style="background-color: #0053CD; padding: 24px 20px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-              <p style="margin: 0 0 8px 0; font-family: Arial, sans-serif; font-size: 12px; color: #ffffff; line-height: 1.4; text-align: center;">
+            <td align="center" style="background-color: #0053CD; padding: 28px 20px; border-radius: 0px;">
+              <p style="margin: 0 0 16px 0; font-family: Arial, sans-serif; font-size: 12px; color: #ffffff; line-height: 1.5; text-align: center;">
                 Ticketmaster, Attn: Fan Support<br>
                 1000 corporate Landing, Charleston, WV 25311
               </p>
-              <p style="margin: 0; font-family: Arial, sans-serif; font-size: 11px; color: #93C5FD; text-align: center;">
+              <p style="margin: 0; font-family: Arial, sans-serif; font-size: 11px; color: #ffffff; text-align: center; opacity: 0.8;">
                 ©2026 Ticketmaster. All rights reserved.
               </p>
             </td>
