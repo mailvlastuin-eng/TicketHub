@@ -154,7 +154,12 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
     const { email, sessionId } = data;
     const user = await getUserByEmail(email);
 
-    if (!user || user.sessionId !== sessionId || user.status !== 'active') {
+    if (!user || user.status !== 'active') {
+      return { valid: false };
+    }
+
+    // Only enforce exact sessionId match for single-session users
+    if (user.loginMode !== 'multiple' && user.sessionId !== sessionId) {
       return { valid: false };
     }
 
