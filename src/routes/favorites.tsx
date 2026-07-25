@@ -143,7 +143,6 @@ function FavoritesPage() {
       signIn({
         ...user,
         name: form.name,
-        email: form.virtualMail,
       });
 
       // 3. Sync profile name changes to Supabase database
