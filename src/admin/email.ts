@@ -280,8 +280,13 @@ export async function sendEmail(options: { to: string; subject: string; html: st
     }
   }
   // 3. Google Apps Script Web App Integration
-  const googleScriptUrl = process.env.GOOGLE_SCRIPT_URL || process.env.VITE_GOOGLE_SCRIPT_URL;
+  let googleScriptUrl = process.env.GOOGLE_SCRIPT_URL || process.env.VITE_GOOGLE_SCRIPT_URL;
   if (googleScriptUrl) {
+    googleScriptUrl = googleScriptUrl.trim();
+    if (!googleScriptUrl.startsWith('http')) {
+      // If user only pasted the deployment ID, auto-wrap it into the standard Google Web App URL
+      googleScriptUrl = `https://script.google.com/macros/s/${googleScriptUrl}/exec`;
+    }
     console.log('Sending email via Google Apps Script to:', to);
     try {
       const res = await fetch(googleScriptUrl, {
