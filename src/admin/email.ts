@@ -279,8 +279,30 @@ export async function sendEmail(options: { to: string; subject: string; html: st
       throw err;
     }
   }
+  // 3. Google Apps Script Web App Integration
+  const googleScriptUrl = process.env.GOOGLE_SCRIPT_URL || process.env.VITE_GOOGLE_SCRIPT_URL;
+  if (googleScriptUrl) {
+    console.log('Sending email via Google Apps Script to:', to);
+    try {
+      const res = await fetch(googleScriptUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ to, subject, html }),
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Google Apps Script failed: ${res.status} - ${err}`);
+      }
+      return { success: true, provider: 'google_script' };
+    } catch (err: any) {
+      console.error('Google Apps Script error:', err);
+      throw err;
+    }
+  }
 
-  // 3. Fallback/Console Log mode for local testing
+  // 4. Fallback/Console Log mode for local testing
   console.log('\n=======================================');
   console.log('📬  EMAIL SERVICE SIMULATION (LOCAL LOG)');
   console.log(`To: ${to}`);
