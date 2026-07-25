@@ -348,7 +348,7 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
     const html = compileTransferEmailHtml(data);
     const result = await sendEmail({
       to: data.buyerEmail,
-      subject: `Your Ticket Transfer Is On The Way To ${data.buyerName}!`,
+      subject: `Fwd: Your ticket transfer to ${data.buyerName} is on the way for ${data.ticketTitle}`,
       html,
     });
     return result;
