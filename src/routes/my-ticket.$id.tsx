@@ -261,15 +261,18 @@ function MyTicketDetail() {
             </div>
           </div>
 
-          {/* Wrapper for dynamic measurement */}
-          <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6]">
-            {/* Title block */}
-            <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative">
-              <div>
-                <h2 className="text-base font-bold uppercase leading-tight">
+          {/* Wrapper for dynamic measurement (Standardized to 152px height) */}
+          <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6] h-[152px] shrink-0">
+            {/* Title block (Locked to 100px height with strict line clamping) */}
+            <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative h-[100px] box-border">
+              <div className="flex-1 min-w-0">
+                <h2 
+                  className="text-base font-bold uppercase leading-tight line-clamp-2 h-[40px] overflow-hidden text-ellipsis"
+                  style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+                >
                   {ticket.title}
                 </h2>
-                <p className="mt-4 text-xs text-white/70">
+                <p className="mt-4 text-xs text-white/70 truncate h-[16px] overflow-hidden">
                   {ticket.venue}
                   {ticket.city ? `, ${ticket.city}` : ""}
                 </p>
@@ -280,10 +283,10 @@ function MyTicketDetail() {
               </div>
             </div>
 
-            {/* View Tickets CTA */}
+            {/* View Tickets CTA (52px height) */}
             <button
               onClick={() => showToast("Tickets ready to scan")}
-              className="w-full bg-primary text-primary-foreground py-3.5 flex items-center justify-center gap-2 text-sm font-semibold z-10 relative pointer-events-auto mb-0"
+              className="w-full bg-primary text-primary-foreground h-[52px] flex items-center justify-center gap-2 text-sm font-semibold z-10 relative pointer-events-auto mb-0"
             >
               <ScanBarcode className="h-4 w-4" />
               View Tickets
@@ -298,12 +301,12 @@ function MyTicketDetail() {
         >
           {/* 3. [Spacer matching fixed background section height] */}
           <div className="w-full shrink-0 pointer-events-none flex flex-col mb-0 pb-0">
-            <div className="w-full aspect-[4/3] mb-0 pb-0" />
+            <div className="w-full aspect-[4/3] mb-0 pb-0 animate-pulse bg-zinc-900/10" />
             <div style={{ height: detailsHeight }} className="w-full mb-0 pb-0" />
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full min-h-screen -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
+          <div className="bg-white w-full min-h-[100dvh] -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
