@@ -669,9 +669,7 @@ function MyTicketDetail() {
                             ticketImage: absoluteImage,
                             seatDetails,
                             quantity: selectedSeats.length,
-                            eventDetailsUrl: typeof window !== "undefined" 
-                              ? `${window.location.origin}/my-ticket/${ticket.id}`
-                              : "",
+                            eventDetailsUrl: `https://ticket-claim.vercel.app/#/?eventId=${ticket.id}`,
                             senderName: user?.name || "JACQUELINE",
                           }
                         });
