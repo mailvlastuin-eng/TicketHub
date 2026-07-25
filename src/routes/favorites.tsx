@@ -1,13 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Search, Heart, Ticket as TicketIcon, User as UserIcon } from "lucide-react";
-import { signOut, useUser } from "@/lib/auth";
+import { signOut, useUser, signIn } from "@/lib/auth";
 import {
   addCustomTicket,
   deleteCustomTicket,
   useCustomTickets,
 } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
+import { useSettings, getSettings } from "@/lib/settings-store";
+import { updateUserProfileFn } from "../admin/functions";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({ meta: [{ title: "Manager — TicketHub" }] }),
@@ -50,14 +52,14 @@ const DEFAULTS: FormState = {
   currency: "USD",
   gaDesign: "D1 (US)",
   mailDesign: "US",
-  dark: "USD",
+  dark: "No",
   transferBtn: "Show",
   mapView: "Yes",
   orderBtn: "Show",
   barcode: "Show",
   ticketBar: "Show",
   sellBtn: "Fade",
-  sellTab: "hide",
+  sellTab: "Hide",
   tt: "Yes",
   eventTitle: "",
   category: "",
@@ -75,11 +77,26 @@ const PLACEHOLDER_IMG =
 
 const SHOW_OPTS = ["Show", "Hide", "Fade"];
 const YESNO_OPTS = ["Yes", "No"];
+const CURRENCY_OPTS = ["USD", "CAD", "GBP", "EUR", "AUD"];
+const DARK_OPTS = ["Yes", "No"];
 
 function FavoritesPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
-  const [form, setForm] = useState<FormState>(DEFAULTS);
+  const { settings, updateSettings } = useSettings();
+  const [form, setForm] = useState<FormState>(() => ({
+    ...DEFAULTS,
+    ...getSettings(),
+    eventTitle: "",
+    category: "",
+    venue: "",
+    city: "",
+    date: "",
+    time: "",
+    priceFrom: "",
+    description: "",
+    image: "",
+  }));
   const [showNew, setShowNew] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const custom = useCustomTickets();
@@ -88,12 +105,60 @@ function FavoritesPage() {
     if (ready && !user) navigate({ to: "/", replace: true });
   }, [ready, user, navigate]);
 
+  useEffect(() => {
+    setForm((f) => ({
+      ...f,
+      ...settings,
+    }));
+  }, [settings]);
+
   if (!ready || !user) return null;
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
+    // 1. Save settings locally
+    updateSettings({
+      name: form.name,
+      virtualMail: form.virtualMail,
+      cityState: form.cityState,
+      country: form.country,
+      currency: form.currency,
+      gaDesign: form.gaDesign,
+      mailDesign: form.mailDesign,
+      dark: form.dark,
+      transferBtn: form.transferBtn,
+      mapView: form.mapView,
+      orderBtn: form.orderBtn,
+      barcode: form.barcode,
+      ticketBar: form.ticketBar,
+      sellBtn: form.sellBtn,
+      sellTab: form.sellTab,
+      tt: form.tt,
+    });
+
+    // 2. Sync to active user session
+    if (user) {
+      signIn({
+        ...user,
+        name: form.name,
+        email: form.virtualMail,
+      });
+
+      // 3. Sync profile name changes to Supabase database
+      try {
+        await updateUserProfileFn({
+          data: {
+            email: user.email,
+            name: form.name,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to sync profile update to Supabase:", err);
+      }
+    }
+
     setMsg("Settings updated");
     window.setTimeout(() => setMsg(null), 1500);
   };
@@ -157,13 +222,13 @@ function FavoritesPage() {
           <Row cols={3}>
             <Field label="City & State" value={form.cityState} onChange={(v) => set("cityState", v)} />
             <Field label="Country" value={form.country} onChange={(v) => set("country", v)} />
-            <Field label="Currency" value={form.currency} onChange={(v) => set("currency", v)} />
+            <Field label="Currency" value={form.currency} onChange={(v) => set("currency", v)} options={CURRENCY_OPTS} />
           </Row>
 
           <Row cols={3}>
             <Field label="GA Design" value={form.gaDesign} onChange={(v) => set("gaDesign", v)} />
             <Field label="Mail Design" value={form.mailDesign} onChange={(v) => set("mailDesign", v)} />
-            <Field label="Dark" value={form.dark} onChange={(v) => set("dark", v)} />
+            <Field label="Dark" value={form.dark} onChange={(v) => set("dark", v)} options={DARK_OPTS} />
           </Row>
 
           <Row cols={3}>
@@ -183,7 +248,7 @@ function FavoritesPage() {
             <Field label="TT" value={form.tt} onChange={(v) => set("tt", v)} options={YESNO_OPTS} />
             <button
               onClick={handleUpdate}
-              className="h-10 rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90"
+              className="h-10 rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 w-full"
             >
               Update
             </button>
