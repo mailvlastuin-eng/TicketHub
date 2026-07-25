@@ -37,11 +37,11 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
     <tr>
       <td align="center">
         <!-- Main Card Container -->
-        <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
           
-          <!-- Blue Ticketmaster Header -->
+          <!-- Blue Ticketmaster Header (height increased by 30%) -->
           <tr>
-            <td align="center" style="background-color: #0053CD; padding: 18px 0;">
+            <td align="center" style="background-color: #0053CD; padding: 24px 0;">
               <!-- Stylized White Logo to render correctly across 100% of email clients without image blocking -->
               <table border="0" cellpadding="0" cellspacing="0">
                 <tr>
@@ -62,16 +62,16 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
             </td>
           </tr>
 
-          <!-- Horizontal Progress Bar -->
+          <!-- Horizontal Progress Bar (Fixed Aspect Ratios to enforce circles instead of ovals) -->
           <tr>
             <td align="center" style="padding: 10px 40px 24px 40px;">
               <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 320px;">
                 <tr>
                   <!-- Step 1: Sent -->
                   <td align="center" width="50" style="vertical-align: top;">
-                    <table border="0" cellpadding="0" cellspacing="0">
+                    <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
                       <tr>
-                        <td align="center" style="background-color: #0053CD; border-radius: 50%; width: 36px; height: 36px; text-align: center; vertical-align: middle;">
+                        <td align="center" valign="middle" width="36" height="36" style="background-color: #0053CD; border-radius: 50%; width: 36px; height: 36px; min-width: 36px; min-height: 36px; text-align: center; vertical-align: middle;">
                           <img src="https://img.icons8.com/ios-filled/32/ffffff/ticket.png" width="16" height="16" style="display: block; margin: auto;" alt="Sent" />
                         </td>
                       </tr>
@@ -90,9 +90,9 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                   
                   <!-- Step 2: Accepted -->
                   <td align="center" width="50" style="vertical-align: top;">
-                    <table border="0" cellpadding="0" cellspacing="0">
+                    <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
                       <tr>
-                        <td align="center" style="border: 2px dashed #9CA3AF; border-radius: 50%; width: 32px; height: 32px; text-align: center; vertical-align: middle; background-color: #ffffff;">
+                        <td align="center" valign="middle" width="36" height="36" style="border: 2px dashed #9CA3AF; border-radius: 50%; width: 36px; height: 36px; min-width: 36px; min-height: 36px; text-align: center; vertical-align: middle; background-color: #ffffff;">
                           <img src="https://img.icons8.com/ios/32/9CA3AF/ok--v1.png" width="14" height="14" style="display: block; margin: auto;" alt="Accepted" />
                         </td>
                       </tr>
@@ -111,9 +111,9 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                   
                   <!-- Step 3: Complete -->
                   <td align="center" width="50" style="vertical-align: top;">
-                    <table border="0" cellpadding="0" cellspacing="0">
+                    <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
                       <tr>
-                        <td align="center" style="border: 2px dashed #9CA3AF; border-radius: 50%; width: 32px; height: 32px; text-align: center; vertical-align: middle; background-color: #ffffff;">
+                        <td align="center" valign="middle" width="36" height="36" style="border: 2px dashed #9CA3AF; border-radius: 50%; width: 36px; height: 36px; min-width: 36px; min-height: 36px; text-align: center; vertical-align: middle; background-color: #ffffff;">
                           <img src="https://img.icons8.com/ios/32/9CA3AF/ticket.png" width="14" height="14" style="display: block; margin: auto;" alt="Complete" />
                         </td>
                       </tr>
@@ -129,10 +129,10 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
             </td>
           </tr>
 
-          <!-- Event Detail Card -->
+          <!-- Event Detail Card (Rounded edges removed) -->
           <tr>
             <td align="center" style="padding: 0 24px;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #E5E7EB; border-radius: 0px; overflow: hidden; background-color: #ffffff;">
                 <!-- Event Image -->
                 <tr>
                   <td align="center" style="line-height: 0;">
