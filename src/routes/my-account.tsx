@@ -15,6 +15,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { signOut, useUser, signIn } from "@/lib/auth";
+import { useSettings, getSettings, saveSettings } from "@/lib/settings-store";
+import { updateUserProfileFn } from "../admin/functions";
 
 export const Route = createFileRoute("/my-account")({
   head: () => ({ meta: [{ title: "My Account — TicketHub" }] }),
@@ -46,6 +48,7 @@ function savePrefs(p: Prefs) {
 function MyAccountPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const { settings } = useSettings();
   const [prefs, setPrefs] = useState<Prefs>(() => loadPrefs());
   const [editing, setEditing] = useState<"country" | "city" | "name" | null>(null);
   const [nameDraft, setNameDraft] = useState("");
@@ -66,10 +69,31 @@ function MyAccountPage() {
     savePrefs(next);
   };
 
-  const updateName = (n: string) => {
+  const updateName = async (n: string) => {
     if (!n.trim()) return;
     signIn({ email: user.email, name: n.trim() });
+    
+    // Also save in settings store so they are synchronized!
+    const current = getSettings();
+    saveSettings({
+      ...current,
+      name: n.trim(),
+    });
+
+    try {
+      await updateUserProfileFn({
+        data: {
+          email: user.email,
+          name: n.trim(),
+        }
+      });
+    } catch (err) {
+      console.error("Failed to sync name to Supabase:", err);
+    }
   };
+
+  const displayName = settings.name || user.name;
+  const displayEmail = settings.virtualMail || user.email;
 
   return (
     <main className="min-h-screen bg-background pb-24">
@@ -98,28 +122,34 @@ function MyAccountPage() {
             ) : (
               <button
                 onClick={() => {
-                  setNameDraft(user.name);
+                  setNameDraft(displayName);
                   setEditing("name");
                 }}
                 className="text-left"
               >
-                <h2 className="text-2xl font-bold leading-tight">{user.name}</h2>
+                <h2 className="text-2xl font-bold leading-tight">{displayName}</h2>
               </button>
             )}
-            <p className="text-sm mt-1 opacity-90">{user.email}</p>
+            <p className="text-sm mt-1 opacity-90">{displayEmail}</p>
           </div>
         </header>
 
         {/* Notifications */}
         <Section title="Notifications">
           <Row
-            icon={<Mail className="h-5 w-5" />}
-            label={user.name}
+            icon={<UserIcon className="h-5 w-5" />}
+            label={displayName}
             onClick={() => {
-              setNameDraft(user.name);
+              setNameDraft(displayName);
               setEditing("name");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
+            right={<ChevronRight className="h-5 w-5 text-foreground/50" />}
+          />
+          <Row
+            icon={<Mail className="h-5 w-5" />}
+            label={displayEmail}
+            onClick={() => navigate({ to: "/favorites" })}
             right={<ChevronRight className="h-5 w-5 text-foreground/50" />}
           />
           <Row

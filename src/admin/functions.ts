@@ -358,3 +358,16 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
     });
     return result;
   });
+
+export const updateUserProfileFn = createServerFn({ method: 'POST' })
+  .inputValidator((d: { email: string; name: string }) => ({
+    email: String(d?.email ?? '').trim(),
+    name: String(d?.name ?? '').trim(),
+  }))
+  .handler(async ({ data }) => {
+    const user = await getUserByEmail(data.email);
+    if (!user) throw new Error('User not found');
+    user.name = data.name;
+    await saveUser(user);
+    return { success: true };
+  });

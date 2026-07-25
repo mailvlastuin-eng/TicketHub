@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@/lib/auth";
 import { useAllTickets } from "@/lib/ticket-store";
+import { useSettings } from "@/lib/settings-store";
 import type { Ticket } from "@/lib/tickets";
 import { getGoogleMapsKey } from "@/lib/ticketmaster.functions";
 import { sendTransferEmailFn } from "../admin/functions";
@@ -793,23 +794,63 @@ function ActionPopover({
   onSell: () => void;
   onClose?: () => void;
 }) {
+  const { settings } = useSettings();
+  
+  // Normalize settings state to lowercase for checking
+  const transferState = (settings.transferBtn || "Show").toLowerCase();
+  const sellState = (settings.sellTab || settings.sellBtn || "Hide").toLowerCase();
+
+  const showTransfer = transferState !== "hide";
+  const fadeTransfer = transferState === "fade";
+
+  const showSell = sellState !== "hide";
+  const fadeSell = sellState === "fade";
+
+  // If both options are hidden, don't show popover bar at all
+  if (!showTransfer && !showSell) return null;
+
   return (
-    <div className="fixed bottom-[75px] left-1/2 -translate-x-1/2 z-30 w-[214px] h-[76px] flex flex-row items-center justify-between px-[24px] py-[16px] bg-white rounded-[80px] shadow-[0px_2px_8px_rgba(0,0,0,0.05)] border border-[#E5E7EB]/40 box-border">
-      <button
-        onClick={onTransfer}
-        className="flex flex-col items-center justify-center flex-1 gap-[4px] text-[#1A56DB] hover:opacity-80 active:scale-95 transition-all"
-      >
-        <ArrowUpRight className="h-6 w-6" />
-        <span className="text-[14px] font-semibold text-black leading-none">Transfer</span>
-      </button>
-      <div className="w-px h-full bg-[#E5E7EB]" />
-      <button
-        onClick={onSell}
-        className="flex flex-col items-center justify-center flex-1 gap-[4px] text-black hover:opacity-80 active:scale-95 transition-all"
-      >
-        <RefreshCw className="h-6 w-6" />
-        <span className="text-[14px] font-semibold text-black leading-none">Sell</span>
-      </button>
+    <div 
+      className="fixed bottom-[75px] left-1/2 -translate-x-1/2 z-30 h-[76px] flex flex-row items-center justify-between px-[24px] py-[16px] bg-white rounded-[80px] shadow-[0px_2px_8px_rgba(0,0,0,0.05)] border border-[#E5E7EB]/40 box-border"
+      style={{ width: (showTransfer && showSell) ? "214px" : "130px" }}
+    >
+      {showTransfer && (
+        <button
+          onClick={fadeTransfer ? undefined : onTransfer}
+          disabled={fadeTransfer}
+          className={`flex flex-col items-center justify-center flex-1 gap-[4px] transition-all ${
+            fadeTransfer 
+              ? "text-zinc-400 opacity-60 cursor-not-allowed" 
+              : "text-[#1A56DB] hover:opacity-80 active:scale-95 cursor-pointer"
+          }`}
+        >
+          <ArrowUpRight className="h-6 w-6" />
+          <span className={`text-[14px] font-semibold leading-none ${fadeTransfer ? "text-zinc-400" : "text-black"}`}>
+            Transfer
+          </span>
+        </button>
+      )}
+
+      {showTransfer && showSell && (
+        <div className="w-px h-full bg-[#E5E7EB] mx-[12px]" />
+      )}
+
+      {showSell && (
+        <button
+          onClick={fadeSell ? undefined : onSell}
+          disabled={fadeSell}
+          className={`flex flex-col items-center justify-center flex-1 gap-[4px] transition-all ${
+            fadeSell 
+              ? "text-zinc-400 opacity-60 cursor-not-allowed" 
+              : "text-black hover:opacity-80 active:scale-95 cursor-pointer"
+          }`}
+        >
+          <RefreshCw className="h-6 w-6" />
+          <span className={`text-[14px] font-semibold leading-none ${fadeSell ? "text-zinc-400" : "text-black"}`}>
+            Sell
+          </span>
+        </button>
+      )}
     </div>
   );
 }
