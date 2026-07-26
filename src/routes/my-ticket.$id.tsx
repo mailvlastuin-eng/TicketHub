@@ -327,7 +327,7 @@ function MyTicketDetail() {
         {/* 2. [The Scrolling Overlay Layer] */}
         <div 
           onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
-          className="absolute top-0 left-0 w-full h-[100dvh] overflow-y-auto z-10 scrollbar-none"
+          className="absolute top-0 left-0 w-full h-[100dvh] overflow-y-auto z-10 scrollbar-none pointer-events-none"
         >
           {/* 3. [Spacer matching fixed background section height] */}
           <div className="w-full shrink-0 pointer-events-none flex flex-col mb-0 pb-0">
@@ -336,7 +336,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full min-h-[100dvh] -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
+          <div className="bg-white w-full min-h-[100dvh] -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10 pointer-events-auto">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
