@@ -378,15 +378,24 @@ export function AdminDashboardApp() {
         case '1m': return '30 Days (Not Started)';
         case '3m': return '90 Days (Not Started)';
         case '6m': return '180 Days (Not Started)';
-        case '1y': return '365 Days (Not Started)';
+        case '1y': return '360 Days (Not Started)';
         default: return 'Pending Login';
       }
     }
     const now = new Date();
     const exp = new Date(u.expiresAt);
-    const diffMs = exp.getTime() - now.getTime();
-    if (diffMs <= 0) return 'Expired';
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    
+    // Set both to midnight in local time for clean calendar days comparison
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const expDate = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate());
+    
+    const diffMs = expDate.getTime() - nowDate.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) {
+      if (now > exp) return 'Expired';
+      return '0 Days Left (Expires Today)';
+    }
     return `${diffDays} Day${diffDays !== 1 ? 's' : ''} Left`;
   };
 
