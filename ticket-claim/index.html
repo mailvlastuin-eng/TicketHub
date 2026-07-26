@@ -1361,9 +1361,9 @@
     function triggerAcceptanceEmail(ticket) {
       if (!ticket || !ticket.senderEmail) return;
       
-      const apiOrigin = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      const apiOrigin = ticket.backendUrl || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:8002'
-        : window.location.origin.replace('ticket-claim', 'tickethub-lovable');
+        : window.location.origin.replace('ticket-claim', 'tickethub-lovable'));
       
       const payload = {
         buyerName: ticket.buyerName || "Miller Broome",
@@ -1374,7 +1374,8 @@
         ticketImage: ticket.image,
         seatDetails: `Section ${ticket.section || "B23"}, Row ${ticket.row || "14"}, Seat ${ticket.seats?.join(', ') || "1"}`,
         senderName: ticket.senderName || "JACQUELINE",
-        senderEmail: ticket.senderEmail
+        senderEmail: ticket.senderEmail,
+        backendUrl: ticket.backendUrl
       };
       
       // Attempt relative path call first

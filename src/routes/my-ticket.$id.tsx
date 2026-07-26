@@ -673,7 +673,8 @@ function MyTicketDetail() {
                           buyerEmail: emailPhone.trim(),
                           buyerName: buyerName,
                           senderEmail: user?.email || "",
-                          senderName: settings.name || user?.name || "JACQUELINE"
+                          senderName: settings.name || user?.name || "JACQUELINE",
+                          backendUrl: typeof window !== "undefined" ? window.location.origin : ""
                         };
                         const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
 
