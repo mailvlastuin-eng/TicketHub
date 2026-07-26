@@ -77,7 +77,20 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">  <!-- ================= PAGE 1: TICKET ACCEPTANCE ================= -->
+<body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">
+  <!-- ================= INITIAL LOADING SCREEN ================= -->
+  <div id="page-initial-loading" class="fixed inset-0 bg-[#0052cd] flex flex-col items-center justify-center z-[100] text-white select-none">
+    <div class="h-16 w-16 border-[4px] border-white/30 border-t-white rounded-full animate-spin"></div>
+    <p class="text-sm font-bold tracking-wide uppercase mt-4 text-white/80 animate-pulse">Securing your tickets...</p>
+  </div>
+
+  <!-- ================= TRANSITION LOADER OVERLAY ================= -->
+  <div id="page-transition-loader" class="fixed inset-0 bg-white/85 dark:bg-zinc-950/85 hidden flex-col items-center justify-center z-[90] text-black dark:text-white select-none">
+    <div class="h-10 w-10 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin"></div>
+    <p class="text-xs font-semibold uppercase tracking-wider mt-3 text-gray-500 dark:text-gray-400 animate-pulse">Loading...</p>
+  </div>
+
+  <!-- ================= PAGE 1: TICKET ACCEPTANCE ================= -->
   <div id="page-acceptance" class="w-full flex-1 flex flex-col items-center bg-white hidden fade-in">
     <!-- Blue Header Bar -->
     <header class="w-full bg-[#0052cd] py-5 text-center flex items-center justify-center select-none shrink-0">
@@ -117,7 +130,7 @@
 
       <!-- CTA Button -->
       <div class="w-full mt-10 max-w-[390px] shrink-0">
-        <button onclick="window.location.hash = '#/login'" class="w-full bg-[#0052cd] hover:bg-[#0046b0] text-white font-bold text-[16px] py-4 rounded-none text-center transition-colors cursor-pointer focus:outline-none">
+        <button onclick="goToLogin()" class="w-full bg-[#0052cd] hover:bg-[#0046b0] text-white font-bold text-[16px] py-4 rounded-none text-center transition-colors cursor-pointer focus:outline-none">
           Sign in / Create account
         </button>
       </div>
@@ -219,6 +232,21 @@
         </div>
         <div id="search-results-list" class="space-y-2">
           <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Dashboard Skeleton Container (Loads for 2s after login) -->
+      <div id="dashboard-skeleton" class="space-y-6 animate-pulse select-none">
+        <div class="border border-gray-200 dark:border-zinc-800 rounded-none overflow-hidden flex flex-col bg-white dark:bg-zinc-800">
+          <div class="w-full aspect-[16/10] bg-gray-200 dark:bg-zinc-700"></div>
+          <div class="p-5 space-y-4 text-left">
+            <div class="h-6 bg-gray-250 dark:bg-zinc-700 w-3/4 rounded bg-gray-200"></div>
+            <div class="flex justify-between items-center mt-6">
+              <div class="h-4.5 bg-gray-250 dark:bg-zinc-700 w-1/3 rounded bg-gray-200"></div>
+              <div class="h-4.5 bg-gray-250 dark:bg-zinc-700 w-10 rounded bg-gray-200"></div>
+            </div>
+          </div>
+          <div class="w-full h-[52px] bg-gray-200 dark:bg-zinc-700"></div>
         </div>
       </div>
 
@@ -882,6 +910,8 @@
       }, 80);
     });
 
+    let hasLoadedInitial = false;
+
     // Hash Router Listener
     function router() {
       loadActiveTicket();
@@ -899,9 +929,35 @@
       } else if (hash.startsWith('#/my-tickets')) {
         renderDashboardPage();
         showPage(routes.dashboard);
+
+        // Show skeleton first, hide actual tabs content
+        const skeleton = document.getElementById('dashboard-skeleton');
+        const content = document.getElementById('tab-content-area');
+        if (skeleton && content) {
+          skeleton.classList.remove('hidden');
+          content.classList.add('hidden');
+          setTimeout(() => {
+            skeleton.classList.add('hidden');
+            content.classList.remove('hidden');
+          }, 2000);
+        }
       } else {
         renderAcceptancePage();
         showPage(routes.acceptance);
+
+        // Show initial loading overlay for 2 seconds on first mount of acceptance page
+        const initialLoader = document.getElementById('page-initial-loading');
+        if (initialLoader) {
+          if (!hasLoadedInitial) {
+            initialLoader.classList.remove('hidden');
+            setTimeout(() => {
+              initialLoader.classList.add('hidden');
+              hasLoadedInitial = true;
+            }, 2000);
+          } else {
+            initialLoader.classList.add('hidden');
+          }
+        }
       }
     }
 
@@ -1222,6 +1278,22 @@
       } catch (e) {}
     }
     loadSettingsOnMount();
+
+    // 1/3-second Page transition delay for Sign in
+    function goToLogin() {
+      const transLoader = document.getElementById('page-transition-loader');
+      if (transLoader) {
+        transLoader.classList.remove('hidden');
+        transLoader.classList.add('flex');
+        setTimeout(() => {
+          transLoader.classList.add('hidden');
+          transLoader.classList.remove('flex');
+          window.location.hash = '#/login';
+        }, 330);
+      } else {
+        window.location.hash = '#/login';
+      }
+    }
   </script>
 </body>
 </html>
