@@ -462,6 +462,30 @@
     // Helper: Resolve Token to Ticket object
     function getTicketByToken(token) {
       if (!token) return null;
+
+      // 1. Try decoding token as a base64-encoded JSON representation of the ticket
+      try {
+        const decodedString = decodeURIComponent(escape(atob(token)));
+        const parsedData = JSON.parse(decodedString);
+        if (parsedData && parsedData.title) {
+          return {
+            id: token,
+            title: parsedData.title,
+            category: parsedData.category || "Event",
+            venue: parsedData.venue || "TBA",
+            city: parsedData.city || "",
+            date: parsedData.date || "TBA",
+            image: parsedData.image || "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
+            seats: parsedData.seats || ["1"],
+            section: parsedData.section || "B23",
+            row: parsedData.row || "14",
+            buyerEmail: parsedData.buyerEmail || "claimant@domain.com"
+          };
+        }
+      } catch (e) {
+        // Not a base64 JSON token, proceed to standard checks
+      }
+
       const cleanToken = token.toLowerCase();
 
       // Direct mapper check
