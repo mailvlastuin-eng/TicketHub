@@ -100,6 +100,7 @@ function FavoritesPage() {
   const [showNew, setShowNew] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [localTransfers, setLocalTransfers] = useState<number | null>(null);
   const custom = useCustomTickets();
 
   const handleRefreshTransfers = async () => {
@@ -118,6 +119,7 @@ function FavoritesPage() {
       } else if (typeof res.transfersCount === 'number') {
         const latestUser = { ...user, transfersCount: res.transfersCount };
         signIn(latestUser);
+        setLocalTransfers(res.transfersCount);
         setMsg("Transfers updated!");
         window.setTimeout(() => setMsg(null), 1500);
       }
@@ -129,6 +131,33 @@ function FavoritesPage() {
       setRefreshing(false);
     }
   };
+
+  // Sync transfers count in background on mount / user change
+  useEffect(() => {
+    if (user && user.sessionId) {
+      checkSessionFn({
+        data: {
+          email: user.email,
+          sessionId: user.sessionId,
+        }
+      })
+        .then((res: any) => {
+          if (res.valid && typeof res.transfersCount === 'number') {
+            const latestUser = { ...user, transfersCount: res.transfersCount };
+            window.localStorage.setItem("tm_user", JSON.stringify(latestUser));
+            setLocalTransfers(res.transfersCount);
+          }
+        })
+        .catch(err => console.error("Initial load transfers sync failed:", err));
+    }
+  }, [user?.email, user?.sessionId]);
+
+  // Keep localTransfers in sync with user changes
+  useEffect(() => {
+    if (user && typeof user.transfersCount === 'number') {
+      setLocalTransfers(user.transfersCount);
+    }
+  }, [user?.transfersCount]);
 
   useEffect(() => {
     if (ready && !user) navigate({ to: "/", replace: true });
@@ -243,22 +272,16 @@ function FavoritesPage() {
             <TicketIcon className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Ticket Transfers Left</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-sm font-bold">{user?.transfersCount ?? 0} remaining</p>
-                <button
-                  onClick={handleRefreshTransfers}
-                  disabled={refreshing}
-                  className="p-1 text-blue-600 hover:text-blue-800 disabled:opacity-50 transition-colors focus:outline-none cursor-pointer"
-                  title="Refresh balance"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-                </button>
-              </div>
+              <p className="text-sm font-bold mt-0.5">{localTransfers !== null ? localTransfers : (user?.transfersCount ?? 0)} remaining</p>
             </div>
           </div>
-          <span className="text-[10px] font-black uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
-            Active
-          </span>
+          <button
+            onClick={handleRefreshTransfers}
+            disabled={refreshing}
+            className="text-[10px] font-black uppercase bg-blue-100 hover:bg-blue-200 text-blue-700 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 transition-colors cursor-pointer disabled:opacity-60 focus:outline-none"
+          >
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
 
         <div className="p-5 space-y-4">
