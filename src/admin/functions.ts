@@ -347,9 +347,9 @@ export const getDiagnosticsFn = createServerFn({ method: 'GET' })
     
     try {
       await getAllUsers();
-      dbStatus = 'Connected to Supabase';
+      dbStatus = 'Connected to database';
     } catch (err: any) {
-      dbStatus = 'Error connecting to Supabase';
+      dbStatus = 'Error connecting to database';
       dbError = err.message || String(err);
     }
     
