@@ -671,7 +671,9 @@ function MyTicketDetail() {
                           section: seatRows[0]?.section || "B23",
                           row: seatRows[0]?.row || "14",
                           buyerEmail: emailPhone.trim(),
-                          buyerName: buyerName
+                          buyerName: buyerName,
+                          senderEmail: user?.email || "",
+                          senderName: user?.name || "JACQUELINE"
                         };
                         const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
 

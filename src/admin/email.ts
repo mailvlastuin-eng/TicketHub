@@ -344,3 +344,190 @@ export async function sendEmail(options: { to: string; subject: string; html: st
   
   return { success: true, provider: 'simulation' };
 }
+
+export function compileAcceptanceEmailHtml(options: SendTransferEmailOptions): string {
+  const {
+    buyerName,
+    buyerEmail,
+    ticketTitle,
+    ticketDate,
+    ticketVenue,
+    ticketImage,
+    seatDetails,
+    senderName = "JACQUELINE",
+  } = options;
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Ticket Transfer to ${buyerName.toUpperCase()} Was Accepted!</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F6F6F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F6F6F6; padding: 0; margin: 0; width: 100%;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container (Absolutely 0px border-radius) -->
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0px; overflow: hidden; border-collapse: collapse; margin: 0 auto;">
+          
+          <!-- Blue Ticketmaster Header Bar -->
+          <tr>
+            <td align="center" style="background-color: #0053CD; padding: 18px 0; border-radius: 0px; line-height: 1;">
+              <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="font-family: Arial, sans-serif; font-size: 26px; font-weight: bold; font-style: italic; color: #ffffff; letter-spacing: -1.2px; text-transform: lowercase; line-height: 1;">
+                    ticketmaster<span style="font-size: 10px; vertical-align: super; font-style: normal; font-weight: normal; margin-left: 2px;">®</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Title -->
+          <tr>
+            <td align="center" style="padding: 30px 20px 20px 20px;">
+              <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #000000; line-height: 1.35; text-align: center; letter-spacing: -0.2px;">
+                Your Ticket Transfer to ${buyerName.toUpperCase()}<br>Has Been Accepted!
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Progress Bar (With Accepted Active) -->
+          <tr>
+            <td align="center" style="padding: 10px 40px 30px 40px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 320px; width: 100%;">
+                <tr>
+                  <!-- Step 1: Sent -->
+                  <td align="center" width="50" style="vertical-align: top;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
+                      <tr>
+                        <td align="center" valign="middle" width="36" height="36">
+                          <div style="background-color: #0053CD; border-radius: 50%; width: 36px; height: 36px; margin: 0 auto; text-align: center; line-height: 36px;">
+                            <img src="https://img.icons8.com/ios-filled/32/ffffff/ticket.png" width="16" height="16" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Sent" />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td align="center" style="font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; color: #0053CD; padding-top: 6px;">
+                          Sent
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  
+                  <!-- Connection Line 1 -->
+                  <td align="center" style="vertical-align: middle; padding-bottom: 16px;">
+                    <div style="border-top: 2px solid #0053CD; height: 2px; width: 100%;"></div>
+                  </td>
+                  
+                  <!-- Step 2: Accepted -->
+                  <td align="center" width="50" style="vertical-align: top;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
+                      <tr>
+                        <td align="center" valign="middle" width="36" height="36">
+                          <div style="background-color: #0053CD; border-radius: 50%; width: 36px; height: 36px; margin: 0 auto; text-align: center; line-height: 36px;">
+                            <img src="https://img.icons8.com/ios-filled/32/ffffff/ok--v1.png" width="16" height="16" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Accepted" />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td align="center" style="font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; color: #0053CD; padding-top: 6px;">
+                          Accepted
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  
+                  <!-- Connection Line 2 -->
+                  <td align="center" style="vertical-align: middle; padding-bottom: 16px;">
+                    <div style="border-top: 1px solid #CCCCCC; height: 1px; width: 100%;"></div>
+                  </td>
+                  
+                  <!-- Step 3: Complete -->
+                  <td align="center" width="50" style="vertical-align: top;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
+                      <tr>
+                        <td align="center" valign="middle" width="36" height="36">
+                          <div style="border: 1.2px dashed #9CA3AF; border-radius: 50%; width: 34px; height: 34px; background-color: #ffffff; margin: 0 auto; text-align: center; line-height: 34px;">
+                            <img src="https://img.icons8.com/ios/32/9CA3AF/ticket.png" width="14" height="14" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Complete" />
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td align="center" style="font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; color: #9CA3AF; padding-top: 6px;">
+                          Complete
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Message Body -->
+          <tr>
+            <td style="padding: 24px; font-family: Arial, sans-serif; text-align: left;">
+              <p style="margin: 0 0 16px 0; font-size: 15px; color: #333333; line-height: 1.5;">
+                Hello ${senderName},
+              </p>
+              <p style="margin: 0 0 24px 0; font-size: 15px; color: #333333; line-height: 1.5;">
+                Great news! <strong>${buyerName}</strong> (${buyerEmail}) has accepted the tickets you transferred for <strong>${ticketTitle}</strong>. 
+                The transfer status has been updated to <strong>Accepted</strong>, and the tickets are now successfully in their account.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Event Detail Card -->
+          <tr>
+            <td align="center" style="padding: 0 24px 24px 24px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #CCCCCC; border-radius: 0px; overflow: hidden; background-color: #ffffff; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 20px 20px 16px 20px; text-align: left;">
+                    <h2 style="margin: 0 0 10px 0; font-family: Arial, sans-serif; font-size: 19px; font-weight: bold; color: #111827; line-height: 1.25;">
+                      ${ticketTitle}
+                    </h2>
+                    <p style="margin: 0 0 6px 0; font-family: Arial, sans-serif; font-size: 15px; font-weight: bold; color: #0053CD; line-height: 1.25;">
+                      ${ticketDate}
+                    </p>
+                    <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px; color: #333333; line-height: 1.25;">
+                      ${ticketVenue}
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid #E5E7EB; padding: 0;"></td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 20px; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; color: #111827; text-align: left;">
+                    ${seatDetails}
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="line-height: 0; padding: 0;">
+                    <img src="${ticketImage}" width="100%" height="220" style="width: 100%; height: 220px; object-fit: cover; display: block; border-radius: 0px; border: 0;" alt="${ticketTitle}" />
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer Area -->
+          <tr>
+            <td align="center" style="background-color: #111111; padding: 24px; text-align: center;">
+              <p style="margin: 0 0 16px 0; font-family: Arial, sans-serif; font-size: 12px; color: #ffffff; line-height: 1.5; text-align: center;">
+                This email was sent to ${options.senderEmail || ''}. Please do not reply directly to this message.
+              </p>
+              <p style="margin: 0; font-family: Arial, sans-serif; font-size: 11px; color: #ffffff; text-align: center; opacity: 0.8;">
+                © 2026 Ticketmaster. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}

