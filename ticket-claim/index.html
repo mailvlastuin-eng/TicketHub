@@ -268,30 +268,30 @@
   </div>
 
   <!-- ================= BOTTOM SHEET OVERLAY ================= -->
-  <!-- Dimmed Backdrop -->
-  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
+  <!-- Dimmed Backdrop (Darker by 20%) -->
+  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
 
-  <!-- Bottom Slide-over Sheet -->
-  <div id="ticket-modal" class="fixed bottom-0 left-0 right-0 max-h-[85vh] translate-y-full transition-transform duration-300 ease-out z-50 flex flex-col pb-8">
-    <!-- Close button ('X') at the top right of the modal -->
-    <div class="w-full max-w-md mx-auto relative px-6">
-      <button onclick="closeTicketModal()" class="absolute -top-6 right-6 p-2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50">
+  <!-- Bottom Slide-over Sheet (Centered flex wrapper) -->
+  <div id="ticket-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none translate-y-full transition-transform duration-300 ease-out">
+    <div class="relative w-full max-w-[380px] flex flex-col pointer-events-auto">
+      <!-- Close button ('X') at the top right of the modal content -->
+      <button onclick="closeTicketModal()" class="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50">
         <i data-lucide="x" class="h-6 w-6"></i>
       </button>
-    </div>
 
-    <!-- Ticket device frame and scanning card -->
-    <main class="w-full max-w-md py-6 flex-1 flex flex-col justify-center items-center overflow-hidden mx-auto">
-      <!-- Carousel Container (CSS Snap scroll) -->
-      <div id="carousel-container" class="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-none" style="scroll-behavior: smooth;">
-        <!-- Dynamically populated cards -->
-      </div>
-      
-      <!-- Swiper Seat Pagination Dots -->
-      <div id="seat-dots" class="flex justify-center items-center gap-2 mt-6">
-        <!-- Dots will be dynamically injected -->
-      </div>
-    </main>
+      <!-- Ticket device frame and scanning card -->
+      <main class="w-full py-4 flex flex-col justify-center items-center overflow-hidden">
+        <!-- Carousel Container (CSS Snap scroll) -->
+        <div id="carousel-container" class="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-none" style="scroll-behavior: smooth;">
+          <!-- Dynamically populated cards -->
+        </div>
+        
+        <!-- Swiper Seat Pagination Dots -->
+        <div id="seat-dots" class="flex justify-center items-center gap-2 mt-5">
+          <!-- Dots will be dynamically injected -->
+        </div>
+      </main>
+    </div>
   </div>
 
   <!-- ================= APP ROUTING AND CONTROLLERS ================= -->
@@ -522,8 +522,8 @@
       
       seats.forEach((seatNumber, idx) => {
         const cardHtml = `
-        <div class="snap-center shrink-0 w-full flex justify-center items-center px-6">
-          <div class="bg-white w-[340px] rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
+        <div class="snap-center shrink-0 w-full flex justify-center items-center px-4">
+          <div class="bg-white w-full max-h-[72vh] overflow-y-auto scrollbar-none rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
             <!-- Screenshots warn banner -->
             <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
               Screenshots won't get you in
@@ -569,7 +569,7 @@
             <div class="px-5 text-left">
               <!-- Small event photo -->
               <div class="w-full aspect-[16/10] overflow-hidden rounded-none">
-                <img src="${activeTicket.image}" class="w-full h-full object-cover" alt="${activeTicket.title}" />
+                <img src="${activeTicket.image}" class="w-full h-auto aspect-[16/10] object-cover" alt="${activeTicket.title}" />
               </div>
               <!-- Info block -->
               <div class="mt-4 pb-3">
