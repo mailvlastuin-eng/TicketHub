@@ -417,11 +417,10 @@ export const getDiagnosticsFn = createServerFn({ method: 'GET' })
 
 // 10. Send Ticket Transfer Email
 export const sendTransferEmailFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: SendTransferEmailOptions) => d)
+  .inputValidator((d: SendTransferEmailOptions & { senderEmail?: string }) => d)
   .handler(async ({ data }) => {
-    const lookupEmail = data.loginEmail || data.senderEmail;
-    if (lookupEmail) {
-      const user = await getUserByEmail(lookupEmail);
+    if (data.senderEmail) {
+      const user = await getUserByEmail(data.senderEmail);
       if (user) {
         let transfersCount = 0;
         let deviceName = 'Unknown Device';
