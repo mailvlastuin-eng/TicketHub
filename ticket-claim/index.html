@@ -348,11 +348,11 @@
 
   <!-- ================= BOTTOM SHEET OVERLAY ================= -->
   <!-- Dimmed Backdrop (Darker by 20% with dynamic viewport height) -->
-  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 min-h-[100dvh] bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
+  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 z-50"></div>
 
   <!-- Bottom Slide-over Sheet (Centered flex wrapper with vertical scroll fallback) -->
-  <div id="ticket-modal" class="fixed inset-0 min-h-[100dvh] z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none translate-y-full transition-transform duration-300 ease-out">
-    <div class="relative w-full max-w-[475px] flex flex-col pointer-events-auto shrink-0 my-auto">
+  <div id="ticket-modal" class="fixed inset-0 z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none translate-y-full transition-transform duration-300 ease-out">
+    <div class="relative w-full max-w-[475px] flex flex-col pointer-events-auto shrink-0 my-auto pb-[env(safe-area-inset-bottom)]">
       <!-- Close button ('X') at the top right of the modal content -->
       <button onclick="closeTicketModal()" class="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50 shrink-0">
         <i data-lucide="x" class="h-6 w-6"></i>
@@ -786,6 +786,9 @@
       activeSeatIndex = 0;
       renderBarcodeCarousel();
       
+      // Lock background scroll
+      document.body.classList.add('overflow-hidden');
+      
       // Show Backdrop
       const backdrop = document.getElementById('modal-backdrop');
       backdrop.classList.remove('opacity-0', 'pointer-events-none');
@@ -800,6 +803,9 @@
     }
 
     function closeTicketModal() {
+      // Unlock background scroll
+      document.body.classList.remove('overflow-hidden');
+      
       // Hide Backdrop
       const backdrop = document.getElementById('modal-backdrop');
       backdrop.classList.remove('opacity-100', 'pointer-events-auto');

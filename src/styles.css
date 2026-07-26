@@ -141,8 +141,8 @@
     border-color: var(--color-border);
   }
 
-  body {
-    background-color: var(--color-background);
+  html, body, :root {
+    background-color: #0a0e1a !important;
     color: var(--color-foreground);
   }
 }

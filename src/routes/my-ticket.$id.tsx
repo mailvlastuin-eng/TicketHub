@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowLeft,
   MoreVertical,
@@ -122,6 +123,22 @@ function MyTicketDetail() {
     });
   }, []);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (showBarcodeModal) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [showBarcodeModal]);
+
   const toggleSeatSelection = (seatNum: string) => {
     setSelectedSeats((prev) =>
       prev.includes(seatNum)
@@ -200,9 +217,6 @@ function MyTicketDetail() {
   return (
     <main className="h-[100dvh] w-full overflow-hidden bg-zinc-950 relative">
       <style>{`
-        html, body {
-          background-color: #000000 !important;
-        }
         .scrollbar-none::-webkit-scrollbar {
           display: none;
         }
@@ -752,7 +766,7 @@ function MyTicketDetail() {
         </>
       )}
 
-      {showBarcodeModal && (
+      {showBarcodeModal && mounted && typeof window !== "undefined" && createPortal(
         <>
           <style>{`
             @keyframes scan {
@@ -782,12 +796,12 @@ function MyTicketDetail() {
           {/* Backdrop */}
           <div 
             onClick={() => setShowBarcodeModal(false)} 
-            className="fixed inset-0 bg-black/80 z-40 transition-opacity duration-300 animate-in fade-in cursor-pointer"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm cursor-pointer transition-opacity duration-300 animate-in fade-in"
           />
           
           {/* Modal Container */}
           <div className="fixed inset-0 z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none animate-in slide-in-from-bottom duration-300">
-            <div className="relative w-full max-w-[475px] flex flex-col pointer-events-auto shrink-0 my-auto">
+            <div className="relative w-full max-w-[475px] flex flex-col pointer-events-auto shrink-0 my-auto pb-[env(safe-area-inset-bottom)]">
               
               {/* Close Button */}
               <button 
@@ -942,7 +956,8 @@ function MyTicketDetail() {
               </main>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       {toast && (
