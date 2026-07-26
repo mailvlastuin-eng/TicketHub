@@ -673,7 +673,7 @@ function MyTicketDetail() {
                           buyerEmail: emailPhone.trim(),
                           buyerName: buyerName,
                           senderEmail: user?.email || "",
-                          senderName: user?.name || "JACQUELINE"
+                          senderName: settings.name || user?.name || "JACQUELINE"
                         };
                         const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
 
@@ -689,7 +689,7 @@ function MyTicketDetail() {
                             seatDetails,
                             quantity: selectedSeats.length,
                             eventDetailsUrl: `https://ticket-claim.vercel.app/?token=${base64Token}`,
-                            senderName: user?.name || "JACQUELINE",
+                            senderName: settings.name || user?.name || "JACQUELINE",
                             senderEmail: user?.email,
                           }
                         });
