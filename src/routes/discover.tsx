@@ -200,8 +200,8 @@ function DiscoverPage() {
               {tmResults.map((e) => (
                 <Link
                   key={e.id}
-                  to="/create-ticket/$tmId"
-                  params={{ tmId: e.id }}
+                  to="/create-ticket"
+                  search={{ eventId: e.id }}
                   className="block"
                 >
                   {e.image && (

@@ -92,6 +92,37 @@ function CreateTicketSearchPage() {
         if (found.seats && found.seats.length > 0) {
           setSeats(found.seats);
         }
+      } else {
+        // Fetch from Ticketmaster discovery API
+        setLoading(true);
+        setError(null);
+        getTMEvent({ data: { id: eventId } })
+          .then((detail) => {
+            setForm({
+              title: detail.name || "",
+              category: detail.category || "Event",
+              venue: detail.venue || "",
+              city: detail.city || "",
+              date: detail.date || "",
+              time: detail.time || "",
+              priceFrom: detail.priceFrom ? String(detail.priceFrom) : "",
+              currency: detail.currency || "USD",
+              description: detail.description || "",
+              image: detail.image || "",
+              ticketType: "Verified Fan Onsale",
+              section: "",
+              row: "",
+              entryInfo: "",
+            });
+            setMessage("Event details loaded from Ticketmaster!");
+            setTimeout(() => setMessage(null), 2000);
+          })
+          .catch((err) => {
+            setError("Failed to fetch event from Ticketmaster API");
+          })
+          .finally(() => {
+            setLoading(false);
+          });
       }
     }
   }, [eventId, all]);
