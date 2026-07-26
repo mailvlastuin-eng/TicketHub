@@ -324,7 +324,7 @@ function FavoritesPage() {
           <div className="pt-2">
             <button
               onClick={() => navigate({ to: "/create-ticket" })}
-              className="w-full rounded-md bg-gradient-to-r from-emerald-500 to-teal-650 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-bold py-3.5 px-5 shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-0"
+              className="w-full rounded-md bg-[#0e5c3c] hover:bg-[#0b4d32] text-white text-sm font-bold py-3.5 px-5 shadow-md shadow-emerald-800/10 hover:shadow-emerald-800/20 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-0"
             >
               <Plus className="h-4.5 w-4.5 text-white stroke-[2.5]" />
               New Events
