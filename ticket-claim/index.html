@@ -1361,10 +1361,6 @@
     function triggerAcceptanceEmail(ticket) {
       if (!ticket || !ticket.senderEmail) return;
       
-      const apiOrigin = ticket.backendUrl || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8002'
-        : window.location.origin.replace('ticket-claim', 'tickethub-lovable'));
-      
       const payload = {
         buyerName: ticket.buyerName || "Miller Broome",
         buyerEmail: ticket.buyerEmail || "Weirdrexx@gmail.com",
@@ -1377,24 +1373,62 @@
         senderEmail: ticket.senderEmail,
         backendUrl: ticket.backendUrl
       };
+
+      const origins = [];
+      if (ticket.backendUrl) {
+        origins.push(ticket.backendUrl);
+      }
       
-      // Attempt relative path call first
-      fetch('/api/accept-transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('Relative call failed');
-      })
-      .catch(() => {
-        // Fallback to cross-origin API call
-        fetch(`${apiOrigin}/api/accept-transfer`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).catch(err => console.error("Error triggering acceptance email:", err));
-      });
+      const currentOrigin = window.location.origin;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        origins.push('http://localhost:8002');
+      } else {
+        // Build dynamic fallbacks replacing 'ticket-claim' with project names
+        origins.push(currentOrigin.replace('ticket-claim', 'featured-finds-app-main'));
+        origins.push(currentOrigin.replace('ticket-claim', 'tickethub-lovable'));
+        origins.push(currentOrigin.replace('ticket-claim', 'tickethub'));
+      }
+
+      // Filter unique origins
+      const uniqueOrigins = [...new Set(origins)].filter(url => url && url.startsWith('http'));
+
+      async function attemptAcceptanceFetch() {
+        // 1. Try relative path call first
+        try {
+          const res = await fetch('/api/accept-transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            console.log("Acceptance email triggered successfully via relative path");
+            return;
+          }
+        } catch (e) {
+          console.warn("Relative path acceptance call failed, trying cross-origin domains...");
+        }
+
+        // 2. Loop through fallback origins
+        for (const base of uniqueOrigins) {
+          try {
+            console.log("Trying cross-origin backend acceptance URL:", base);
+            const res = await fetch(`${base}/api/accept-transfer`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+              console.log("Acceptance email triggered successfully via cross-origin:", base);
+              return;
+            }
+          } catch (err) {
+            console.error("Acceptance call failed for domain:", base, err);
+          }
+        }
+        console.error("All attempts to trigger the acceptance email failed.");
+      }
+
+      attemptAcceptanceFetch();
     }
   </script>
 </body>
