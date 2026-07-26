@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, Heart, Ticket as TicketIcon, User as UserIcon } from "lucide-react";
+import { Search, Heart, Ticket as TicketIcon, User as UserIcon, RefreshCw } from "lucide-react";
 import { signOut, useUser, signIn } from "@/lib/auth";
 import {
   addCustomTicket,
@@ -9,7 +9,7 @@ import {
 } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { useSettings, getSettings } from "@/lib/settings-store";
-import { updateUserProfileFn } from "../admin/functions";
+import { updateUserProfileFn, checkSessionFn } from "../admin/functions";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({ meta: [{ title: "Manager — TicketHub" }] }),
@@ -99,7 +99,36 @@ function FavoritesPage() {
   }));
   const [showNew, setShowNew] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const custom = useCustomTickets();
+
+  const handleRefreshTransfers = async () => {
+    if (!user || !user.sessionId) return;
+    setRefreshing(true);
+    try {
+      const res = await checkSessionFn({
+        data: {
+          email: user.email,
+          sessionId: user.sessionId,
+        }
+      });
+      if (!res.valid) {
+        signOut();
+        navigate({ to: "/", replace: true });
+      } else if (typeof res.transfersCount === 'number') {
+        const latestUser = { ...user, transfersCount: res.transfersCount };
+        signIn(latestUser);
+        setMsg("Transfers updated!");
+        window.setTimeout(() => setMsg(null), 1500);
+      }
+    } catch (err) {
+      console.error("Failed to refresh user transfers:", err);
+      setMsg("Failed to refresh");
+      window.setTimeout(() => setMsg(null), 1500);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (ready && !user) navigate({ to: "/", replace: true });
@@ -214,7 +243,17 @@ function FavoritesPage() {
             <TicketIcon className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Ticket Transfers Left</p>
-              <p className="text-sm font-bold mt-0.5">{user?.transfersCount ?? 0} remaining</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-sm font-bold">{user?.transfersCount ?? 0} remaining</p>
+                <button
+                  onClick={handleRefreshTransfers}
+                  disabled={refreshing}
+                  className="p-1 text-blue-600 hover:text-blue-800 disabled:opacity-50 transition-colors focus:outline-none cursor-pointer"
+                  title="Refresh balance"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
             </div>
           </div>
           <span className="text-[10px] font-black uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
