@@ -59,6 +59,7 @@ function MyTicketDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const { settings } = useSettings();
   const all = useAllTickets();
   const ticket = all.find((t) => t.id === id);
   const [tab, setTab] = useState<"tickets" | "extras">("tickets");
@@ -355,48 +356,50 @@ function MyTicketDetail() {
                 {/* More options */}
                 <p className="mt-8 text-sm font-bold tracking-wide">MORE OPTIONS</p>
                 <div className="mt-3 flex flex-col gap-[4px] w-full rounded-[4px] overflow-hidden border border-foreground/10 bg-white">
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      `${ticket.venue} ${ticket.city}`,
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block relative group"
-                  >
-                    {mapsKey && !mapLoadError ? (
-                      <div className="relative w-full h-[230px] overflow-hidden">
-                        <img
-                          alt="Venue Map"
-                          src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
-                            `${ticket.venue}, ${ticket.city}`,
-                          )}&zoom=15&size=600x300&markers=size:mid%7Ccolor:0xff4444%7C${encodeURIComponent(
-                            `${ticket.venue}, ${ticket.city}`,
-                          )}&key=${mapsKey}`}
-                          className="w-full h-full object-cover bg-zinc-100"
-                          onError={() => {
-                            setMapLoadError(true);
-                          }}
-                        />
-                        <div className="absolute top-3 left-4 text-white text-[19px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] [text-shadow:0_2px_4px_rgba(0,0,0,0.85)]">
-                          {ticket.venue}
+                  {settings.mapView !== "No" && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${ticket.venue} ${ticket.city}`,
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block relative group"
+                    >
+                      {mapsKey && !mapLoadError ? (
+                        <div className="relative w-full h-[230px] overflow-hidden">
+                          <img
+                            alt="Venue Map"
+                            src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
+                              `${ticket.venue}, ${ticket.city}`,
+                            )}&zoom=15&size=600x300&markers=size:mid%7Ccolor:0xff4444%7C${encodeURIComponent(
+                              `${ticket.venue}, ${ticket.city}`,
+                            )}&key=${mapsKey}`}
+                            className="w-full h-full object-cover bg-zinc-100"
+                            onError={() => {
+                              setMapLoadError(true);
+                            }}
+                          />
+                          <div className="absolute top-3 left-4 text-white text-[19px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] [text-shadow:0_2px_4px_rgba(0,0,0,0.85)]">
+                            {ticket.venue}
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="relative w-full h-[230px] overflow-hidden">
-                        <iframe
-                          title="Venue Map"
-                          width="100%"
-                          height="230"
-                          style={{ border: 0 }}
-                          loading="lazy"
-                          src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                            `${ticket.venue}, ${ticket.city}`,
-                          )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                          className="w-full h-full bg-zinc-100 pointer-events-none select-none"
-                        />
-                      </div>
-                    )}
-                  </a>
+                      ) : (
+                        <div className="relative w-full h-[230px] overflow-hidden">
+                          <iframe
+                            title="Venue Map"
+                            width="100%"
+                            height="230"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                              `${ticket.venue}, ${ticket.city}`,
+                            )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                            className="w-full h-full bg-zinc-100 pointer-events-none select-none"
+                          />
+                        </div>
+                      )}
+                    </a>
+                  )}
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                       `${ticket.venue} ${ticket.city}`,
