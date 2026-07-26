@@ -107,12 +107,12 @@ export const loginUserFn = createServerFn({ method: 'POST' })
 
     // 4. Activate access (status is pending or already active for multiple sign-ins)
     const activatedAt = user.activatedAt ? new Date(user.activatedAt) : new Date();
-    let durationMonths = 1;
-    if (user.duration === '3m') durationMonths = 3;
-    if (user.duration === '6m') durationMonths = 6;
-    if (user.duration === '1y') durationMonths = 12;
+    let durationDays = 30;
+    if (user.duration === '3m') durationDays = 90;
+    if (user.duration === '6m') durationDays = 180;
+    if (user.duration === '1y') durationDays = 360;
 
-    const expiresAt = user.expiresAt ? new Date(user.expiresAt) : addMonths(activatedAt, durationMonths);
+    const expiresAt = user.expiresAt ? new Date(user.expiresAt) : new Date(activatedAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
     const sessionId = `sess_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
 
     user.status = 'active';
@@ -172,8 +172,36 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       return { valid: false };
     }
 
-    // Double check expiry
-    if (user.expiresAt) {
+    // Double check and recalculate expiry
+    if (user.status === 'active' && user.activatedAt) {
+      let durationDays = 30;
+      if (user.duration === '3m') durationDays = 90;
+      if (user.duration === '6m') durationDays = 180;
+      if (user.duration === '1y') durationDays = 360;
+
+      const expectedExpiry = new Date(new Date(user.activatedAt).getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+      
+      let needsSave = false;
+      if (user.expiresAt !== expectedExpiry) {
+        user.expiresAt = expectedExpiry;
+        needsSave = true;
+      }
+
+      const isExpired = new Date() > new Date(expectedExpiry);
+      if (isExpired) {
+        user.status = 'expired';
+        user.sessionId = null;
+        needsSave = true;
+      }
+
+      if (needsSave) {
+        await saveUser(user);
+      }
+
+      if (isExpired) {
+        return { valid: false };
+      }
+    } else if (user.expiresAt) {
       const isExpired = new Date() > new Date(user.expiresAt);
       if (isExpired) {
         user.status = 'expired';
@@ -221,9 +249,33 @@ export const getAdminDashboardDataFn = createServerFn({ method: 'POST' })
     const users = await getAllUsers();
     const attempts = await getAllAttempts();
 
-    // Check and update expired users
+    // Check, recalculate, and update expired users (each month = 30 days)
     for (const u of users) {
-      if (u.status === 'active' && u.expiresAt) {
+      if (u.status === 'active' && u.activatedAt) {
+        let durationDays = 30;
+        if (u.duration === '3m') durationDays = 90;
+        if (u.duration === '6m') durationDays = 180;
+        if (u.duration === '1y') durationDays = 360;
+
+        const expectedExpiry = new Date(new Date(u.activatedAt).getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+        
+        let needsSave = false;
+        if (u.expiresAt !== expectedExpiry) {
+          u.expiresAt = expectedExpiry;
+          needsSave = true;
+        }
+
+        const isExpired = new Date() > new Date(expectedExpiry);
+        if (isExpired) {
+          u.status = 'expired';
+          u.sessionId = null;
+          needsSave = true;
+        }
+
+        if (needsSave) {
+          await saveUser(u);
+        }
+      } else if (u.status === 'active' && u.expiresAt) {
         const isExpired = new Date() > new Date(u.expiresAt);
         if (isExpired) {
           u.status = 'expired';
