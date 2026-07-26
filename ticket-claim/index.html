@@ -79,9 +79,9 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">
   <!-- ================= INITIAL LOADING SCREEN ================= -->
-  <div id="page-initial-loading" class="fixed inset-0 bg-[#0052cd] flex flex-col items-center justify-center z-[100] text-white select-none">
-    <div class="h-16 w-16 border-[4px] border-white/30 border-t-white rounded-full animate-spin"></div>
-    <p class="text-sm font-bold tracking-wide uppercase mt-4 text-white/80 animate-pulse">Securing your tickets...</p>
+  <div id="page-initial-loading" class="fixed inset-0 bg-white dark:bg-zinc-950 flex flex-col items-center justify-center z-[100] text-black dark:text-white select-none">
+    <div class="h-16 w-16 border-[4px] border-primary/20 border-t-primary rounded-full animate-spin"></div>
+    <p class="text-sm font-bold tracking-wide uppercase mt-4 text-primary dark:text-blue-400 animate-pulse">Securing your tickets...</p>
   </div>
 
   <!-- ================= TRANSITION LOADER OVERLAY ================= -->
@@ -102,7 +102,7 @@
     <!-- Main Content -->
     <main class="w-full max-w-[440px] bg-white px-6 py-12 flex-1 flex flex-col items-center select-none">
       <!-- Checked Circle -->
-      <div class="h-28 w-28 bg-[#0052cd] rounded-full flex items-center justify-center mt-6 shrink-0">
+      <div class="h-28 w-28 bg-[#00a256] rounded-full flex items-center justify-center mt-6 shrink-0">
         <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" stroke-width="4.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
         </svg>
@@ -953,7 +953,7 @@
             setTimeout(() => {
               initialLoader.classList.add('hidden');
               hasLoadedInitial = true;
-            }, 2000);
+            }, 3000);
           } else {
             initialLoader.classList.add('hidden');
           }
