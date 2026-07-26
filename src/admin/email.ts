@@ -10,6 +10,7 @@ export interface SendTransferEmailOptions {
   quantity: number;
   eventDetailsUrl: string;
   senderName?: string;
+  senderEmail?: string;
 }
 
 export function compileTransferEmailHtml(options: SendTransferEmailOptions): string {

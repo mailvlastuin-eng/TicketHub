@@ -208,6 +208,20 @@ function FavoritesPage() {
           <h1 className="text-lg font-medium">Manager</h1>
         </div>
 
+        {/* Transfers Left Banner */}
+        <div className="mx-5 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between text-blue-955 select-none">
+          <div className="flex items-center gap-3">
+            <TicketIcon className="h-5 w-5 text-blue-600" />
+            <div>
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Ticket Transfers Left</p>
+              <p className="text-sm font-bold mt-0.5">{user?.transfersCount ?? 0} remaining</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-black uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
+            Active
+          </span>
+        </div>
+
         <div className="p-5 space-y-4">
           <Row>
             <Field label="Name" value={form.name} onChange={(v) => set("name", v)} />

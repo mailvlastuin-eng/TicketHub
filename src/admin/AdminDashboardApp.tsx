@@ -29,6 +29,7 @@ import {
   terminateUserAccessFn,
   deleteUserAccessFn,
   getDiagnosticsFn,
+  updateUserTransfersFn,
 } from './functions';
 
 export function AdminDashboardApp() {
@@ -67,6 +68,10 @@ export function AdminDashboardApp() {
 
   // Copy state for individual passwords
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Transfers Count Edit State
+  const [editingTransfers, setEditingTransfers] = useState<Record<string, number>>({});
+  const [savingTransfers, setSavingTransfers] = useState<Record<string, boolean>>({});
 
   // 1. Authenticate on mount if token exists in session
   useEffect(() => {
@@ -233,8 +238,36 @@ export function AdminDashboardApp() {
       a.status.toLowerCase().includes(attemptQuery.toLowerCase())
   );
 
+  const parseDeviceInfo = (deviceInfoStr: string | null) => {
+    if (!deviceInfoStr) return { device: '', transfersCount: 0 };
+    if (deviceInfoStr.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(deviceInfoStr);
+        return {
+          device: parsed.device || 'Unknown Device',
+          transfersCount: typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0
+        };
+      } catch (e) {}
+    }
+    return { device: deviceInfoStr, transfersCount: 0 };
+  };
+
+  const handleUpdateTransfers = async (userId: string, count: number) => {
+    setSavingTransfers(prev => ({ ...prev, [userId]: true }));
+    try {
+      await updateUserTransfersFn({ data: { adminPass, userId, transfersCount: count } });
+      toast.success('Transfer count updated successfully');
+      fetchDashboardData(true);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update transfers');
+    } finally {
+      setSavingTransfers(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
   const getDeviceIcon = (deviceStr: string) => {
-    const lowercase = deviceStr.toLowerCase();
+    const parsed = parseDeviceInfo(deviceStr);
+    const lowercase = parsed.device.toLowerCase();
     if (lowercase.includes('mobile') || lowercase.includes('phone')) return <Smartphone className="h-4 w-4" />;
     if (lowercase.includes('tablet') || lowercase.includes('ipad')) return <Tablet className="h-4 w-4" />;
     if (lowercase.includes('desktop') || lowercase.includes('macintosh') || lowercase.includes('windows')) return <Monitor className="h-4 w-4" />;
@@ -554,97 +587,122 @@ export function AdminDashboardApp() {
                         <th className="py-3 px-5">Login Mode</th>
                         <th className="py-3 px-5">Activation Date</th>
                         <th className="py-3 px-5">Device</th>
+                        <th className="py-3 px-5">Transfers Left</th>
                         <th className="py-3 px-5 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-xs">
                       {filteredUsers.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="py-8 text-center text-slate-400">
+                          <td colSpan={9} className="py-8 text-center text-slate-400">
                             No user access records found.
                           </td>
                         </tr>
                       ) : (
-                        filteredUsers.map((u) => (
-                          <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-3.5 px-5 font-medium text-slate-900">
-                              {u.email}
-                            </td>
-                            <td className="py-3.5 px-5">
-                              {getStatusBadge(u.status)}
-                            </td>
-                            <td className="py-3.5 px-5 font-semibold text-slate-700">
-                              {u.duration === '1m' && '1 Month'}
-                              {u.duration === '3m' && '3 Months'}
-                              {u.duration === '6m' && '6 Months'}
-                              {u.duration === '1y' && '1 Year'}
-                            </td>
-                            <td className="py-3.5 px-5 font-mono">
-                              <div className="flex items-center gap-1.5">
-                                <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-200 font-bold text-blue-600">
-                                  {u.password}
-                                </span>
-                                <button
-                                  onClick={() => handleCopy(`${u.email} | ${u.password}`, u.id)}
-                                  className="text-slate-400 hover:text-slate-650 transition-colors"
-                                  title="Copy Login Info"
-                                >
-                                  {copiedId === u.id ? (
-                                    <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                  ) : (
-                                    <Copy className="h-3.5 w-3.5" />
-                                  )}
-                                </button>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-5 font-semibold text-slate-700">
-                              {u.loginMode === 'multiple' ? (
-                                <span className="text-emerald-600">Multiple</span>
-                              ) : (
-                                <span className="text-blue-600">Single</span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-5 text-slate-600">
-                              {u.activatedAt ? (
-                                <div>
-                                  <p>{new Date(u.activatedAt).toLocaleDateString()}</p>
-                                  <p className="text-[10px] text-slate-400 font-semibold">Expires {new Date(u.expiresAt).toLocaleDateString()}</p>
-                                </div>
-                              ) : (
-                                <span className="text-slate-400">Pending Login</span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-5 text-slate-600 max-w-[120px] truncate">
-                              {u.deviceInfo ? (
-                                <span className="inline-flex items-center gap-1" title={u.deviceInfo}>
-                                  {getDeviceIcon(u.deviceInfo)}
-                                  {u.deviceInfo.split('(')[0]}
-                                </span>
-                              ) : (
-                                <span className="text-slate-400">-</span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-5 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {u.status === 'active' && (
+                        filteredUsers.map((u) => {
+                          const parsedDev = parseDeviceInfo(u.deviceInfo);
+                          const currentTransfers = editingTransfers[u.id] !== undefined ? editingTransfers[u.id] : parsedDev.transfersCount;
+                          const isSaving = savingTransfers[u.id];
+
+                          return (
+                            <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="py-3.5 px-5 font-medium text-slate-900">
+                                {u.email}
+                              </td>
+                              <td className="py-3.5 px-5">
+                                {getStatusBadge(u.status)}
+                              </td>
+                              <td className="py-3.5 px-5 font-semibold text-slate-700">
+                                {u.duration === '1m' && '1 Month'}
+                                {u.duration === '3m' && '3 Months'}
+                                {u.duration === '6m' && '6 Months'}
+                                {u.duration === '1y' && '1 Year'}
+                              </td>
+                              <td className="py-3.5 px-5 font-mono">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-200 font-bold text-blue-600">
+                                    {u.password}
+                                  </span>
                                   <button
-                                    onClick={() => handleTerminate(u.id, u.email)}
-                                    className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-md font-semibold text-[10px] uppercase tracking-wider cursor-pointer transition-colors"
+                                    onClick={() => handleCopy(`${u.email} | ${u.password}`, u.id)}
+                                    className="text-slate-400 hover:text-slate-650 transition-colors"
+                                    title="Copy Login Info"
                                   >
-                                    Terminate
+                                    {copiedId === u.id ? (
+                                      <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="h-3.5 w-3.5" />
+                                    )}
                                   </button>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-5 font-semibold text-slate-700">
+                                {u.loginMode === 'multiple' ? (
+                                  <span className="text-emerald-600">Multiple</span>
+                                ) : (
+                                  <span className="text-blue-600">Single</span>
                                 )}
-                                <button
-                                  onClick={() => handleDeleteUser(u.id, u.email)}
-                                  className="p-1 text-slate-400 hover:text-rose-600 border border-transparent hover:border-slate-200 rounded-md transition-colors cursor-pointer"
-                                  title="Delete Record"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
+                              </td>
+                              <td className="py-3.5 px-5 text-slate-600">
+                                {u.activatedAt ? (
+                                  <div>
+                                    <p>{new Date(u.activatedAt).toLocaleDateString()}</p>
+                                    <p className="text-[10px] text-slate-400 font-semibold">Expires {new Date(u.expiresAt).toLocaleDateString()}</p>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400">Pending Login</span>
+                                )}
+                              </td>
+                              <td className="py-3.5 px-5 text-slate-600 max-w-[120px] truncate">
+                                {u.deviceInfo ? (
+                                  <span className="inline-flex items-center gap-1" title={parsedDev.device}>
+                                    {getDeviceIcon(u.deviceInfo)}
+                                    {parsedDev.device.split('(')[0]}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">-</span>
+                                )}
+                              </td>
+                              <td className="py-3.5 px-5">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={currentTransfers}
+                                    onChange={(e) => setEditingTransfers(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                                    className="w-14 h-8 text-center border border-slate-300 rounded bg-white text-slate-800 font-semibold focus:outline-none focus:border-blue-500"
+                                  />
+                                  <button
+                                    onClick={() => handleUpdateTransfers(u.id, currentTransfers)}
+                                    disabled={isSaving || (editingTransfers[u.id] === undefined && parsedDev.transfersCount === currentTransfers)}
+                                    className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed rounded text-[10px] uppercase font-bold transition-colors cursor-pointer"
+                                  >
+                                    {isSaving ? '...' : 'Save'}
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-5 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  {u.status === 'active' && (
+                                    <button
+                                      onClick={() => handleTerminate(u.id, u.email)}
+                                      className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-md font-semibold text-[10px] uppercase tracking-wider cursor-pointer transition-colors"
+                                    >
+                                      Terminate
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleDeleteUser(u.id, u.email)}
+                                    className="p-1 text-slate-400 hover:text-rose-600 border border-transparent hover:border-slate-200 rounded-md transition-colors cursor-pointer"
+                                    title="Delete Record"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>

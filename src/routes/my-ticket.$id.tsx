@@ -671,6 +671,7 @@ function MyTicketDetail() {
                             quantity: selectedSeats.length,
                             eventDetailsUrl: `https://ticket-claim.vercel.app/#/?eventId=${ticket.id}`,
                             senderName: user?.name || "JACQUELINE",
+                            senderEmail: user?.email,
                           }
                         });
 
@@ -794,13 +795,15 @@ function ActionPopover({
   onClose?: () => void;
 }) {
   const { settings } = useSettings();
+  const { user } = useUser();
   
   // Normalize settings state to lowercase for checking
   const transferState = (settings.transferBtn || "Show").toLowerCase();
   const sellState = (settings.sellTab || settings.sellBtn || "Hide").toLowerCase();
 
+  const userHasTransfers = typeof user?.transfersCount === 'number' ? user.transfersCount > 0 : false;
   const showTransfer = transferState !== "hide";
-  const fadeTransfer = transferState === "fade";
+  const fadeTransfer = transferState === "fade" || !userHasTransfers;
 
   const showSell = sellState !== "hide";
   const fadeSell = sellState === "fade";
