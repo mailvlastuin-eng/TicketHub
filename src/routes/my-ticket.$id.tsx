@@ -77,31 +77,6 @@ function MyTicketDetail() {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [detailsHeight, setDetailsHeight] = useState(156);
   const detailsRef = useRef<HTMLDivElement>(null);
-  
-  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
-  const [activeBarcodeIdx, setActiveBarcodeIdx] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  const handleCarouselScroll = () => {
-    if (!carouselRef.current) return;
-    const container = carouselRef.current;
-    const scrollLeft = container.scrollLeft;
-    const clientWidth = container.clientWidth;
-    const newIdx = Math.round(scrollLeft / clientWidth);
-    if (newIdx !== activeBarcodeIdx && newIdx >= 0 && newIdx < seatRows.length) {
-      setActiveBarcodeIdx(newIdx);
-    }
-  };
-
-  const scrollToBarcodeSeat = (idx: number) => {
-    if (!carouselRef.current) return;
-    const container = carouselRef.current;
-    const card = container.children[idx] as HTMLElement;
-    if (card) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
-    setActiveBarcodeIdx(idx);
-  };
 
   useEffect(() => {
     if (!detailsRef.current) return;
@@ -312,10 +287,7 @@ function MyTicketDetail() {
 
             {/* View Tickets CTA (52px height) */}
             <button
-              onClick={() => {
-                setActiveBarcodeIdx(0);
-                setShowBarcodeModal(true);
-              }}
+              onClick={() => showToast("Tickets ready to scan")}
               className="w-full bg-primary text-primary-foreground h-[52px] flex items-center justify-center gap-2 text-sm font-semibold z-10 relative pointer-events-auto mb-0"
             >
               <ScanBarcode className="h-4 w-4" />
@@ -327,7 +299,7 @@ function MyTicketDetail() {
         {/* 2. [The Scrolling Overlay Layer] */}
         <div 
           onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
-          className="absolute top-0 left-0 w-full h-[100dvh] overflow-y-auto z-10 scrollbar-none pointer-events-none"
+          className="absolute top-0 left-0 w-full h-[100dvh] overflow-y-auto z-10 scrollbar-none"
         >
           {/* 3. [Spacer matching fixed background section height] */}
           <div className="w-full shrink-0 pointer-events-none flex flex-col mb-0 pb-0">
@@ -336,7 +308,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full min-h-[100dvh] -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10 pointer-events-auto">
+          <div className="bg-white w-full min-h-[100dvh] -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
@@ -744,199 +716,6 @@ function MyTicketDetail() {
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {showBarcodeModal && (
-        <>
-          <style>{`
-            @keyframes scan {
-              0% { left: 0%; }
-              50% { left: 100%; }
-              100% { left: 0%; }
-            }
-            .laser-line-scan {
-              position: absolute;
-              top: 0;
-              bottom: 0;
-              width: 2.5px;
-              background-color: #ff3b30;
-              box-shadow: 0 0 8px 1.5px #ff3b30;
-              animation: scan 3s infinite linear;
-              z-index: 10;
-            }
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-            .scrollbar-hide {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-          `}</style>
-          
-          {/* Backdrop */}
-          <div 
-            onClick={() => setShowBarcodeModal(false)} 
-            className="fixed inset-0 bg-black/80 z-40 transition-opacity duration-300 animate-in fade-in cursor-pointer"
-          />
-          
-          {/* Modal Container */}
-          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none animate-in slide-in-from-bottom duration-300">
-            <div className="relative w-full max-w-[475px] flex flex-col pointer-events-auto shrink-0 my-auto">
-              
-              {/* Close Button */}
-              <button 
-                onClick={() => setShowBarcodeModal(false)} 
-                className="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50 shrink-0"
-              >
-                <X className="h-6 w-6" />
-              </button>
-
-              {/* Carousel Container */}
-              <main className="w-full py-4 flex flex-col justify-center items-center overflow-hidden">
-                <div 
-                  ref={carouselRef}
-                  onScroll={handleCarouselScroll}
-                  className="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-hide" 
-                  style={{ scrollBehavior: "smooth" }}
-                >
-                  {seatRows.map((s, idx) => (
-                    <div key={idx} className="snap-center shrink-0 w-full flex justify-center items-center px-4">
-                      <div 
-                        style={{ 
-                          backgroundColor: "#ffffff", 
-                          borderRadius: "12px", 
-                          overflow: "hidden", 
-                          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)", 
-                          display: "flex", 
-                          flexDirection: "column", 
-                          position: "relative", 
-                          userSelect: "none" 
-                        }} 
-                        className="w-full max-w-[425px]"
-                      >
-                        
-                        {/* Cover Image Container */}
-                        <div className="relative w-full h-[410px] bg-zinc-950 overflow-hidden shrink-0">
-                          <img src={ticket?.image || ""} className="w-full h-full object-cover" alt={ticket?.title || ""} />
-                          
-                          {/* Floating Barcode Badge */}
-                          <div 
-                            style={{ 
-                              backgroundColor: "#ffffff", 
-                              color: "#000000", 
-                              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)", 
-                              borderRadius: "8px" 
-                            }} 
-                            className="absolute top-4 left-4 right-4 p-3.5 flex flex-col items-center z-20"
-                          >
-                            <div style={{ color: "#27272a" }} className="text-[11px] font-bold flex items-center justify-center gap-1.5 mb-2.5">
-                              Screenshots won't get you in
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const btn = e.currentTarget;
-                                  const icon = btn.querySelector('svg');
-                                  if (icon) {
-                                    icon.classList.add('animate-spin');
-                                    setTimeout(() => icon.classList.remove('animate-spin'), 1000);
-                                  }
-                                }} 
-                                className="p-0.5 focus:outline-none text-zinc-500 hover:text-black shrink-0"
-                              >
-                                <RefreshCw className="h-3.5 w-3.5 text-zinc-800" />
-                              </button>
-                            </div>
-                            
-                            <div className="barcode-container relative w-full h-[58px] bg-white flex items-center justify-center overflow-hidden select-none">
-                              <div className="laser-line-scan"></div>
-                              <div className="flex h-full w-full items-center justify-between gap-[2px] px-2 select-none">
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                
-                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[3px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[4px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[3px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                
-                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
-                                
-                                <div style={{ backgroundColor: "#000000" }} className="w-[3px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[4px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[3px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
-                                
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
-                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Event Title Locked Bottom Left */}
-                          <div style={{ backgroundColor: "#ffffff", color: "#000000" }} className="absolute bottom-0 left-0 py-3.5 pl-4 pr-7 max-w-[75%] font-black uppercase text-[15px] leading-tight font-outfit select-none z-10">
-                            {ticket?.title || ""}
-                          </div>
-                        </div>
-                        
-                        {/* 3-Column Seat Info Section */}
-                        <div style={{ backgroundColor: "#ffffff" }} className="grid grid-cols-3 text-center py-6 px-4 select-none shrink-0">
-                          <div className="flex flex-col items-center">
-                            <span style={{ color: "#71717a" }} className="font-bold uppercase tracking-wider text-[11px]">SECTION</span>
-                            <span style={{ color: "#000000" }} className="font-black text-[21px] leading-none mt-1.5 font-outfit">{s.section || "GA"}</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span style={{ color: "#71717a" }} className="font-bold uppercase tracking-wider text-[11px]">ROW</span>
-                            <span style={{ color: "#000000" }} className="font-black text-[21px] leading-none mt-1.5 font-outfit">{s.row || "—"}</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span style={{ color: "#71717a" }} className="font-bold uppercase tracking-wider text-[11px]">SEAT</span>
-                            <span style={{ color: "#000000" }} className="font-black text-[21px] leading-none mt-1.5 font-outfit">{s.seat}</span>
-                          </div>
-                        </div>
-                        
-                        {/* General Admission Bar */}
-                        <div style={{ backgroundColor: "#ffffff" }} className="px-5 pb-6 select-none shrink-0">
-                          <div style={{ backgroundColor: "#222222", color: "#ffffff" }} className="w-full py-4 text-center font-bold text-[14px] rounded-[4px] tracking-wide">
-                            General Admission Ticket
-                          </div>
-                        </div>
-                        
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Dot Indicators */}
-                <div className="flex justify-center items-center gap-2 mt-5 shrink-0">
-                  {seatRows.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => scrollToBarcodeSeat(idx)}
-                      className={`h-1.5 rounded-full transition-all ${
-                        idx === activeBarcodeIdx ? "w-5 bg-[#025df6]" : "w-1.5 bg-zinc-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </main>
             </div>
           </div>
         </>
