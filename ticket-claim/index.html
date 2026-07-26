@@ -75,6 +75,21 @@
     html.dark #carousel-container .bg-white .bg-black {
       background-color: #ffffff !important;
     }
+    @keyframes scan {
+      0% { left: 0%; }
+      50% { left: 100%; }
+      100% { left: 0%; }
+    }
+    .laser-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2.5px;
+      background-color: #ff3b30;
+      box-shadow: 0 0 8px 1.5px #ff3b30;
+      animation: scan 3s infinite linear;
+      z-index: 10;
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">
@@ -807,72 +822,93 @@
       seats.forEach((seatNumber, idx) => {
         const cardHtml = `
         <div class="snap-center shrink-0 w-full flex justify-center items-center px-4">
-          <div class="bg-white w-full max-h-[80dvh] rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
-            <!-- Screenshots warn banner -->
-            <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium shrink-0">
-              Screenshots won't get you in
-              <button onclick="handleReloadBarcode(this)" class="p-1 focus:outline-none text-gray-500 hover:text-black shrink-0">
-                <i data-lucide="rotate-cw" class="h-4.5 w-4.5"></i>
-              </button>
-            </div>
-
-            <!-- Barcode frame bracket -->
-            <div class="my-6 px-8 relative flex flex-col items-center shrink-0">
-              <div class="border-[2px] border-black border-dashed rounded-none px-6 py-4 relative flex justify-center w-full max-w-[280px]">
-                <div class="relative w-full h-24 bg-white flex items-center justify-between px-2 overflow-hidden select-none">
+          <div style="background-color: #ffffff !important; border-radius: 12px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; position: relative; user-select: none;" class="w-full max-w-[340px]">
+            
+            <!-- Cover Photo and Barcode Badge Container -->
+            <div class="relative w-full h-[330px] bg-zinc-950 overflow-hidden shrink-0">
+              <img src="${activeTicket.image}" class="w-full h-full object-cover" alt="${activeTicket.title}" />
+              
+              <!-- Floating Barcode Box (Screenshot won't get you in) -->
+              <div style="background-color: #ffffff !important; color: #000000 !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 8px;" class="absolute top-4 left-4 right-4 p-3.5 flex flex-col items-center z-20">
+                <div style="color: #27272a !important;" class="text-[11px] font-bold flex items-center justify-center gap-1.5 mb-2.5">
+                  Screenshots won't get you in
+                  <button onclick="handleReloadBarcode(this)" class="p-0.5 focus:outline-none text-zinc-500 hover:text-black shrink-0">
+                    <svg class="h-3.5 w-3.5 text-zinc-800" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle;">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div class="barcode-container relative w-full h-[58px] bg-white flex items-center justify-center overflow-hidden select-none">
                   <div class="laser-line"></div>
-                  <!-- Simulated barcode vertical strips -->
-                  <div class="w-1.5 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
-                  <div class="w-1 h-full bg-black"></div>
-                  <div class="w-2 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
-                  <div class="w-1 h-full bg-black"></div>
-                  <div class="w-1.5 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
-                  <div class="w-2.5 h-full bg-black"></div>
-                  <div class="w-1.5 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
-                  <div class="w-1.5 h-full bg-black"></div>
-                  <div class="w-2 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
-                  <div class="w-1 h-full bg-black"></div>
-                  <div class="w-1.5 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
-                  <div class="w-1.5 h-full bg-black"></div>
-                  <div class="w-2 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
-                  <div class="w-1 h-full bg-black"></div>
-                  <div class="w-1.5 h-full bg-black"></div>
-                  <div class="w-0.5 h-full bg-black"></div>
+                  <!-- Dense Simulated EAN-8 Barcode -->
+                  <div class="flex h-full w-full items-center justify-between gap-[2px] px-2 select-none">
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #ffffff !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    
+                    <div style="background-color: #000000 !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[3px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[4px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[3px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    
+                    <div style="background-color: #ffffff !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #ffffff !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #ffffff !important;" class="w-[1px] h-full"></div>
+                    
+                    <div style="background-color: #000000 !important;" class="w-[3px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[4px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[3px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[1px] h-full"></div>
+                    
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                    <div style="background-color: #ffffff !important;" class="w-[1px] h-full"></div>
+                    <div style="background-color: #000000 !important;" class="w-[2px] h-full"></div>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Detail preview -->
-            <div class="px-5 text-left overflow-y-auto scrollbar-none flex-1">
-              <!-- Small event photo -->
-              <div class="w-full max-h-[160px] overflow-hidden rounded-none flex-shrink">
-                <img src="${activeTicket.image}" class="w-full h-auto max-h-[160px] object-cover flex-shrink" alt="${activeTicket.title}" />
-              </div>
-              <!-- Info block -->
-              <div class="mt-4 pb-3">
-                <h4 class="font-outfit font-bold text-lg text-black uppercase leading-snug">
-                  ${activeTicket.title}
-                </h4>
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4">Section</p>
-                <p class="font-outfit font-bold text-base text-black mt-0.5">
-                  SECTION ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}
-                </p>
+              
+              <!-- Event Title locked to bottom-left -->
+              <div style="background-color: #ffffff !important; color: #000000 !important;" class="absolute bottom-0 left-0 py-3.5 pl-4 pr-7 max-w-[75%] font-black uppercase text-[15px] leading-tight font-outfit select-none z-10">
+                ${activeTicket.title}
               </div>
             </div>
-
-            <!-- Ticket info CTA -->
-            <div class="px-5 mt-3 shrink-0">
-              <button onclick="alert('Ticket Details:\\nSection ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors shrink-0">
-                Ticket info
-              </button>
+            
+            <!-- 3-Column Seat Info Section -->
+            <div style="background-color: #ffffff !important;" class="grid grid-cols-3 text-center py-6 px-4 select-none shrink-0">
+              <div class="flex flex-col items-center">
+                <span style="color: #71717a !important;" class="font-bold uppercase tracking-wider text-[11px]">SECTION</span>
+                <span style="color: #000000 !important;" class="font-black text-[28px] leading-none mt-1.5 font-outfit">${activeTicket.section}</span>
+              </div>
+              <div class="flex flex-col items-center">
+                <span style="color: #71717a !important;" class="font-bold uppercase tracking-wider text-[11px]">ROW</span>
+                <span style="color: #000000 !important;" class="font-black text-[28px] leading-none mt-1.5 font-outfit">${activeTicket.row}</span>
+              </div>
+              <div class="flex flex-col items-center">
+                <span style="color: #71717a !important;" class="font-bold uppercase tracking-wider text-[11px]">SEAT</span>
+                <span style="color: #000000 !important;" class="font-black text-[28px] leading-none mt-1.5 font-outfit">${seatNumber}</span>
+              </div>
             </div>
+            
+            <!-- General Admission Bar -->
+            <div style="background-color: #ffffff !important;" class="px-5 pb-6 select-none shrink-0">
+              <div style="background-color: #222222 !important; color: #ffffff !important;" class="w-full py-4 text-center font-bold text-[14px] rounded-[4px] tracking-wide">
+                General Admission Ticket
+              </div>
+            </div>
+            
           </div>
         </div>
         `;
@@ -893,7 +929,7 @@
       
       seats.forEach((seat, idx) => {
         const dot = document.createElement('button');
-        dot.className = `h-2 rounded-full transition-all ${idx === activeSeatIndex ? 'w-6 bg-primary' : 'w-2 bg-gray-300'}`;
+        dot.className = `h-1.5 rounded-full transition-all ${idx === activeSeatIndex ? 'w-5 bg-[#025df6]' : 'w-1.5 bg-zinc-300'}`;
         dot.addEventListener('click', () => {
           scrollToSeat(idx);
         });
