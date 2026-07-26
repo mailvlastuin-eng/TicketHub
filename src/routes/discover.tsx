@@ -24,6 +24,13 @@ export const Route = createFileRoute("/discover")({
 function DiscoverPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [featuredIndex, setFeaturedIndex] = useState(0);
   const [query, setQuery] = useState("");
   const all = useAllTickets();
@@ -72,6 +79,71 @@ function DiscoverPage() {
   }, [query]);
 
   if (!ready || !user) return null;
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background pb-24">
+        <div className="max-w-md mx-auto">
+          {/* Logo bar placeholder */}
+          <div className="px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 flex items-center justify-center">
+            <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+          </div>
+
+          {/* Location + Dates placeholder */}
+          <div className="px-5 grid grid-cols-2 gap-3 mb-6">
+            <div className="h-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+          </div>
+
+          {/* Search Input placeholder */}
+          <div className="px-5 mb-6">
+            <div className="h-10 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" />
+          </div>
+
+          {/* Hero event placeholder */}
+          <div className="px-5 mb-8">
+            <div className="aspect-[16/10] w-full bg-zinc-200 dark:bg-zinc-800 rounded-xl animate-pulse" />
+            <div className="mt-4 h-6 w-3/4 bg-zinc-200 dark:bg-zinc-800 rounded-xl animate-pulse" />
+            <div className="mt-2 h-4 w-1/2 bg-zinc-200 dark:bg-zinc-800 rounded-xl animate-pulse" />
+          </div>
+
+          {/* Categories/Events Section headers */}
+          <div className="px-5 mb-4 flex justify-between items-center">
+            <div className="h-5 w-32 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-4 w-12 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+          </div>
+
+          {/* Event cards placeholders */}
+          <div className="px-5 space-y-4">
+            <div className="flex gap-4 items-center">
+              <div className="h-16 w-16 bg-zinc-200 dark:bg-zinc-800 rounded-lg animate-pulse shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-3/4 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+                <div className="h-3 w-1/2 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="flex gap-4 items-center">
+              <div className="h-16 w-16 bg-zinc-200 dark:bg-zinc-800 rounded-lg animate-pulse shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-2/3 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+                <div className="h-3 w-1/3 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom tab bar placeholder */}
+        <nav className="fixed bottom-0 inset-x-0 border-t bg-background z-40 pb-[env(safe-area-inset-bottom)]">
+          <div className="max-w-md mx-auto grid grid-cols-4 py-2.5">
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+          </div>
+        </nav>
+      </main>
+    );
+  }
 
   const featured = featuredTickets[featuredIndex];
   const list = all.filter(

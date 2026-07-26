@@ -32,6 +32,13 @@ function formatHeaderDate(t: Ticket): string {
 function MyTicketsPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const custom = useCustomTickets();
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
 
@@ -52,6 +59,55 @@ function MyTicketsPage() {
   }, [custom]);
 
   if (!ready || !user) return null;
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background pb-24">
+        <div className="max-w-md mx-auto">
+          {/* Top bar placeholder */}
+          <div className="grid grid-cols-3 items-center px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4">
+            <span />
+            <div className="h-5 w-24 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse justify-self-center" />
+            <div className="h-4 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse justify-self-end" />
+          </div>
+
+          {/* Tabs placeholder */}
+          <div className="grid grid-cols-2 border-b border-foreground/10 h-12">
+            <div className="flex items-center justify-center"><div className="h-4 w-20 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+            <div className="flex items-center justify-center"><div className="h-4 w-20 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+          </div>
+
+          {/* Ticket list placeholders */}
+          <div className="p-4 space-y-5">
+            <div className="rounded overflow-hidden">
+              <div className="aspect-[16/10] w-full bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
+              <div className="bg-[#111] p-4 space-y-3">
+                <div className="h-6 w-3/4 bg-zinc-700 rounded animate-pulse" />
+                <div className="h-4 w-1/2 bg-zinc-700 rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="rounded overflow-hidden">
+              <div className="aspect-[16/10] w-full bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
+              <div className="bg-[#111] p-4 space-y-3">
+                <div className="h-6 w-2/3 bg-zinc-700 rounded animate-pulse" />
+                <div className="h-4 w-1/3 bg-zinc-700 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom tab bar placeholder */}
+        <nav className="fixed bottom-0 inset-x-0 border-t bg-background z-40 pb-[env(safe-area-inset-bottom)]">
+          <div className="max-w-md mx-auto grid grid-cols-4 py-2.5">
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+            <div className="flex flex-col items-center gap-1.5"><div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-800 rounded-full animate-pulse" /><div className="h-2 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" /></div>
+          </div>
+        </nav>
+      </main>
+    );
+  }
 
   const list = tab === "upcoming" ? upcoming : past;
 
