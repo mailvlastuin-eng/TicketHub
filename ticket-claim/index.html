@@ -221,8 +221,9 @@
         Home / My Tickets
       </div>
       <!-- Headline -->
-      <div class="px-4 pt-6 pb-2 max-w-md mx-auto text-left">
+      <div class="px-4 pt-6 pb-2 max-w-md mx-auto text-left flex flex-col justify-start">
         <h2 class="text-3xl font-bold font-outfit">My Tickets</h2>
+        <p id="dashboard-email-display" class="text-xs text-white/80 font-medium mt-1"></p>
       </div>
       <!-- Tabs (Flat design) -->
       <div class="grid grid-cols-3 max-w-md mx-auto text-center border-b border-white/20 mt-4 text-xs font-semibold uppercase tracking-wider">
@@ -297,6 +298,7 @@
   <!-- ================= APP ROUTING AND CONTROLLERS ================= -->
   <script>
     // Mock database for standard fallback events
+    // Mock database for standard fallback events
     const mockupEvents = {
       ariana: {
         id: "ariana",
@@ -308,7 +310,8 @@
         image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
         seats: ["5", "6", "7", "8"],
         section: "B23",
-        row: "14"
+        row: "14",
+        buyerEmail: "arianafan@domain.com"
       },
       wicked: {
         id: "wicked",
@@ -320,7 +323,8 @@
         image: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&auto=format&fit=crop",
         seats: ["10", "11", "12"],
         section: "Orchestra",
-        row: "G"
+        row: "G",
+        buyerEmail: "wickedfan@domain.com"
       },
       mavs: {
         id: "mavs",
@@ -332,7 +336,8 @@
         image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop",
         seats: ["1", "2"],
         section: "Loge 104",
-        row: "D"
+        row: "D",
+        buyerEmail: "mavsfan@domain.com"
       },
       foo: {
         id: "foo",
@@ -344,7 +349,8 @@
         image: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&auto=format&fit=crop",
         seats: ["15", "16", "17", "18"],
         section: "Floor",
-        row: "GA"
+        row: "GA",
+        buyerEmail: "foofan@domain.com"
       },
       comedy: {
         id: "comedy",
@@ -356,7 +362,38 @@
         image: "https://images.unsplash.com/photo-1585699324551-f6c309eed262?w=800&auto=format&fit=crop",
         seats: ["20", "21"],
         section: "Mezzanine",
-        row: "J"
+        row: "J",
+        buyerEmail: "comedyfan@domain.com"
+      }
+    };
+
+    // Central Mock Token Mapper to map tokens to specific ticket details
+    const tokenEventMapper = {
+      "xyz_123": {
+        id: "xyz_123",
+        title: "Wicked: The Musical",
+        category: "Theater",
+        venue: "Bass Performance Hall",
+        city: "Fort Worth, TX",
+        date: "Sat • Aug 15, 2026 • 8:00 PM",
+        image: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&auto=format&fit=crop",
+        seats: ["24", "25", "26"],
+        section: "Orchestra",
+        row: "G",
+        buyerEmail: "buyer@domain.com"
+      },
+      "ariana_super": {
+        id: "ariana_super",
+        title: "ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR",
+        category: "Pop",
+        venue: "AT&T Stadium",
+        city: "Texas",
+        date: "Mon • Jun 22, 2026 • 12:00 PM",
+        image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
+        seats: ["12", "13", "14"],
+        section: "B23",
+        row: "14",
+        buyerEmail: "arianafan@domain.com"
       }
     };
 
@@ -371,7 +408,7 @@
       dashboard: 'page-dashboard'
     };
 
-    // Helper: Parse URL parameters
+    // Helper: Parse URL parameters for Event ID
     function getEventIdFromUrl() {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.has('eventId')) {
@@ -388,6 +425,87 @@
       return null;
     }
 
+    // Helper: Parse URL parameters for Token
+    function getTransferTokenFromUrl() {
+      // 1. Search params
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('token')) {
+        return searchParams.get('token');
+      }
+      
+      // 2. Hash query params
+      const hash = window.location.hash;
+      if (hash.includes('?')) {
+        const hashQuery = hash.split('?')[1];
+        const hashParams = new URLSearchParams(hashQuery);
+        if (hashParams.has('token')) {
+          return hashParams.get('token');
+        }
+      }
+
+      // 3. Fallback: direct pattern match in hash e.g., #/?token=...
+      if (hash.includes('token=')) {
+        const match = hash.match(/[?&]token=([^&]+)/);
+        if (match) return match[1];
+      }
+
+      // 4. Accept route check (e.g. /accept?token=...)
+      const path = window.location.pathname;
+      if (path.includes('/accept')) {
+        const match = window.location.search.match(/[?&]token=([^&]+)/);
+        if (match) return match[1];
+      }
+
+      return null;
+    }
+
+    // Helper: Resolve Token to Ticket object
+    function getTicketByToken(token) {
+      if (!token) return null;
+      const cleanToken = token.toLowerCase();
+
+      // Direct mapper check
+      if (tokenEventMapper[cleanToken]) {
+        return tokenEventMapper[cleanToken];
+      }
+
+      // Predefined event mockup checks
+      for (const key of Object.keys(mockupEvents)) {
+        if (cleanToken.includes(key)) {
+          return {
+            ...mockupEvents[key],
+            id: token,
+            seats: ["24", "25", "26"], // Custom seats array
+            buyerEmail: "claimant@domain.com"
+          };
+        }
+      }
+
+      // Local storage custom check
+      try {
+        const stored = localStorage.getItem('tm_custom_tickets');
+        if (stored) {
+          const list = JSON.parse(stored);
+          const custom = list.find(t => cleanToken.includes(t.id.toLowerCase()));
+          if (custom) {
+            return {
+              ...custom,
+              seats: custom.seats || ["5", "6", "7"],
+              buyerEmail: "claimant@domain.com"
+            };
+          }
+        }
+      } catch(e) {}
+
+      // Default fallback
+      return {
+        ...mockupEvents.ariana,
+        id: token,
+        seats: ["12", "13", "14"],
+        buyerEmail: "claimant@domain.com"
+      };
+    }
+
     // Helper: Parse local storage custom tickets
     function getTicketFromStorage(id) {
       try {
@@ -401,6 +519,23 @@
     }
 
     function loadActiveTicket() {
+      // 1. Capture token from URL if present
+      const urlToken = getTransferTokenFromUrl();
+      if (urlToken) {
+        sessionStorage.setItem('pending_transfer_token', urlToken);
+      }
+
+      // 2. Hydrate from pending token first
+      const activeToken = sessionStorage.getItem('pending_transfer_token');
+      if (activeToken) {
+        const ticketFromToken = getTicketByToken(activeToken);
+        if (ticketFromToken) {
+          activeTicket = ticketFromToken;
+          return;
+        }
+      }
+
+      // 3. Fallback to eventId
       const id = getEventIdFromUrl();
       if (!id) {
         activeTicket = mockupEvents.ariana;
@@ -420,7 +555,8 @@
           image: storedTicket.image || "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
           seats: storedTicket.seats || ["5", "6", "7", "8"],
           section: storedTicket.section || "B23",
-          row: storedTicket.row || "14"
+          row: storedTicket.row || "14",
+          buyerEmail: "claimant@domain.com"
         };
         return;
       }
@@ -480,6 +616,11 @@
       card.querySelector('h3').textContent = activeTicket.title;
       card.querySelector('.text-white\\/70').textContent = activeTicket.venue + (activeTicket.city ? `, ${activeTicket.city}` : '');
       card.querySelector('.text-white\\/80 span').textContent = `x${activeTicket.seats.length}`;
+      
+      const emailDisplay = document.getElementById('dashboard-email-display');
+      if (emailDisplay) {
+        emailDisplay.textContent = activeTicket.buyerEmail || 'user@domain.com';
+      }
     }
 
     // Bottom Sheet Slide Modal Handlers
@@ -666,6 +807,10 @@
 
       if (hash.startsWith('#/login')) {
         showPage(routes.login);
+        const loginEmailInput = document.getElementById('login-email');
+        if (loginEmailInput) {
+          loginEmailInput.value = activeTicket.buyerEmail || '';
+        }
       } else if (hash.startsWith('#/my-tickets')) {
         renderDashboardPage();
         showPage(routes.dashboard);
