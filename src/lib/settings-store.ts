@@ -34,7 +34,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   barcode: "Show",
   ticketBar: "Show",
   sellBtn: "Fade",
-  sellTab: "Hide",
+  sellTab: "Fade",
   tt: "Yes",
 };
 

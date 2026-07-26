@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, Heart, Ticket as TicketIcon, User as UserIcon, RefreshCw } from "lucide-react";
+import { Search, Heart, Ticket as TicketIcon, User as UserIcon, RefreshCw, Plus } from "lucide-react";
 import { signOut, useUser, signIn } from "@/lib/auth";
 import {
   addCustomTicket,
@@ -301,40 +301,35 @@ function FavoritesPage() {
           </Row>
 
           <Row cols={3}>
-            <Field label="GA Design" value={form.gaDesign} onChange={(v) => set("gaDesign", v)} />
-            <Field label="Mail Design" value={form.mailDesign} onChange={(v) => set("mailDesign", v)} />
             <Field label="Dark" value={form.dark} onChange={(v) => set("dark", v)} options={DARK_OPTS} />
-          </Row>
-
-          <Row cols={3}>
             <Field label="Transfer BTN" value={form.transferBtn} onChange={(v) => set("transferBtn", v)} options={SHOW_OPTS} />
             <Field label="MAP View" value={form.mapView} onChange={(v) => set("mapView", v)} options={YESNO_OPTS} />
-            <Field label="Order BTN" value={form.orderBtn} onChange={(v) => set("orderBtn", v)} options={SHOW_OPTS} />
           </Row>
 
           <Row cols={3}>
             <Field label="Barcode" value={form.barcode} onChange={(v) => set("barcode", v)} options={SHOW_OPTS} />
             <Field label="Ticket Bar" value={form.ticketBar} onChange={(v) => set("ticketBar", v)} options={SHOW_OPTS} />
-            <Field label="Sell BTN" value={form.sellBtn} onChange={(v) => set("sellBtn", v)} options={SHOW_OPTS} />
+            <Field label="Sell Tab" value={form.sellTab} onChange={(v) => set("sellTab", v)} options={SHOW_OPTS} />
           </Row>
 
-          <div className="grid grid-cols-3 gap-3 items-end">
-            <Field label="Sell Tab" value={form.sellTab} onChange={(v) => set("sellTab", v)} options={SHOW_OPTS} />
-            <Field label="TT" value={form.tt} onChange={(v) => set("tt", v)} options={YESNO_OPTS} />
+          <div className="pt-1">
             <button
               onClick={handleUpdate}
-              className="h-10 rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 w-full"
+              className="h-11 rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 w-full cursor-pointer transition-opacity"
             >
               Update
             </button>
           </div>
 
-          <button
-            onClick={() => navigate({ to: "/create-ticket" })}
-            className="rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold px-5 py-2.5"
-          >
-            New events
-          </button>
+          <div className="pt-2">
+            <button
+              onClick={() => navigate({ to: "/create-ticket" })}
+              className="w-full rounded-md bg-gradient-to-r from-emerald-500 to-teal-650 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-bold py-3.5 px-5 shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-0"
+            >
+              <Plus className="h-4.5 w-4.5 text-white stroke-[2.5]" />
+              New Events
+            </button>
+          </div>
 
           {msg && (
             <p className="text-center text-sm text-primary font-medium">{msg}</p>
@@ -450,11 +445,16 @@ function EventRow({
 }) {
   const [hidden, setHidden] = useState(false);
   return (
-    <div className="rounded-[4px] overflow-hidden border border-foreground/10">
-      <div className={`px-4 py-3 ${hidden ? "bg-foreground/30" : "bg-[#1a4a6e]"}`}>
-        <p className="text-sm font-semibold text-white leading-snug">
+    <div className="rounded-[4px] overflow-hidden border border-foreground/10 shadow-sm">
+      <div className={`px-4 py-3.5 ${hidden ? "bg-foreground/20" : "bg-gradient-to-r from-indigo-600 to-violet-700"} flex items-center justify-between`}>
+        <p className="text-sm font-bold text-white leading-snug tracking-tight">
           {ticket.title}
         </p>
+        {!hidden && (
+          <span className="text-[9px] font-black uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded border border-white/20 shrink-0 ml-2 select-none">
+            Custom Event
+          </span>
+        )}
       </div>
       <div className="flex gap-2 px-3 py-2 border-t border-foreground/10 bg-background">
         <button
