@@ -352,7 +352,7 @@
 
   <!-- Bottom Slide-over Sheet (Centered flex wrapper with vertical scroll fallback) -->
   <div id="ticket-modal" class="fixed inset-0 min-h-[100dvh] z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none translate-y-full transition-transform duration-300 ease-out">
-    <div class="relative w-full max-w-[380px] flex flex-col pointer-events-auto shrink-0 my-auto">
+    <div class="relative w-full max-w-[475px] flex flex-col pointer-events-auto shrink-0 my-auto">
       <!-- Close button ('X') at the top right of the modal content -->
       <button onclick="closeTicketModal()" class="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50 shrink-0">
         <i data-lucide="x" class="h-6 w-6"></i>
@@ -822,10 +822,10 @@
       seats.forEach((seatNumber, idx) => {
         const cardHtml = `
         <div class="snap-center shrink-0 w-full flex justify-center items-center px-4">
-          <div style="background-color: #ffffff !important; border-radius: 12px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; position: relative; user-select: none;" class="w-full max-w-[340px]">
+          <div style="background-color: #ffffff !important; border-radius: 12px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; position: relative; user-select: none;" class="w-full max-w-[425px]">
             
             <!-- Cover Photo and Barcode Badge Container -->
-            <div class="relative w-full h-[330px] bg-zinc-950 overflow-hidden shrink-0">
+            <div class="relative w-full h-[410px] bg-zinc-950 overflow-hidden shrink-0">
               <img src="${activeTicket.image}" class="w-full h-full object-cover" alt="${activeTicket.title}" />
               
               <!-- Floating Barcode Box (Screenshot won't get you in) -->
@@ -890,15 +890,15 @@
             <div style="background-color: #ffffff !important;" class="grid grid-cols-3 text-center py-6 px-4 select-none shrink-0">
               <div class="flex flex-col items-center">
                 <span style="color: #71717a !important;" class="font-bold uppercase tracking-wider text-[11px]">SECTION</span>
-                <span style="color: #000000 !important;" class="font-black text-[28px] leading-none mt-1.5 font-outfit">${activeTicket.section}</span>
+                <span style="color: #000000 !important;" class="font-black text-[21px] leading-none mt-1.5 font-outfit">${activeTicket.section}</span>
               </div>
               <div class="flex flex-col items-center">
                 <span style="color: #71717a !important;" class="font-bold uppercase tracking-wider text-[11px]">ROW</span>
-                <span style="color: #000000 !important;" class="font-black text-[28px] leading-none mt-1.5 font-outfit">${activeTicket.row}</span>
+                <span style="color: #000000 !important;" class="font-black text-[21px] leading-none mt-1.5 font-outfit">${activeTicket.row}</span>
               </div>
               <div class="flex flex-col items-center">
                 <span style="color: #71717a !important;" class="font-bold uppercase tracking-wider text-[11px]">SEAT</span>
-                <span style="color: #000000 !important;" class="font-black text-[28px] leading-none mt-1.5 font-outfit">${seatNumber}</span>
+                <span style="color: #000000 !important;" class="font-black text-[21px] leading-none mt-1.5 font-outfit">${seatNumber}</span>
               </div>
             </div>
             
