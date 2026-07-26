@@ -539,30 +539,36 @@ export function AdminDashboardApp() {
         {/* Database Status Banner */}
         {diagnostics && (
           <div className={`mb-8 p-4 rounded-2xl border flex items-center justify-between shadow-sm transition-all ${
-            diagnostics.dbStatus.includes('Connected') 
+            diagnostics.dbStatus.toLowerCase().includes('connected') && !diagnostics.dbStatus.toLowerCase().includes('error')
               ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800 backdrop-blur-md' 
               : 'bg-rose-50/80 border-rose-200 text-rose-800 backdrop-blur-md'
           }`}>
             <div className="flex items-center gap-3">
-              <div className={`h-9 w-9 rounded-xl flex items-center justify-center shadow-sm ${
-                diagnostics.dbStatus.includes('Connected') ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
-              }`}>
-                {diagnostics.dbStatus.includes('Connected') ? (
-                  <CheckCircle2 className="h-5.5 w-5.5" />
+              <div className="flex items-center gap-2.5">
+                {diagnostics.dbStatus.toLowerCase().includes('connected') && !diagnostics.dbStatus.toLowerCase().includes('error') ? (
+                  <span className="relative flex h-2.5 w-2.5 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
                 ) : (
-                  <AlertTriangle className="h-5.5 w-5.5" />
+                  <span className="relative flex h-2.5 w-2.5 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-450 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                  </span>
                 )}
-              </div>
-              <div>
-                <p className="text-sm font-bold tracking-tight">{diagnostics.dbStatus}</p>
-                {diagnostics.dbError ? (
-                  <p className="text-xs font-mono mt-0.5 opacity-90">{diagnostics.dbError}</p>
-                ) : (
-                  <p className="text-xs opacity-80 font-medium">Database Project: {diagnostics.projectId}</p>
-                )}
+                <div>
+                  <p className="text-sm font-bold tracking-tight">
+                    {diagnostics.dbStatus.toLowerCase().includes('connected') && !diagnostics.dbStatus.toLowerCase().includes('error')
+                      ? 'Connected to database'
+                      : 'Error connecting to database'}
+                  </p>
+                  {diagnostics.dbError && (
+                    <p className="text-xs font-mono mt-0.5 opacity-90">{diagnostics.dbError}</p>
+                  )}
+                </div>
               </div>
             </div>
-            {!diagnostics.dbStatus.includes('Connected') && (
+            {!(diagnostics.dbStatus.toLowerCase().includes('connected') && !diagnostics.dbStatus.toLowerCase().includes('error')) && (
               <span className="text-[9px] font-black tracking-widest bg-rose-200 text-rose-800 px-3 py-1 rounded-full uppercase shadow-sm">
                 Config Error
               </span>
