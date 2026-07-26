@@ -1383,7 +1383,10 @@
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         origins.push('http://localhost:8002');
       } else {
-        // Build dynamic fallbacks replacing 'ticket-claim' with project names
+        // Build dynamic fallbacks replacing 'ticket-claim' with project names from active Vercel deployments
+        origins.push(currentOrigin.replace('ticket-claim', 'ticket-hub-o68j'));
+        origins.push(currentOrigin.replace('ticket-claim', 'ticket-hub-virid'));
+        origins.push(currentOrigin.replace('ticket-claim', 'ticket-hub'));
         origins.push(currentOrigin.replace('ticket-claim', 'featured-finds-app-main-heyheyoladapo-5820s-projects'));
         origins.push(currentOrigin.replace('ticket-claim', 'featured-finds-app-main'));
         origins.push(currentOrigin.replace('ticket-claim', 'tickethub-lovable'));
