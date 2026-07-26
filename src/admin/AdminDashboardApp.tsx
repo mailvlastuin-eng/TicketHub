@@ -109,6 +109,7 @@ export function AdminDashboardApp() {
 
   const [loadingData, setLoadingData] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'attempts'>('users');
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
   // Search & Filter State
   const [userQuery, setUserQuery] = useState('');
@@ -369,6 +370,26 @@ export function AdminDashboardApp() {
     }
   };
 
+  const getDurationDisplay = (u: any) => {
+    if (u.status === 'expired') return 'Expired';
+    if (u.status === 'terminated') return 'Terminated';
+    if (!u.activatedAt) {
+      switch (u.duration) {
+        case '1m': return '30 Days (Not Started)';
+        case '3m': return '90 Days (Not Started)';
+        case '6m': return '180 Days (Not Started)';
+        case '1y': return '365 Days (Not Started)';
+        default: return 'Pending Login';
+      }
+    }
+    const now = new Date();
+    const exp = new Date(u.expiresAt);
+    const diffMs = exp.getTime() - now.getTime();
+    if (diffMs <= 0) return 'Expired';
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return `${diffDays} Day${diffDays !== 1 ? 's' : ''} Left`;
+  };
+
   const getAttemptStatusBadge = (status: string) => {
     switch (status) {
       case 'success':
@@ -481,31 +502,31 @@ export function AdminDashboardApp() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 pb-20 font-sans">
-      {/* Top Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
+    <main className="min-h-screen bg-gradient-to-tr from-slate-50 via-slate-100 to-indigo-50/30 text-slate-800 pb-24 font-sans selection:bg-blue-500 selection:text-white">
+      {/* Top Header with iOS notch support */}
+      <header className="border-b border-slate-200/80 bg-white/70 backdrop-blur-xl sticky top-0 z-40 shadow-sm pt-[calc(16px+env(safe-area-inset-top,0px))]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
-              <Shield className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20">
+              <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">TicketHub</span>
-              <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-1.5 py-0.5 rounded font-extrabold tracking-wider uppercase ml-2.5">ADMIN</span>
+              <span className="font-black text-xl tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">TicketHub</span>
+              <span className="text-[9px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2 py-0.5 rounded-full font-black tracking-widest uppercase ml-2.5 shadow-sm">ADMIN</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => fetchDashboardData(false)}
               disabled={loadingData}
-              className="p-2 border border-slate-200 bg-white rounded-lg text-slate-600 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+              className="p-2 border border-slate-200 bg-white rounded-full text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:shadow-sm active:scale-95 transition-all cursor-pointer"
               title="Refresh Data"
             >
               <RefreshCw className={`h-4 w-4 ${loadingData ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={handleSignOut}
-              className="h-9 px-4 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+              className="h-10 px-5 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
               Logout
@@ -517,280 +538,311 @@ export function AdminDashboardApp() {
       <div className="max-w-7xl mx-auto px-6 pt-8">
         {/* Database Status Banner */}
         {diagnostics && (
-          <div className={`mb-6 p-4 rounded-xl border flex items-center justify-between shadow-sm ${
+          <div className={`mb-8 p-4 rounded-2xl border flex items-center justify-between shadow-sm transition-all ${
             diagnostics.dbStatus.includes('Connected') 
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-              : 'bg-rose-50 border-rose-200 text-rose-800'
+              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800 backdrop-blur-md' 
+              : 'bg-rose-50/80 border-rose-200 text-rose-800 backdrop-blur-md'
           }`}>
             <div className="flex items-center gap-3">
-              <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
-                diagnostics.dbStatus.includes('Connected') ? 'bg-emerald-100' : 'bg-rose-100'
+              <div className={`h-9 w-9 rounded-xl flex items-center justify-center shadow-sm ${
+                diagnostics.dbStatus.includes('Connected') ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
               }`}>
                 {diagnostics.dbStatus.includes('Connected') ? (
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                  <CheckCircle2 className="h-5.5 w-5.5" />
                 ) : (
-                  <AlertTriangle className="h-5 w-5 text-rose-600" />
+                  <AlertTriangle className="h-5.5 w-5.5" />
                 )}
               </div>
               <div>
-                <p className="text-sm font-bold">{diagnostics.dbStatus}</p>
+                <p className="text-sm font-bold tracking-tight">{diagnostics.dbStatus}</p>
                 {diagnostics.dbError ? (
                   <p className="text-xs font-mono mt-0.5 opacity-90">{diagnostics.dbError}</p>
                 ) : (
-                  <p className="text-xs opacity-90">Database: {diagnostics.projectId}</p>
+                  <p className="text-xs opacity-80 font-medium">Database Project: {diagnostics.projectId}</p>
                 )}
               </div>
             </div>
             {!diagnostics.dbStatus.includes('Connected') && (
-              <span className="text-[10px] font-black tracking-wide bg-rose-200 text-rose-800 px-2.5 py-1 rounded-md uppercase">
-                Configuration Error
+              <span className="text-[9px] font-black tracking-widest bg-rose-200 text-rose-800 px-3 py-1 rounded-full uppercase shadow-sm">
+                Config Error
               </span>
             )}
           </div>
         )}
 
         {/* Statistics Widgets */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Accesses</span>
-              <Users className="h-4 w-4 text-blue-600" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 h-24 w-24 bg-blue-500/5 rounded-full translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">Total Keys</span>
+              <div className="p-1.5 bg-blue-50 text-blue-600 rounded-full"><Users className="h-4.5 w-4.5" /></div>
             </div>
-            <p className="text-3xl font-black text-slate-900">{stats.total}</p>
-            <p className="text-[10px] text-slate-400 mt-1">Generated login keys</p>
+            <p className="text-3xl font-black text-slate-900 leading-tight">{stats.total}</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-semibold">Generated authorizations</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Active Sessions</span>
-              <Activity className="h-4 w-4 text-emerald-600 animate-pulse" />
+
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 h-24 w-24 bg-emerald-500/5 rounded-full translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">Active Keys</span>
+              <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-full"><Activity className="h-4.5 w-4.5 animate-pulse" /></div>
             </div>
-            <p className="text-3xl font-black text-slate-900">{stats.active}</p>
-            <p className="text-[10px] text-slate-400 mt-1">Currently signed-in users</p>
+            <p className="text-3xl font-black text-slate-900 leading-tight">{stats.active}</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-semibold">Currently signed-in users</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Pending Keys</span>
-              <Key className="h-4 w-4 text-amber-550" />
+
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 h-24 w-24 bg-amber-500/5 rounded-full translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">Pending Login</span>
+              <div className="p-1.5 bg-amber-50 text-amber-600 rounded-full"><Key className="h-4.5 w-4.5" /></div>
             </div>
-            <p className="text-3xl font-black text-slate-900">{stats.pending}</p>
-            <p className="text-[10px] text-slate-400 mt-1">Unused code authorizations</p>
+            <p className="text-3xl font-black text-slate-900 leading-tight">{stats.pending}</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-semibold">Unused code authorizations</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Revoked/Expired</span>
-              <Clock className="h-4 w-4 text-rose-600" />
+
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+            <div className="absolute top-0 right-0 h-24 w-24 bg-rose-500/5 rounded-full translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">Expired / Revoked</span>
+              <div className="p-1.5 bg-rose-50 text-rose-600 rounded-full"><Clock className="h-4.5 w-4.5" /></div>
             </div>
-            <p className="text-3xl font-black text-slate-900">{stats.terminated + stats.expired}</p>
-            <p className="text-[10px] text-slate-400 mt-1">{stats.terminated} terminated, {stats.expired} expired</p>
+            <p className="text-3xl font-black text-slate-900 leading-tight">{stats.terminated + stats.expired}</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-semibold">{stats.terminated} revoked, {stats.expired} expired</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Table Column */}
+          {/* Main List Column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Tab Selector */}
-            <div className="bg-slate-200/50 border border-slate-200 p-1 rounded-xl flex gap-1">
+            {/* Tab Selector (Pills) */}
+            <div className="bg-slate-200/65 border border-slate-200/80 p-1.5 rounded-full flex gap-1.5">
               <button
                 onClick={() => setActiveTab('users')}
-                className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`flex-1 py-2.5 text-center rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
                   activeTab === 'users'
-                    ? 'bg-white text-blue-600 shadow-sm border border-slate-200/30'
+                    ? 'bg-white text-blue-600 shadow-md shadow-slate-300/40 border border-slate-200/10'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                User Account Access ({filteredUsers.length})
+                Access Keys ({filteredUsers.length})
               </button>
               <button
                 onClick={() => setActiveTab('attempts')}
-                className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`flex-1 py-2.5 text-center rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
                   activeTab === 'attempts'
-                    ? 'bg-white text-blue-600 shadow-sm border border-slate-200/30'
+                    ? 'bg-white text-blue-600 shadow-md shadow-slate-300/40 border border-slate-200/10'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                Live Login Logs ({filteredAttempts.length})
+                Sign-In Logs ({filteredAttempts.length})
               </button>
             </div>
-                {/* User Accounts Tab */}
+
+            {/* Users Tab */}
             {activeTab === 'users' && (
-              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-md">
-                {/* Table Header Controls */}
-                <div className="p-5 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between">
-                  <h2 className="font-bold text-sm uppercase tracking-wider text-slate-800">
-                    Granted Access Keys
-                  </h2>
-                  <div className="relative w-64">
+              <div className="space-y-4">
+                {/* Search and Header Controls */}
+                <div className="bg-white border border-slate-200/65 rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+                  <div className="flex flex-col text-left">
+                    <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-850">
+                      Granted Access Keys
+                    </h2>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Click any account to expand settings and detail info</p>
+                  </div>
+                  <div className="relative w-full sm:w-64">
                     <input
                       type="text"
-                      placeholder="Search email..."
+                      placeholder="Search key email..."
                       value={userQuery}
                       onChange={(e) => setUserQuery(e.target.value)}
-                      className="w-full h-9 border border-slate-200 bg-white text-slate-850 rounded-lg pl-9 pr-4 text-xs focus:border-blue-500 outline-none transition-all"
+                      className="w-full h-10 border border-slate-200 bg-white text-slate-850 rounded-full pl-10 pr-4 text-xs focus:border-blue-500 focus:shadow-sm outline-none transition-all"
                     />
-                    <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                    <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
                   </div>
                 </div>
 
-                {/* Users Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-extrabold uppercase tracking-wider">
-                        <th className="py-3 px-5">User Email</th>
-                        <th className="py-3 px-5">Status</th>
-                        <th className="py-3 px-5">Duration</th>
-                        <th className="py-3 px-5">Passcode</th>
-                        <th className="py-3 px-5">Login Mode</th>
-                        <th className="py-3 px-5">Activation Date</th>
-                        <th className="py-3 px-5">Device</th>
-                        <th className="py-3 px-5">Transfers Left</th>
-                        <th className="py-3 px-5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs">
-                      {filteredUsers.length === 0 ? (
-                        <tr>
-                          <td colSpan={9} className="py-8 text-center text-slate-400">
-                            No user access records found.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredUsers.map((u) => {
-                          const parsedDev = parseDeviceInfo(u.deviceInfo);
-                          const currentTransfers = editingTransfers[u.id] !== undefined ? editingTransfers[u.id] : parsedDev.transfersCount;
-                          const isSaving = savingTransfers[u.id];
+                {/* Collapsible Card List */}
+                <div className="space-y-3">
+                  {filteredUsers.length === 0 ? (
+                    <div className="bg-white border border-slate-200/60 rounded-2xl py-12 text-center text-slate-400 font-medium">
+                      No access keys registered.
+                    </div>
+                  ) : (
+                    filteredUsers.map((u) => {
+                      const isExpanded = expandedUserId === u.id;
+                      const parsedDev = parseDeviceInfo(u.deviceInfo);
+                      const currentTransfers = editingTransfers[u.id] !== undefined ? editingTransfers[u.id] : parsedDev.transfersCount;
+                      const isSaving = savingTransfers[u.id];
 
-                          return (
-                            <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="py-3.5 px-5 font-medium text-slate-900">
-                                {u.email}
-                              </td>
-                              <td className="py-3.5 px-5">
-                                {getStatusBadge(u.status)}
-                              </td>
-                              <td className="py-3.5 px-5 font-semibold text-slate-700">
-                                {u.duration === '1m' && '1 Month'}
-                                {u.duration === '3m' && '3 Months'}
-                                {u.duration === '6m' && '6 Months'}
-                                {u.duration === '1y' && '1 Year'}
-                              </td>
-                              <td className="py-3.5 px-5 font-mono">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-200 font-bold text-blue-600">
-                                    {u.password}
-                                  </span>
-                                  <button
-                                    onClick={() => handleCopy(`${u.email} | ${u.password}`, u.id)}
-                                    className="text-slate-400 hover:text-slate-650 transition-colors"
-                                    title="Copy Login Info"
-                                  >
-                                    {copiedId === u.id ? (
-                                      <Check className="h-3.5 w-3.5 text-emerald-600" />
-                                    ) : (
-                                      <Copy className="h-3.5 w-3.5" />
-                                    )}
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="py-3.5 px-5 font-semibold text-slate-700">
-                                {u.loginMode === 'multiple' ? (
-                                  <span className="text-emerald-600">Multiple</span>
-                                ) : (
-                                  <span className="text-blue-600">Single</span>
-                                )}
-                              </td>
-                              <td className="py-3.5 px-5 text-slate-600">
-                                {u.activatedAt ? (
-                                  <div>
-                                    <p>{new Date(u.activatedAt).toLocaleDateString()}</p>
-                                    <p className="text-[10px] text-slate-400 font-semibold">Expires {new Date(u.expiresAt).toLocaleDateString()}</p>
+                      return (
+                        <div 
+                          key={u.id} 
+                          className={`bg-white border rounded-2xl shadow-sm transition-all duration-200 overflow-hidden ${
+                            isExpanded ? 'border-blue-300 ring-2 ring-blue-5/50 shadow-md' : 'border-slate-200/60 hover:border-slate-300'
+                          }`}
+                        >
+                          {/* Compact View Header */}
+                          <div 
+                            onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
+                            className="p-5 flex items-center justify-between cursor-pointer select-none"
+                          >
+                            <div className="flex flex-col text-left min-w-0 pr-4">
+                              <span className="font-bold text-sm text-slate-900 truncate tracking-tight">{u.email}</span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1.5">
+                                <Clock className="h-3 w-3" />
+                                {getDurationDisplay(u)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              {getStatusBadge(u.status)}
+                              <div className={`p-1 text-slate-400 hover:text-slate-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Expanded Detail Panel */}
+                          {isExpanded && (
+                            <div className="px-5 pb-5 pt-3 border-t border-slate-100 bg-slate-50/60 space-y-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                                {/* Passcode Detail */}
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Passcode</span>
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-mono font-black text-sm text-blue-600 bg-blue-50/30 px-2 py-0.5 rounded border border-blue-100">{u.password}</span>
+                                    <button
+                                      onClick={() => handleCopy(`${u.email} | ${u.password}`, u.id)}
+                                      className="p-1 text-slate-400 hover:text-blue-600 active:scale-95 transition-all cursor-pointer"
+                                      title="Copy Credentials"
+                                    >
+                                      {copiedId === u.id ? (
+                                        <Check className="h-4 w-4 text-emerald-600" />
+                                      ) : (
+                                        <Copy className="h-4 w-4" />
+                                      )}
+                                    </button>
                                   </div>
-                                ) : (
-                                  <span className="text-slate-400">Pending Login</span>
-                                )}
-                              </td>
-                              <td className="py-3.5 px-5 text-slate-600 max-w-[120px] truncate">
-                                {u.deviceInfo ? (
-                                  <span className="inline-flex items-center gap-1" title={parsedDev.device}>
-                                    {getDeviceIcon(u.deviceInfo)}
-                                    {parsedDev.device.split('(')[0]}
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-400">-</span>
-                                )}
-                              </td>
-                              <td className="py-3.5 px-5">
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={currentTransfers}
-                                    onChange={(e) => setEditingTransfers(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
-                                    className="w-14 h-8 text-center border border-slate-300 rounded bg-white text-slate-800 font-semibold focus:outline-none focus:border-blue-500"
-                                  />
-                                  <button
-                                    onClick={() => handleUpdateTransfers(u.id, currentTransfers)}
-                                    disabled={isSaving || (editingTransfers[u.id] === undefined && parsedDev.transfersCount === currentTransfers)}
-                                    className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed rounded text-[10px] uppercase font-bold transition-colors cursor-pointer"
-                                  >
-                                    {isSaving ? '...' : 'Save'}
-                                  </button>
                                 </div>
-                              </td>
-                              <td className="py-3.5 px-5 text-right">
-                                <div className="flex items-center justify-end gap-2">
+
+                                {/* Login Mode */}
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Login Permission</span>
+                                  <span className={`text-xs font-bold inline-block mt-0.5 uppercase tracking-wide ${u.loginMode === 'multiple' ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                    {u.loginMode === 'multiple' ? 'Multiple Sign-Ins' : 'Single Session Limit'}
+                                  </span>
+                                </div>
+
+                                {/* Activation Dates */}
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2 lg:col-span-1">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Authorization Details</span>
+                                  {u.activatedAt ? (
+                                    <div className="text-[11px] text-slate-600 space-y-0.5">
+                                      <p><strong className="text-slate-800">Started:</strong> {new Date(u.activatedAt).toLocaleString()}</p>
+                                      <p><strong className="text-slate-800">Expires:</strong> {new Date(u.expiresAt).toLocaleString()}</p>
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs font-semibold text-slate-400 italic">Awaiting buyer login...</span>
+                                  )}
+                                </div>
+
+                                {/* Connected Device */}
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Registered Device</span>
+                                  {u.deviceInfo ? (
+                                    <div className="flex items-start gap-2.5 mt-1 text-xs text-slate-700 min-w-0">
+                                      <div className="p-1.5 bg-slate-100 text-slate-600 rounded-lg mt-0.5 shrink-0">
+                                        {getDeviceIcon(u.deviceInfo)}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="font-bold truncate">{parsedDev.device}</p>
+                                        <p className="text-[10px] text-slate-400 font-semibold truncate mt-0.5">Device user string registered</p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs font-semibold text-slate-450 italic">No device bound yet</span>
+                                  )}
+                                </div>
+
+                                {/* Transfers Management */}
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Transfers Allowance</span>
+                                  <div className="flex items-center gap-2 mt-1.5">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={currentTransfers}
+                                      onChange={(e) => setEditingTransfers(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                                      className="w-14 h-8 text-center border border-slate-300 rounded-lg bg-white text-slate-800 font-bold focus:outline-none focus:border-blue-500 text-xs"
+                                    />
+                                    <button
+                                      onClick={() => handleUpdateTransfers(u.id, currentTransfers)}
+                                      disabled={isSaving || (editingTransfers[u.id] === undefined && parsedDev.transfersCount === currentTransfers)}
+                                      className="px-3 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                                    >
+                                      {isSaving ? 'Saving' : 'Save'}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Expanded Row Action Buttons */}
+                              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
                                   {u.status === 'active' && (
                                     <button
                                       onClick={() => handleTerminate(u.id, u.email)}
-                                      className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-md font-semibold text-[10px] uppercase tracking-wider cursor-pointer transition-colors"
+                                      className="px-4 py-2 bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-600 border border-rose-200 rounded-full font-bold text-[10px] uppercase tracking-wider cursor-pointer transition-all"
                                     >
-                                      Terminate
+                                      Terminate Session
                                     </button>
                                   )}
-                                  <button
-                                    onClick={() => handleDeleteUser(u.id, u.email)}
-                                    className="p-1 text-slate-400 hover:text-rose-600 border border-transparent hover:border-slate-200 rounded-md transition-colors cursor-pointer"
-                                    title="Delete Record"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
                                 </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
+                                <button
+                                  onClick={() => handleDeleteUser(u.id, u.email)}
+                                  className="px-4 py-2 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 hover:border-rose-100 border border-slate-200 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
+                                  title="Delete Record"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  Delete Key
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
 
             {/* Login Logs Tab */}
             {activeTab === 'attempts' && (
-              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-md">
-                {/* Table Header Controls */}
+              <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
                 <div className="p-5 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between">
-                  <h2 className="font-bold text-sm uppercase tracking-wider text-slate-800">
-                    Live Login Attempts history
+                  <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-800">
+                    Live Login Attempts History
                   </h2>
-                  <div className="relative w-64">
+                  <div className="relative w-full sm:w-64">
                     <input
                       type="text"
                       placeholder="Search email or device..."
                       value={attemptQuery}
                       onChange={(e) => setAttemptQuery(e.target.value)}
-                      className="w-full h-9 border border-slate-200 bg-white text-slate-850 rounded-lg pl-9 pr-4 text-xs focus:border-blue-500 outline-none transition-all"
+                      className="w-full h-10 border border-slate-200 bg-white text-slate-855 rounded-full pl-10 pr-4 text-xs focus:border-blue-500 outline-none transition-all"
                     />
-                    <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                    <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
                   </div>
                 </div>
 
-                {/* Login History Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-left">
                     <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-extrabold uppercase tracking-wider">
+                      <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest">
                         <th className="py-3 px-5">Date & Time</th>
                         <th className="py-3 px-5">Target User</th>
                         <th className="py-3 px-5">Password Tried</th>
@@ -802,34 +854,34 @@ export function AdminDashboardApp() {
                     <tbody className="divide-y divide-slate-100 text-xs">
                       {filteredAttempts.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-8 text-center text-slate-400">
+                          <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
                             No sign-in attempts registered.
                           </td>
                         </tr>
                       ) : (
                         filteredAttempts.map((a) => (
                           <tr key={a.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-3 px-5 text-slate-600 font-mono text-[11px]">
+                            <td className="py-3.5 px-5 text-slate-500 font-mono text-[10.5px]">
                               {new Date(a.timestamp).toLocaleString()}
                             </td>
-                            <td className="py-3 px-5 font-semibold text-slate-900">
+                            <td className="py-3.5 px-5 font-bold text-slate-900">
                               {a.email}
                             </td>
-                            <td className="py-3 px-5 font-mono text-slate-800">
+                            <td className="py-3.5 px-5 font-mono text-slate-800 font-semibold bg-slate-50/40">
                               {a.passwordAttempted}
                             </td>
-                            <td className="py-3 px-5">
+                            <td className="py-3.5 px-5">
                               {getAttemptStatusBadge(a.status)}
                             </td>
-                            <td className="py-3 px-5 text-slate-600">
+                            <td className="py-3.5 px-5 text-slate-600">
                               <span className="inline-flex items-center gap-1.5">
-                                {getDeviceIcon(a.deviceInfo)}
-                                <span className="max-w-[150px] truncate" title={a.deviceInfo}>
+                                <span className="text-slate-400">{getDeviceIcon(a.deviceInfo)}</span>
+                                <span className="max-w-[140px] truncate" title={a.deviceInfo}>
                                   {a.deviceInfo}
                                 </span>
                               </span>
                             </td>
-                            <td className="py-3 px-5 text-slate-400 font-mono">
+                            <td className="py-3.5 px-5 text-slate-400 font-mono">
                               {a.ip}
                             </td>
                           </tr>
@@ -844,35 +896,36 @@ export function AdminDashboardApp() {
 
           {/* Creation Form Column */}
           <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md">
-              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-800 mb-5 flex items-center gap-2">
+            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm relative overflow-hidden text-left">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600" />
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 mb-5 flex items-center gap-2">
                 <Plus className="h-4 w-4 text-blue-600" />
                 Grant User Access
               </h3>
 
-              <form onSubmit={handleCreateUser} className="space-y-4">
+              <form onSubmit={handleCreateUser} className="space-y-5">
                 <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-2">
                     User Email Address
                   </label>
                   <input
                     type="email"
                     required
-                    placeholder="user@domain.com"
+                    placeholder="buyer@domain.com"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full h-[40px] border border-slate-200 bg-white text-slate-900 rounded-lg px-3.5 text-xs placeholder-slate-400 focus:border-blue-500 outline-none transition-all"
+                    className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-4 text-xs placeholder-slate-400 focus:shadow-sm outline-none transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-2">
                     Access Duration Limit
                   </label>
                   <select
                     value={newDuration}
                     onChange={(e) => setNewDuration(e.target.value as any)}
-                    className="w-full h-[40px] border border-slate-200 bg-white text-slate-900 rounded-lg px-3 text-xs focus:border-blue-500 outline-none transition-all"
+                    className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-3.5 text-xs focus:shadow-sm outline-none transition-all font-semibold"
                   >
                     <option value="1m">1 Month Access</option>
                     <option value="3m">3 Months Access</option>
@@ -882,50 +935,54 @@ export function AdminDashboardApp() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-2">
                     Login Permission Mode
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="newLoginMode"
-                        checked={newLoginMode === 'single'}
-                        onChange={() => setNewLoginMode('single')}
-                        className="text-blue-600 focus:ring-blue-500 bg-white border-slate-300"
-                      />
-                      Single Sign-In (Login Once)
-                    </label>
-                    <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="newLoginMode"
-                        checked={newLoginMode === 'multiple'}
-                        onChange={() => setNewLoginMode('multiple')}
-                        className="text-blue-600 focus:ring-blue-500 bg-white border-slate-300"
-                      />
-                      Multiple Sign-Ins
-                    </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setNewLoginMode('single')}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                        newLoginMode === 'single'
+                          ? 'bg-blue-50 border-blue-500 text-blue-750 shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="font-extrabold uppercase tracking-wider text-[10px]">Single Sign-In</span>
+                      <span className="text-[9px] text-slate-450 font-semibold">Login Once Max</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewLoginMode('multiple')}
+                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                        newLoginMode === 'multiple'
+                          ? 'bg-blue-50 border-blue-500 text-blue-755 shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="font-extrabold uppercase tracking-wider text-[10px]">Multiple</span>
+                      <span className="text-[9px] text-slate-450 font-semibold">Reusable session</span>
+                    </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider block mb-1.5">
-                    Passcode (Optional, Auto-Generated if Blank)
+                  <label className="text-[10px] font-extrabold text-slate-650 uppercase tracking-widest block mb-2">
+                    Passcode (Optional, auto-generated if blank)
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. secure1234"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full h-[40px] border border-slate-200 bg-white text-slate-900 rounded-lg px-3.5 text-xs placeholder-slate-400 focus:border-blue-500 outline-none transition-all font-mono"
+                    className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-4 text-xs placeholder-slate-400 focus:shadow-sm outline-none transition-all font-mono"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={creatingUser}
-                  className="w-full h-[40px] bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-bold text-xs tracking-wider rounded-lg uppercase transition-colors cursor-pointer flex items-center justify-center gap-1.5 mt-2"
+                  className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-xs tracking-wider rounded-full uppercase transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 mt-4"
                 >
                   {creatingUser ? (
                     <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -940,23 +997,23 @@ export function AdminDashboardApp() {
 
               {/* Show password immediately upon generation */}
               {lastCreatedUser && (
-                <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl relative overflow-hidden">
+                <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 h-10 w-10 bg-emerald-50 rounded-full blur-md" />
-                  <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-2">
+                  <p className="text-[10px] font-black text-emerald-700 uppercase tracking-wider mb-2">
                     Authorization Generated Successfully!
                   </p>
                   <div className="space-y-1.5 text-xs text-slate-800">
                     <p>
-                      <strong className="text-slate-600">Email:</strong> {lastCreatedUser.email}
+                      <strong className="text-slate-650 font-semibold">Email:</strong> {lastCreatedUser.email}
                     </p>
                     <p>
-                      <strong className="text-slate-600">Passcode:</strong>{' '}
-                      <span className="font-mono bg-slate-50 text-emerald-750 px-1.5 py-0.5 rounded border border-slate-200 font-bold">
+                      <strong className="text-slate-650 font-semibold">Passcode:</strong>{' '}
+                      <span className="font-mono bg-white text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200 font-bold">
                         {lastCreatedUser.password}
                       </span>
                     </p>
                     <p>
-                      <strong className="text-slate-600">Duration:</strong>{' '}
+                      <strong className="text-slate-650 font-semibold">Duration:</strong>{' '}
                       {lastCreatedUser.duration === '1m' && '1 Month'}
                       {lastCreatedUser.duration === '3m' && '3 Months'}
                       {lastCreatedUser.duration === '6m' && '6 Months'}
@@ -965,11 +1022,11 @@ export function AdminDashboardApp() {
                   </div>
                   <button
                     onClick={() => handleCopy(`${lastCreatedUser.email} | ${lastCreatedUser.password}`, 'last_gen')}
-                    className="w-full mt-3.5 h-[34px] border border-emerald-200 hover:border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-750 font-semibold text-[11px] rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full mt-4 h-9 border border-emerald-250 hover:border-emerald-350 bg-emerald-50 hover:bg-emerald-100 text-emerald-750 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     {copiedId === 'last_gen' ? (
                       <>
-                        <Check className="h-3.5 w-3.5" />
+                        <Check className="h-3.5 w-3.5 text-emerald-700" />
                         Copied Credentials
                       </>
                     ) : (
@@ -981,30 +1038,6 @@ export function AdminDashboardApp() {
                   </button>
                 </div>
               )}
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md space-y-4">
-              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700">
-                How One-Time Access works
-              </h3>
-              <div className="space-y-3.5 text-[11px] text-slate-600 leading-relaxed">
-                <div className="flex gap-2">
-                  <span className="h-5 w-5 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 font-bold">1</span>
-                  <p>When you generate an authorization, it is marked as <strong className="text-slate-800">Pending Login</strong>. The timer has not started yet.</p>
-                </div>
-                <div className="flex gap-2">
-                  <span className="h-5 w-5 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 font-bold">2</span>
-                  <p>The user logs in at the homepage. The status switches to <strong className="text-slate-800">Active Session</strong> and starts their time duration limit.</p>
-                </div>
-                <div className="flex gap-2">
-                  <span className="h-5 w-5 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 font-bold">3</span>
-                  <p>A user cannot sign in a second time using that same passcode, preventing credential sharing or multi-device reuse.</p>
-                </div>
-                <div className="flex gap-2">
-                  <span className="h-5 w-5 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 font-bold">4</span>
-                  <p>To end an active session immediately, click <strong className="text-rose-600">Terminate</strong>. They will be logged out on their next action.</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
