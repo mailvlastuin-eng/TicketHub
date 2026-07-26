@@ -35,123 +35,50 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">
-
-  <!-- ================= PAGE 1: TICKET ACCEPTANCE ================= -->
-  <div id="page-acceptance" class="w-full flex-1 flex flex-col items-center bg-background hidden fade-in">
+<body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">  <!-- ================= PAGE 1: TICKET ACCEPTANCE ================= -->
+  <div id="page-acceptance" class="w-full flex-1 flex flex-col items-center bg-white hidden fade-in">
     <!-- Blue Header Bar -->
-    <header class="w-full bg-primary py-4 text-center">
-      <h1 class="text-2xl font-bold italic text-white tracking-tight lowercase">
-        ticketmaster<span class="text-[10px] align-super font-normal not-italic ml-0.5">®</span>
-      </h1>
+    <header class="w-full bg-[#0052cd] py-5 text-center flex items-center justify-center select-none shrink-0">
+      <span class="font-outfit font-black text-[22px] italic tracking-tight lowercase text-white">
+        ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
+      </span>
     </header>
 
-    <!-- Main Card Body -->
-    <main class="w-full max-w-[600px] bg-white flex-1 flex flex-col items-center shadow-md pb-12">
-      <!-- Title -->
-      <div class="px-5 pt-8 pb-5 text-center">
-        <h2 class="text-[22px] font-bold leading-snug">
-          Your Ticket Transfer From JACQUELINE is Ready To Be Accepted!
-        </h2>
+    <!-- Main Content -->
+    <main class="w-full max-w-[440px] bg-white px-6 py-12 flex-1 flex flex-col items-center select-none">
+      <!-- Checked Circle -->
+      <div class="h-28 w-28 bg-[#0052cd] rounded-full flex items-center justify-center mt-6 shrink-0">
+        <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" stroke-width="4.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+        </svg>
       </div>
 
-      <!-- Stepper timeline -->
-      <div class="w-full max-w-[340px] px-5 py-4 flex items-center justify-between">
-        <!-- Step 1: Sent -->
-        <div class="flex flex-col items-center text-center">
-          <div class="h-9 w-9 rounded-full bg-primary flex items-center justify-center">
-            <i data-lucide="ticket" class="h-4 w-4 text-white"></i>
-          </div>
-          <span class="text-[10px] font-bold text-primary mt-1.5">Sent</span>
-        </div>
-        <!-- Divider Line -->
-        <div class="flex-1 h-[1px] border-t border-gray-300 -mt-5"></div>
-        <!-- Step 2: Accepted -->
-        <div class="flex flex-col items-center text-center">
-          <div class="h-9 w-9 rounded-full border-[1.2px] border-dashed border-gray-400 bg-white flex items-center justify-center">
-            <i data-lucide="check" class="h-4.5 w-4.5 text-gray-400"></i>
-          </div>
-          <span class="text-[10px] font-bold text-gray-400 mt-1.5">Accepted</span>
-        </div>
-        <!-- Divider Line -->
-        <div class="flex-1 h-[1px] border-t border-gray-300 -mt-5"></div>
-        <!-- Step 3: Complete -->
-        <div class="flex flex-col items-center text-center">
-          <div class="h-9 w-9 rounded-full border-[1.2px] border-dashed border-gray-400 bg-white flex items-center justify-center">
-            <i data-lucide="ticket" class="h-4.5 w-4.5 text-gray-400"></i>
-          </div>
-          <span class="text-[10px] font-bold text-gray-400 mt-1.5">Complete</span>
-        </div>
+      <!-- Heading -->
+      <h2 class="text-[25px] font-bold text-black mt-10 tracking-tight text-center font-outfit">
+        Congratulations!
+      </h2>
+      <p class="text-[14px] font-medium text-gray-700 mt-2 text-center">
+        Your ticket(s) has been accepted
+      </p>
+
+      <!-- Main Instruction -->
+      <h3 class="text-[17px] font-bold text-black leading-snug text-center mt-8 px-2 max-w-[340px]">
+        To view the ticket(s), sign into your Ticketmaster account or create a new one.
+      </h3>
+
+      <!-- Alert Box -->
+      <div class="w-full bg-[#ECF2FF] border-l-[6px] border-[#0052cd] px-4 py-4 mt-8 text-left max-w-[390px] shrink-0">
+        <p class="text-[13px] font-semibold text-gray-800 leading-relaxed">
+          Tickets may take up to 24 hours to appear in your account, but will be always available 24 hours before the event.
+        </p>
       </div>
 
-      <!-- Event Ticket Card -->
-      <div class="w-full px-5 mt-4">
-        <div class="border border-gray-300 bg-white w-full rounded-none overflow-hidden flex flex-col">
-          <!-- Text Details -->
-          <div class="p-5 text-left">
-            <h3 class="font-bold text-lg leading-tight text-gray-900">
-              Ariana Grande - The eternal sunshine Tour
-            </h3>
-            <p class="mt-3 text-[15px] font-bold text-primary">
-              Mon, Jun 22 @ 12:00 PM
-            </p>
-            <p class="mt-2 text-[15px] text-gray-700">
-              AT&T Stadium, Texas
-            </p>
-          </div>
-          <!-- Divider -->
-          <div class="border-t border-gray-200"></div>
-          <!-- Seat Info -->
-          <div class="px-5 py-3.5 font-bold text-sm text-gray-900 text-left">
-            Section B23, Row 14, Seats: 5,6 and 7
-          </div>
-          <!-- Image Cover (Placed at the bottom) -->
-          <div class="w-full h-56 bg-gray-200 relative">
-            <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover" alt="Ariana Grande" />
-          </div>
-        </div>
-      </div>
-
-      <!-- CTA Action Button (Zero border-radius) -->
-      <div class="w-full px-5 mt-5">
-        <button onclick="window.location.hash = '#/login'" class="w-full bg-primary hover:bg-blue-700 text-white font-bold text-base py-3.5 rounded-none uppercase tracking-wide transition-colors">
-          ACCEPT TICKETS
+      <!-- CTA Button -->
+      <div class="w-full mt-10 max-w-[390px] shrink-0">
+        <button onclick="window.location.hash = '#/login'" class="w-full bg-[#0052cd] hover:bg-[#0046b0] text-white font-bold text-[16px] py-4 rounded-none text-center transition-colors cursor-pointer focus:outline-none">
+          Sign in / Create account
         </button>
       </div>
-
-      <!-- Legal Disclaimers -->
-      <div class="w-full px-5 mt-6 text-sm text-gray-700 leading-relaxed text-left space-y-4">
-        <p>
-          By Clicking “ACCEPT TICKETS”, you agree to our <a href="#" class="text-primary hover:underline">Terms of Use</a> and any applicable ticket back terms.
-        </p>
-        <p>
-          Please note that it can take anywhere from <strong>4</strong> to <strong>12</strong> hours for the tickets to officially process and appear inside your Ticketmaster account/app.
-        </p>
-        <p>
-          If you don't see them immediately after accepting, don't worry! This delay is standard security and sync window between systems.
-        </p>
-        <p>
-          This email is <strong>NOT</strong> your ticket.
-        </p>
-      </div>
-
-      <!-- Help Section (Light grey bg centered box) -->
-      <div class="w-full bg-background border-y border-gray-200 py-6 mt-8 text-center text-sm text-gray-700 leading-relaxed">
-        We're here to help.<br>
-        If you have any questions, please <a href="#" class="text-primary font-bold hover:underline">contact</a><br>
-        Ticketmaster Fan Support
-      </div>
-
-      <!-- Footer Info -->
-      <footer class="w-full bg-primary py-8 text-center text-xs text-white/90 leading-relaxed mt-6">
-        <p class="mb-4">
-          Ticketmaster, Attn: Fan Support<br>
-          1000 corporate Landing, Charleston, WV 25311
-        </p>
-        <p class="opacity-80">
-          ©2026 Ticketmaster. All rights reserved.
-        </p>
-      </footer>
     </main>
   </div>
 
@@ -618,14 +545,7 @@
 
     // Prepopulate Acceptance Screen details
     function renderAcceptancePage() {
-      const page = document.getElementById('page-acceptance');
-      if (!page) return;
-      page.querySelector('h3').textContent = activeTicket.title;
-      page.querySelectorAll('p')[0].textContent = activeTicket.date;
-      page.querySelectorAll('p')[1].textContent = activeTicket.venue + (activeTicket.city ? `, ${activeTicket.city}` : '');
-      page.querySelector('.font-bold.text-sm.text-gray-900').textContent = `Section ${activeTicket.section}, Row ${activeTicket.row}, Seats: ${formatSeats(activeTicket.seats)}`;
-      page.querySelector('img').src = activeTicket.image;
-      page.querySelector('img').alt = activeTicket.title;
+      // Static congratulations toast screen. Custom data is populated in login / dashboard screens.
     }
 
     // Prepopulate Dashboard Screen details
