@@ -260,40 +260,41 @@
           </div>
         </div>
         <!-- Blue view ticket button (flat) -->
-        <button onclick="window.location.hash = '#/ticket-view'" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide transition-colors">
+        <button onclick="openTicketModal()" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide transition-colors">
           View Ticket
         </button>
       </div>
     </main>
   </div>
 
+  <!-- ================= BOTTOM SHEET OVERLAY ================= -->
+  <!-- Dimmed Backdrop -->
+  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
 
-  <!-- ================= PAGE 4: LIVE BARCODE VIEW ================= -->
-  <div id="page-ticket-view" class="w-full flex-1 flex flex-col items-center bg-[#1B2942] hidden fade-in">
+  <!-- Bottom Slide-over Sheet -->
+  <div id="ticket-modal" class="fixed bottom-0 left-0 right-0 max-h-[90vh] bg-[#1B2942] translate-y-full transition-transform duration-300 ease-out z-50 flex flex-col rounded-t-[20px] shadow-2xl">
     <!-- Header -->
-    <header class="w-full bg-[#0d1627] text-white">
-      <div class="px-4 py-4 flex items-center justify-between max-w-md mx-auto">
-        <button onclick="window.location.hash = '#/my-tickets'" class="p-1 focus:outline-none">
-          <i data-lucide="arrow-left" class="h-6 w-6"></i>
+    <header class="w-full bg-[#0d1627] text-white rounded-t-[20px] border-b border-white/10">
+      <div class="px-6 py-4 flex items-center justify-between max-w-md mx-auto">
+        <button onclick="closeTicketModal()" class="p-1 focus:outline-none text-white/70 hover:text-white">
+          <i data-lucide="x" class="h-6 w-6"></i>
         </button>
         <span class="font-outfit font-bold text-xl italic tracking-tight lowercase">
           ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
         </span>
-        <div class="flex items-center gap-4">
-          <button class="p-1"><i data-lucide="search" class="h-5 w-5"></i></button>
-          <button class="p-1"><i data-lucide="user" class="h-5 w-5"></i></button>
-        </div>
+        <!-- Spacer for centering -->
+        <div class="w-8"></div>
       </div>
       <!-- Breadcrumbs -->
-      <div class="bg-[#0b1220]/80 text-[11px] font-semibold text-white/70 py-1.5 px-4 max-w-md mx-auto text-left border-t border-white/10">
+      <div class="bg-[#0b1220]/80 text-[11px] font-semibold text-white/70 py-1.5 px-6 max-w-md mx-auto text-left border-t border-white/10">
         Home / My Tickets
       </div>
     </header>
 
     <!-- Ticket device frame and scanning card -->
-    <main class="w-full max-w-md py-6 flex-1 flex flex-col justify-center items-center overflow-hidden">
+    <main class="w-full max-w-md py-6 flex-1 flex flex-col justify-center items-center overflow-hidden mx-auto">
       <!-- Carousel Container (CSS Snap scroll) -->
-      <div id="carousel-container" class="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-none gap-6 px-6" style="scroll-behavior: smooth;">
+      <div id="carousel-container" class="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-none" style="scroll-behavior: smooth;">
         <!-- Dynamically populated cards -->
       </div>
       
@@ -378,8 +379,7 @@
     const routes = {
       acceptance: 'page-acceptance',
       login: 'page-login',
-      dashboard: 'page-dashboard',
-      ticketView: 'page-ticket-view'
+      dashboard: 'page-dashboard'
     };
 
     // Helper: Parse URL parameters
@@ -493,6 +493,36 @@
       card.querySelector('.text-white\\/80 span').textContent = `x${activeTicket.seats.length}`;
     }
 
+    // Bottom Sheet Slide Modal Handlers
+    function openTicketModal() {
+      activeSeatIndex = 0;
+      renderBarcodeCarousel();
+      
+      // Show Backdrop
+      const backdrop = document.getElementById('modal-backdrop');
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100', 'pointer-events-auto');
+      
+      // Slide up sheet
+      const sheet = document.getElementById('ticket-modal');
+      sheet.classList.remove('translate-y-full');
+      sheet.classList.add('translate-y-0');
+      
+      lucide.createIcons();
+    }
+
+    function closeTicketModal() {
+      // Hide Backdrop
+      const backdrop = document.getElementById('modal-backdrop');
+      backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+      
+      // Slide down sheet
+      const sheet = document.getElementById('ticket-modal');
+      sheet.classList.remove('translate-y-0');
+      sheet.classList.add('translate-y-full');
+    }
+
     // Dynamic split barcode cards for Live Ticket View Page
     function renderBarcodeCarousel() {
       const container = document.getElementById('carousel-container');
@@ -503,71 +533,73 @@
       
       seats.forEach((seatNumber, idx) => {
         const cardHtml = `
-        <div class="snap-center shrink-0 w-[calc(100vw-48px)] max-w-[340px] bg-white rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
-          <!-- Screenshots warn banner -->
-          <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
-            Screenshots won't get you in
-            <button onclick="handleReloadBarcode(this)" class="p-1 focus:outline-none text-gray-500 hover:text-black">
-              <i data-lucide="rotate-cw" class="h-4.5 w-4.5"></i>
-            </button>
-          </div>
+        <div class="snap-center shrink-0 w-full flex justify-center items-center px-6">
+          <div class="bg-white w-[340px] rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
+            <!-- Screenshots warn banner -->
+            <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
+              Screenshots won't get you in
+              <button onclick="handleReloadBarcode(this)" class="p-1 focus:outline-none text-gray-500 hover:text-black">
+                <i data-lucide="rotate-cw" class="h-4.5 w-4.5"></i>
+              </button>
+            </div>
 
-          <!-- Barcode frame bracket -->
-          <div class="my-6 px-8 relative flex flex-col items-center">
-            <div class="border-[2px] border-black border-dashed rounded-none px-6 py-4 relative flex justify-center w-full max-w-[280px]">
-              <div class="relative w-full h-24 bg-white flex items-center justify-between px-2 overflow-hidden select-none">
-                <div class="laser-line"></div>
-                <!-- Simulated barcode vertical strips -->
-                <div class="w-1.5 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
-                <div class="w-1 h-full bg-black"></div>
-                <div class="w-2 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
-                <div class="w-1 h-full bg-black"></div>
-                <div class="w-1.5 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
-                <div class="w-2.5 h-full bg-black"></div>
-                <div class="w-1.5 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
-                <div class="w-1.5 h-full bg-black"></div>
-                <div class="w-2 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
-                <div class="w-1 h-full bg-black"></div>
-                <div class="w-1.5 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
-                <div class="w-1.5 h-full bg-black"></div>
-                <div class="w-2 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
-                <div class="w-1 h-full bg-black"></div>
-                <div class="w-1.5 h-full bg-black"></div>
-                <div class="w-0.5 h-full bg-black"></div>
+            <!-- Barcode frame bracket -->
+            <div class="my-6 px-8 relative flex flex-col items-center">
+              <div class="border-[2px] border-black border-dashed rounded-none px-6 py-4 relative flex justify-center w-full max-w-[280px]">
+                <div class="relative w-full h-24 bg-white flex items-center justify-between px-2 overflow-hidden select-none">
+                  <div class="laser-line"></div>
+                  <!-- Simulated barcode vertical strips -->
+                  <div class="w-1.5 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                  <div class="w-1 h-full bg-black"></div>
+                  <div class="w-2 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                  <div class="w-1 h-full bg-black"></div>
+                  <div class="w-1.5 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                  <div class="w-2.5 h-full bg-black"></div>
+                  <div class="w-1.5 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                  <div class="w-1.5 h-full bg-black"></div>
+                  <div class="w-2 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                  <div class="w-1 h-full bg-black"></div>
+                  <div class="w-1.5 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                  <div class="w-1.5 h-full bg-black"></div>
+                  <div class="w-2 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                  <div class="w-1 h-full bg-black"></div>
+                  <div class="w-1.5 h-full bg-black"></div>
+                  <div class="w-0.5 h-full bg-black"></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Detail preview -->
-          <div class="px-5 text-left">
-            <!-- Small event photo -->
-            <div class="w-full aspect-[16/10] overflow-hidden rounded-none">
-              <img src="${activeTicket.image}" class="w-full h-full object-cover" alt="${activeTicket.title}" />
+            <!-- Detail preview -->
+            <div class="px-5 text-left">
+              <!-- Small event photo -->
+              <div class="w-full aspect-[16/10] overflow-hidden rounded-none">
+                <img src="${activeTicket.image}" class="w-full h-full object-cover" alt="${activeTicket.title}" />
+              </div>
+              <!-- Info block -->
+              <div class="mt-4 pb-3">
+                <h4 class="font-outfit font-bold text-lg text-black uppercase leading-snug">
+                  ${activeTicket.title}
+                </h4>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4">Section</p>
+                <p class="font-outfit font-bold text-base text-black mt-0.5">
+                  SECTION ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}
+                </p>
+              </div>
             </div>
-            <!-- Info block -->
-            <div class="mt-4 pb-3">
-              <h4 class="font-outfit font-bold text-lg text-black uppercase leading-snug">
-                ${activeTicket.title}
-              </h4>
-              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4">Section</p>
-              <p class="font-outfit font-bold text-base text-black mt-0.5">
-                SECTION ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}
-              </p>
-            </div>
-          </div>
 
-          <!-- Ticket info CTA -->
-          <div class="px-5 mt-3">
-            <button onclick="alert('Ticket Details:\\nSection ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors">
-              Ticket info
-            </button>
+            <!-- Ticket info CTA -->
+            <div class="px-5 mt-3">
+              <button onclick="alert('Ticket Details:\\nSection ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors">
+                Ticket info
+              </button>
+            </div>
           </div>
         </div>
         `;
@@ -641,15 +673,13 @@
       
       const hash = window.location.hash || '#/';
       
+      closeTicketModal();
+
       if (hash.startsWith('#/login')) {
         showPage(routes.login);
       } else if (hash.startsWith('#/my-tickets')) {
         renderDashboardPage();
         showPage(routes.dashboard);
-      } else if (hash.startsWith('#/ticket-view')) {
-        activeSeatIndex = 0;
-        showPage(routes.ticketView);
-        renderBarcodeCarousel();
       } else {
         renderAcceptancePage();
         showPage(routes.acceptance);
