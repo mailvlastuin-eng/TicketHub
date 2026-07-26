@@ -272,24 +272,13 @@
   <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
 
   <!-- Bottom Slide-over Sheet -->
-  <div id="ticket-modal" class="fixed bottom-0 left-0 right-0 max-h-[90vh] bg-[#1B2942] translate-y-full transition-transform duration-300 ease-out z-50 flex flex-col rounded-t-[20px] shadow-2xl">
-    <!-- Header -->
-    <header class="w-full bg-[#0d1627] text-white rounded-t-[20px] border-b border-white/10">
-      <div class="px-6 py-4 flex items-center justify-between max-w-md mx-auto">
-        <button onclick="closeTicketModal()" class="p-1 focus:outline-none text-white/70 hover:text-white">
-          <i data-lucide="x" class="h-6 w-6"></i>
-        </button>
-        <span class="font-outfit font-bold text-xl italic tracking-tight lowercase">
-          ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
-        </span>
-        <!-- Spacer for centering -->
-        <div class="w-8"></div>
-      </div>
-      <!-- Breadcrumbs -->
-      <div class="bg-[#0b1220]/80 text-[11px] font-semibold text-white/70 py-1.5 px-6 max-w-md mx-auto text-left border-t border-white/10">
-        Home / My Tickets
-      </div>
-    </header>
+  <div id="ticket-modal" class="fixed bottom-0 left-0 right-0 max-h-[85vh] translate-y-full transition-transform duration-300 ease-out z-50 flex flex-col pb-8">
+    <!-- Close button ('X') at the top right of the modal -->
+    <div class="w-full max-w-md mx-auto relative px-6">
+      <button onclick="closeTicketModal()" class="absolute -top-6 right-6 p-2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50">
+        <i data-lucide="x" class="h-6 w-6"></i>
+      </button>
+    </div>
 
     <!-- Ticket device frame and scanning card -->
     <main class="w-full max-w-md py-6 flex-1 flex flex-col justify-center items-center overflow-hidden mx-auto">
