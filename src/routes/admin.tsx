@@ -8,6 +8,7 @@ export const Route = createFileRoute('/admin')({
     ],
     links: [
       { rel: "apple-touch-icon", href: "/admin-apple-icon.png" },
+      { rel: "manifest", href: "/admin-manifest.json" },
     ],
   }),
   component: AdminDashboardApp,
