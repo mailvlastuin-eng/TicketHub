@@ -1,0 +1,17 @@
+{
+  "name": "AdminHub",
+  "short_name": "AdminHub",
+  "description": "Admin Dashboard",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/admin-apple-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

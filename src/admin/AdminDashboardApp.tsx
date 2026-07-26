@@ -39,7 +39,7 @@ export function AdminDashboardApp() {
   const [loggingIn, setLoggingIn] = useState(false);
   const [diagnostics, setDiagnostics] = useState<any>(null);
 
-  // Dynamic iOS Add to Home Screen Icon Override
+  // Dynamic iOS Add to Home Screen Icon & Manifest Override
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -60,6 +60,14 @@ export function AdminDashboardApp() {
       newLink.setAttribute("href", "/admin-apple-icon.png");
       document.head.appendChild(newLink);
     }
+
+    // Find and update manifest links to point to the admin manifest
+    let manifests = document.querySelectorAll("link[rel='manifest']");
+    const originalManifests: string[] = [];
+    manifests.forEach((m: any) => {
+      originalManifests.push(m.getAttribute("href") || "");
+      m.setAttribute("href", "/admin-manifest.json");
+    });
     
     // Dynamic page title update
     const originalTitle = document.title;
@@ -68,12 +76,20 @@ export function AdminDashboardApp() {
     return () => {
       // Revert when leaving the admin page
       document.title = originalTitle;
+      
       const currentLinks = document.querySelectorAll("link[rel='apple-touch-icon']");
       currentLinks.forEach((link: any, idx) => {
         if (originalHrefs[idx] !== undefined) {
           link.setAttribute("href", originalHrefs[idx]);
         } else {
           link.remove();
+        }
+      });
+
+      const currentManifests = document.querySelectorAll("link[rel='manifest']");
+      currentManifests.forEach((m: any, idx) => {
+        if (originalManifests[idx] !== undefined) {
+          m.setAttribute("href", originalManifests[idx]);
         }
       });
     };
