@@ -200,6 +200,9 @@ function MyTicketDetail() {
   return (
     <main className="h-[100dvh] w-full overflow-hidden bg-zinc-950 relative">
       <style>{`
+        html, body {
+          background-color: #000000 !important;
+        }
         .scrollbar-none::-webkit-scrollbar {
           display: none;
         }
