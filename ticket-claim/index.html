@@ -303,88 +303,59 @@
     </div>
   </div>
 
-  <!-- ================= SETTINGS DRAWER OVERLAY ================= -->
+  <!-- ================= MY ACCOUNT DRAWER OVERLAY ================= -->
   <!-- Settings Drawer Backdrop -->
   <div id="settings-backdrop" class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-50" onclick="closeSettingsDrawer()"></div>
   
-  <!-- Settings Drawer Panel (slides in from left) -->
+  <!-- My Account Drawer Panel (slides in from left) -->
   <div id="settings-drawer" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-zinc-900 shadow-2xl translate-x-[-100%] transition-transform duration-300 ease-in-out z-50 flex flex-col select-none">
-    <div class="p-4 bg-primary text-white flex items-center justify-between shrink-0">
-      <span class="font-bold font-outfit uppercase tracking-wider text-sm">Settings</span>
-      <button onclick="closeSettingsDrawer()" class="p-1 text-white/80 hover:text-white focus:outline-none"><i data-lucide="x" class="h-5 w-5"></i></button>
+    <!-- Header with Name (Large, top-left) and Email (smaller) -->
+    <div class="p-6 bg-primary text-white flex items-start justify-between shrink-0">
+      <div class="flex flex-col text-left pr-4 min-w-0">
+        <span id="drawer-user-name" class="font-bold font-outfit text-xl leading-tight truncate uppercase tracking-wide">Miller Broome</span>
+        <span id="drawer-user-email" class="text-xs text-white/80 font-medium mt-1 truncate">Weirdrexx@gmail.com</span>
+      </div>
+      <button onclick="closeSettingsDrawer()" class="p-1 text-white/80 hover:text-white focus:outline-none shrink-0"><i data-lucide="x" class="h-5.5 w-5.5"></i></button>
     </div>
-    <div class="flex-1 overflow-y-auto p-5 space-y-4 text-left">
+    
+    <div class="flex-1 overflow-y-auto p-6 space-y-6 text-left">
       <div>
-        <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Name</label>
-        <input id="set-name" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
-      </div>
-      <div>
-        <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Virtual Mail</label>
-        <input id="set-mail" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">City & State</label>
-          <input id="set-city" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
+        <h3 class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest border-b border-gray-100 dark:border-zinc-800 pb-2 mb-4">General Settings</h3>
+        
+        <!-- Receive Notifications Toggle -->
+        <div class="flex items-center justify-between py-2 mb-4">
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-gray-800 dark:text-gray-200">Receive Notifications</span>
+            <span class="text-[10px] text-gray-500">Alerts on ticket actions & updates</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="set-notifications" class="sr-only peer" checked />
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+          </label>
         </div>
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Country</label>
-          <input id="set-country" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Dark Mode</label>
-          <select id="set-dark" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Transfer BTN</label>
-          <select id="set-transfer" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
-            <option value="Show">Show</option>
-            <option value="Fade">Fade</option>
-            <option value="Hide">Hide</option>
+
+        <!-- My Country Select -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">My Country</label>
+          <select id="set-country-select" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none font-semibold">
+            <option value="US" selected>United States</option>
+            <option value="CA">Canada</option>
+            <option value="GB">United Kingdom</option>
+            <option value="AU">Australia</option>
           </select>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">MAP View</label>
-          <select id="set-map" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Barcode</label>
-          <select id="set-barcode" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
-            <option value="Show">Show</option>
-            <option value="Fade">Fade</option>
-            <option value="Hide">Hide</option>
-          </select>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Ticket Bar</label>
-          <select id="set-ticketbar" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
-            <option value="Show">Show</option>
-            <option value="Hide">Hide</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Sell Tab</label>
-          <select id="set-selltab" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
-            <option value="Show">Show</option>
-            <option value="Fade">Fade</option>
-            <option value="Hide">Hide</option>
-          </select>
-        </div>
+      
+      <!-- Sign Out Action -->
+      <div class="pt-6 border-t border-gray-100 dark:border-zinc-800">
+        <button onclick="handleSignOutClick()" class="w-full border border-rose-500 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 font-bold py-3 rounded text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="log-out" class="h-4 w-4"></i>
+          Sign Out
+        </button>
       </div>
     </div>
-    <div class="p-4 border-t border-gray-200 dark:border-zinc-800 shrink-0">
+    
+    <div class="p-4 border-t border-gray-150 dark:border-zinc-800 shrink-0">
       <button onclick="saveClaimSettings()" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3 text-sm uppercase tracking-wider transition-all active:scale-[0.98]">
         Save Settings
       </button>
@@ -575,7 +546,8 @@
             seats: parsedData.seats || ["1"],
             section: parsedData.section || "B23",
             row: parsedData.row || "14",
-            buyerEmail: parsedData.buyerEmail || "claimant@domain.com"
+            buyerEmail: parsedData.buyerEmail || "claimant@domain.com",
+            buyerName: parsedData.buyerName || ""
           };
         }
       } catch (e) {
@@ -1157,44 +1129,38 @@
       performTMSearch('');
     }
 
-    // Settings drawer controllers
+    // My Account drawer controllers
     function openSettingsDrawer() {
-      let settings = {
-        name: "Miller Broome",
-        virtualMail: "Weirdrexx@gmail.com",
-        cityState: "Texas",
-        country: "US",
-        currency: "USD",
-        gaDesign: "D1 (US)",
-        mailDesign: "US",
-        dark: "No",
-        transferBtn: "Show",
-        mapView: "Yes",
-        orderBtn: "Show",
-        barcode: "Show",
-        ticketBar: "Show",
-        sellBtn: "Fade",
-        sellTab: "Fade",
-        tt: "Yes"
-      };
+      // 1. Get name and email dynamically from activeTicket
+      const userName = activeTicket.buyerName || "Miller Broome";
+      const userEmail = activeTicket.buyerEmail || "Weirdrexx@gmail.com";
+      
+      // Update header labels (largely displayed top-left, email under it)
+      const nameEl = document.getElementById('drawer-user-name');
+      const emailEl = document.getElementById('drawer-user-email');
+      if (nameEl) nameEl.textContent = userName;
+      if (emailEl) emailEl.textContent = userEmail;
+      
+      // Load current settings from LocalStorage
+      let notificationChecked = true;
+      let selectedCountry = 'US';
       try {
-        const raw = localStorage.getItem('tm_app_settings');
-        if (raw) {
-          settings = { ...settings, ...JSON.parse(raw) };
+        const rawNotif = localStorage.getItem('tm_notif_enabled');
+        if (rawNotif !== null) {
+          notificationChecked = rawNotif === 'true';
+        }
+        const rawCountry = localStorage.getItem('tm_user_country');
+        if (rawCountry) {
+          selectedCountry = rawCountry;
         }
       } catch (e) {}
       
-      document.getElementById('set-name').value = settings.name || '';
-      document.getElementById('set-mail').value = settings.virtualMail || '';
-      document.getElementById('set-city').value = settings.cityState || '';
-      document.getElementById('set-country').value = settings.country || '';
-      document.getElementById('set-dark').value = settings.dark || 'No';
-      document.getElementById('set-transfer').value = settings.transferBtn || 'Show';
-      document.getElementById('set-map').value = settings.mapView || 'Yes';
-      document.getElementById('set-barcode').value = settings.barcode || 'Show';
-      document.getElementById('set-ticketbar').value = settings.ticketBar || 'Show';
-      document.getElementById('set-selltab').value = settings.sellTab || 'Fade';
+      const notifInput = document.getElementById('set-notifications');
+      const countrySelect = document.getElementById('set-country-select');
+      if (notifInput) notifInput.checked = notificationChecked;
+      if (countrySelect) countrySelect.value = selectedCountry;
       
+      // Reveal Drawer
       const backdrop = document.getElementById('settings-backdrop');
       const drawer = document.getElementById('settings-drawer');
       
@@ -1223,56 +1189,23 @@
     }
 
     function saveClaimSettings() {
-      let settings = {
-        name: "Miller Broome",
-        virtualMail: "Weirdrexx@gmail.com",
-        cityState: "Texas",
-        country: "US",
-        currency: "USD",
-        gaDesign: "D1 (US)",
-        mailDesign: "US",
-        dark: "No",
-        transferBtn: "Show",
-        mapView: "Yes",
-        orderBtn: "Show",
-        barcode: "Show",
-        ticketBar: "Show",
-        sellBtn: "Fade",
-        sellTab: "Fade",
-        tt: "Yes"
-      };
-      try {
-        const raw = localStorage.getItem('tm_app_settings');
-        if (raw) {
-          settings = { ...settings, ...JSON.parse(raw) };
-        }
-      } catch (e) {}
+      const notifInput = document.getElementById('set-notifications');
+      const countrySelect = document.getElementById('set-country-select');
       
-      settings.name = document.getElementById('set-name').value;
-      settings.virtualMail = document.getElementById('set-mail').value;
-      settings.cityState = document.getElementById('set-city').value;
-      settings.country = document.getElementById('set-country').value;
-      settings.dark = document.getElementById('set-dark').value;
-      settings.transferBtn = document.getElementById('set-transfer').value;
-      settings.mapView = document.getElementById('set-map').value;
-      settings.barcode = document.getElementById('set-barcode').value;
-      settings.ticketBar = document.getElementById('set-ticketbar').value;
-      settings.sellTab = document.getElementById('set-selltab').value;
+      const notifEnabled = notifInput ? notifInput.checked : true;
+      const userCountry = countrySelect ? countrySelect.value : 'US';
       
-      localStorage.setItem('tm_app_settings', JSON.stringify(settings));
-      
-      if (settings.dark === 'Yes') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      
-      const emailDisplay = document.getElementById('dashboard-email-display');
-      if (emailDisplay && activeTicket) {
-        emailDisplay.textContent = settings.virtualMail || activeTicket.buyerEmail || 'user@domain.com';
-      }
+      localStorage.setItem('tm_notif_enabled', String(notifEnabled));
+      localStorage.setItem('tm_user_country', userCountry);
       
       closeSettingsDrawer();
+      alert('Account settings updated successfully!');
+    }
+
+    function handleSignOutClick() {
+      closeSettingsDrawer();
+      // Redirect to acceptance page/sign-in page
+      window.location.hash = '#/';
     }
 
     function loadSettingsOnMount() {
