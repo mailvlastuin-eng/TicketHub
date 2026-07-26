@@ -135,12 +135,21 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     });
 
     const name = email.split('@')[0] || 'User';
+    let transfersCount = 0;
+    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(user.deviceInfo);
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+      } catch (e) {}
+    }
+
     return {
       email: user.email,
       name: name.charAt(0).toUpperCase() + name.slice(1),
       sessionId,
       expiresAt: expiresAt.toISOString(),
       loginMode: user.loginMode || 'single',
+      transfersCount,
     };
   });
 
@@ -174,7 +183,15 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       }
     }
 
-    return { valid: true };
+    let transfersCount = 0;
+    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(user.deviceInfo);
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+      } catch (e) {}
+    }
+
+    return { valid: true, transfersCount };
   });
 
 // 3. Admin Authentication
@@ -348,8 +365,37 @@ export const getDiagnosticsFn = createServerFn({ method: 'GET' })
 
 // 10. Send Ticket Transfer Email
 export const sendTransferEmailFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: SendTransferEmailOptions) => d)
+  .inputValidator((d: SendTransferEmailOptions & { senderEmail?: string }) => d)
   .handler(async ({ data }) => {
+    if (data.senderEmail) {
+      const user = await getUserByEmail(data.senderEmail);
+      if (user) {
+        let transfersCount = 0;
+        let deviceName = 'Unknown Device';
+        if (user.deviceInfo) {
+          if (user.deviceInfo.trim().startsWith('{')) {
+            try {
+              const parsed = JSON.parse(user.deviceInfo);
+              deviceName = parsed.device || 'Unknown Device';
+              transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+            } catch (e) {}
+          } else {
+            deviceName = user.deviceInfo;
+          }
+        }
+
+        if (transfersCount <= 0) {
+          throw new Error('You have no ticket transfers left on your account.');
+        }
+
+        user.deviceInfo = JSON.stringify({
+          device: deviceName,
+          transfersCount: transfersCount - 1
+        });
+        await saveUser(user);
+      }
+    }
+
     const html = compileTransferEmailHtml(data);
     const result = await sendEmail({
       to: data.buyerEmail,
@@ -371,3 +417,43 @@ export const updateUserProfileFn = createServerFn({ method: 'POST' })
     await saveUser(user);
     return { success: true };
   });
+
+export const updateUserTransfersFn = createServerFn({ method: 'POST' })
+  .inputValidator((d: { adminPass: string; userId: string; transfersCount: number }) => ({
+    adminPass: String(d?.adminPass ?? '').trim(),
+    userId: String(d?.userId ?? '').trim(),
+    transfersCount: Number(d?.transfersCount ?? 0)
+  }))
+  .handler(async ({ data }) => {
+    const correctPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    if (data.adminPass !== correctPassword) {
+      throw new Error('Unauthorized access');
+    }
+
+    const users = await getAllUsers();
+    const user = users.find((u) => u.id === data.userId);
+    if (!user) throw new Error('User not found');
+
+    // Parse the current deviceInfo to preserve device name
+    let deviceName = 'Unknown Device';
+    if (user.deviceInfo) {
+      if (user.deviceInfo.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(user.deviceInfo);
+          deviceName = parsed.device || 'Unknown Device';
+        } catch (e) {}
+      } else {
+        deviceName = user.deviceInfo;
+      }
+    }
+
+    // Set JSON back to deviceInfo
+    user.deviceInfo = JSON.stringify({
+      device: deviceName,
+      transfersCount: data.transfersCount
+    });
+
+    await saveUser(user);
+    return { success: true, transfersCount: data.transfersCount };
+  });
+

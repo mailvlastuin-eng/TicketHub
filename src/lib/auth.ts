@@ -8,6 +8,7 @@ export type SessionUser = {
   name: string; 
   sessionId?: string; 
   loginMode?: 'single' | 'multiple';
+  transfersCount?: number;
 };
 
 export function getUser(): SessionUser | null {
@@ -45,9 +46,14 @@ export function useUser() {
           sessionId: initialUser.sessionId,
         },
       })
-        .then((res) => {
+        .then((res: any) => {
           if (!res.valid) {
             signOut();
+          } else if (typeof res.transfersCount === 'number' && initialUser.transfersCount !== res.transfersCount) {
+            const latestUser = { ...initialUser, transfersCount: res.transfersCount };
+            window.localStorage.setItem(KEY, JSON.stringify(latestUser));
+            setUser(latestUser);
+            window.dispatchEvent(new Event("tm-auth"));
           }
         })
         .catch((err) => {
