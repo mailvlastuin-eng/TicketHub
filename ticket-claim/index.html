@@ -268,14 +268,14 @@
   </div>
 
   <!-- ================= BOTTOM SHEET OVERLAY ================= -->
-  <!-- Dimmed Backdrop (Darker by 20%) -->
-  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
+  <!-- Dimmed Backdrop (Darker by 20% with dynamic viewport height) -->
+  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 min-h-[100dvh] bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
 
-  <!-- Bottom Slide-over Sheet (Centered flex wrapper) -->
-  <div id="ticket-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none translate-y-full transition-transform duration-300 ease-out">
-    <div class="relative w-full max-w-[380px] flex flex-col pointer-events-auto">
+  <!-- Bottom Slide-over Sheet (Centered flex wrapper with vertical scroll fallback) -->
+  <div id="ticket-modal" class="fixed inset-0 min-h-[100dvh] z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none translate-y-full transition-transform duration-300 ease-out">
+    <div class="relative w-full max-w-[380px] flex flex-col pointer-events-auto shrink-0 my-auto">
       <!-- Close button ('X') at the top right of the modal content -->
-      <button onclick="closeTicketModal()" class="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50">
+      <button onclick="closeTicketModal()" class="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50 shrink-0">
         <i data-lucide="x" class="h-6 w-6"></i>
       </button>
 
@@ -287,7 +287,7 @@
         </div>
         
         <!-- Swiper Seat Pagination Dots -->
-        <div id="seat-dots" class="flex justify-center items-center gap-2 mt-5">
+        <div id="seat-dots" class="flex justify-center items-center gap-2 mt-5 shrink-0">
           <!-- Dots will be dynamically injected -->
         </div>
       </main>
@@ -523,17 +523,17 @@
       seats.forEach((seatNumber, idx) => {
         const cardHtml = `
         <div class="snap-center shrink-0 w-full flex justify-center items-center px-4">
-          <div class="bg-white w-full max-h-[72vh] overflow-y-auto scrollbar-none rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
+          <div class="bg-white w-full max-h-[80dvh] rounded-none overflow-hidden shadow-2xl flex flex-col pb-8">
             <!-- Screenshots warn banner -->
-            <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium">
+            <div class="py-4 border-b border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-700 font-medium shrink-0">
               Screenshots won't get you in
-              <button onclick="handleReloadBarcode(this)" class="p-1 focus:outline-none text-gray-500 hover:text-black">
+              <button onclick="handleReloadBarcode(this)" class="p-1 focus:outline-none text-gray-500 hover:text-black shrink-0">
                 <i data-lucide="rotate-cw" class="h-4.5 w-4.5"></i>
               </button>
             </div>
 
             <!-- Barcode frame bracket -->
-            <div class="my-6 px-8 relative flex flex-col items-center">
+            <div class="my-6 px-8 relative flex flex-col items-center shrink-0">
               <div class="border-[2px] border-black border-dashed rounded-none px-6 py-4 relative flex justify-center w-full max-w-[280px]">
                 <div class="relative w-full h-24 bg-white flex items-center justify-between px-2 overflow-hidden select-none">
                   <div class="laser-line"></div>
@@ -566,10 +566,10 @@
             </div>
 
             <!-- Detail preview -->
-            <div class="px-5 text-left">
+            <div class="px-5 text-left overflow-y-auto scrollbar-none flex-1">
               <!-- Small event photo -->
-              <div class="w-full aspect-[16/10] overflow-hidden rounded-none">
-                <img src="${activeTicket.image}" class="w-full h-auto aspect-[16/10] object-cover" alt="${activeTicket.title}" />
+              <div class="w-full max-h-[160px] overflow-hidden rounded-none flex-shrink">
+                <img src="${activeTicket.image}" class="w-full h-auto max-h-[160px] object-cover flex-shrink" alt="${activeTicket.title}" />
               </div>
               <!-- Info block -->
               <div class="mt-4 pb-3">
@@ -584,8 +584,8 @@
             </div>
 
             <!-- Ticket info CTA -->
-            <div class="px-5 mt-3">
-              <button onclick="alert('Ticket Details:\\nSection ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors">
+            <div class="px-5 mt-3 shrink-0">
+              <button onclick="alert('Ticket Details:\\nSection ${activeTicket.section}, Row ${activeTicket.row}, Seat ${seatNumber}')" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide rounded-none transition-colors shrink-0">
                 Ticket info
               </button>
             </div>
