@@ -108,7 +108,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center">
-                    <a href="${eventDetailsUrl}" style="display: block; width: 100%; background-color: #0052cd; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 0; text-align: center; border-radius: 0px; box-sizing: border-box; border: 0;">
+                    <a href="${eventDetailsUrl}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; background-color: #0052cd; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 16px 0; text-align: center; border-radius: 0px; box-sizing: border-box; border: 0;">
                       Sign in / Create account
                     </a>
                   </td>
