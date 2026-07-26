@@ -38,14 +38,22 @@ export const DEFAULT_SETTINGS: AppSettings = {
   tt: "Yes",
 };
 
+import { getUser } from "./auth";
+
 const KEY = "tm_app_settings";
 
 export function getSettings(): AppSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const user = getUser();
+    const dynamicDefaults = {
+      ...DEFAULT_SETTINGS,
+      virtualMail: user?.email || DEFAULT_SETTINGS.virtualMail,
+      name: user?.name || DEFAULT_SETTINGS.name,
+    };
+    if (!raw) return dynamicDefaults;
+    return { ...dynamicDefaults, ...JSON.parse(raw) };
   } catch {
     return DEFAULT_SETTINGS;
   }
