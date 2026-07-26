@@ -76,9 +76,7 @@ function MyTicketDetail() {
   const [mapsKey, setMapsKey] = useState<string>("");
   const [mapLoadError, setMapLoadError] = useState(false);
   const [scrollOffset, setScrollOffset] = useState(0);
-  const [detailsHeight, setDetailsHeight] = useState(156);
-  const detailsRef = useRef<HTMLDivElement>(null);
-  
+
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
   const [activeBarcodeIdx, setActiveBarcodeIdx] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -103,19 +101,6 @@ function MyTicketDetail() {
     }
     setActiveBarcodeIdx(idx);
   };
-
-  useEffect(() => {
-    if (!detailsRef.current) return;
-    setDetailsHeight(detailsRef.current.offsetHeight);
-
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setDetailsHeight(entry.target.clientHeight);
-      }
-    });
-    observer.observe(detailsRef.current);
-    return () => observer.disconnect();
-  }, [ticket?.id]);
 
   useEffect(() => {
     getGoogleMapsKey().then((key) => {
@@ -305,8 +290,8 @@ function MyTicketDetail() {
             </div>
           </div>
 
-          {/* Wrapper for dynamic measurement (Standardized to 100px height) */}
-          <div ref={detailsRef} className="flex flex-col w-full bg-[#F3F4F6] h-[100px] shrink-0">
+          {/* Wrapper for measurement (Standardized to 152px height) */}
+          <div className="flex flex-col w-full bg-[#F3F4F6] h-[152px] shrink-0">
             {/* Title block (Locked to 100px height with strict line clamping) */}
             <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative h-[100px] box-border">
               <div className="flex-1 min-w-0">
@@ -326,7 +311,34 @@ function MyTicketDetail() {
                 <span className="text-xs">x{qty}</span>
               </div>
             </div>
+            {/* View Tickets CTA placeholder inside the background card */}
+            <div className="w-full h-[52px] bg-primary flex items-center justify-center gap-2 text-sm font-semibold text-primary-foreground select-none">
+              <ScanBarcode className="h-4 w-4" />
+              View Tickets
+            </div>
           </div>
+        </div>
+
+        {/* Absolute View Tickets Button on top of everything for clickability */}
+        <div 
+          className="absolute left-0 right-0 z-20 pointer-events-auto transition-all duration-100"
+          style={{ 
+            top: "calc(100% * 3 / 4 + 100px)", 
+            opacity: Math.max(0, 1 - scrollOffset / 40),
+            transform: `translateY(-${scrollOffset}px)`,
+            pointerEvents: scrollOffset > 20 ? 'none' : 'auto'
+          }}
+        >
+          <button
+            onClick={() => {
+              setActiveBarcodeIdx(0);
+              setShowBarcodeModal(true);
+            }}
+            className="w-full bg-primary text-primary-foreground h-[52px] flex items-center justify-center gap-2 text-sm font-semibold"
+          >
+            <ScanBarcode className="h-4 w-4" />
+            View Tickets
+          </button>
         </div>
 
         {/* 2. [The Scrolling Overlay Layer] */}
@@ -337,25 +349,14 @@ function MyTicketDetail() {
           {/* 3. [Spacer matching fixed background section height] */}
           <div className="w-full shrink-0 pointer-events-none flex flex-col mb-0 pb-0">
             <div className="w-full aspect-[4/3] mb-0 pb-0 animate-pulse bg-zinc-900/10" />
-            <div style={{ height: detailsHeight }} className="w-full mb-0 pb-0" />
-          </div>
-
-          {/* View Tickets CTA (52px height) - Positioned above the white sheet */}
-          <div className="w-full px-0 bg-zinc-950 shrink-0 pointer-events-auto">
-            <button
-              onClick={() => {
-                setActiveBarcodeIdx(0);
-                setShowBarcodeModal(true);
-              }}
-              className="w-full bg-primary text-primary-foreground h-[52px] flex items-center justify-center gap-2 text-sm font-semibold relative pointer-events-auto"
-            >
-              <ScanBarcode className="h-4 w-4" />
-              View Tickets
-            </button>
+            <div className="w-full h-[152px] mb-0 pb-0" />
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full min-h-[100dvh] -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
+          <div 
+            className="bg-white w-full -mt-[1px] pt-0 rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10"
+            style={{ minHeight: "calc(100dvh - 100% * 3 / 4 - 152px)" }}
+          >
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
