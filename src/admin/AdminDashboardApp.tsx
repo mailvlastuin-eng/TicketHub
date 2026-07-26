@@ -39,6 +39,46 @@ export function AdminDashboardApp() {
   const [loggingIn, setLoggingIn] = useState(false);
   const [diagnostics, setDiagnostics] = useState<any>(null);
 
+  // Dynamic iOS Add to Home Screen Icon Override
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Find existing apple-touch-icon links
+    let links = document.querySelectorAll("link[rel='apple-touch-icon']");
+    const originalHrefs: string[] = [];
+    
+    // Store original href values and update them
+    links.forEach((link: any) => {
+      originalHrefs.push(link.getAttribute("href") || "");
+      link.setAttribute("href", "/admin-apple-icon.png");
+    });
+    
+    // If no apple-touch-icon links exist, create one
+    if (links.length === 0) {
+      const newLink = document.createElement("link");
+      newLink.setAttribute("rel", "apple-touch-icon");
+      newLink.setAttribute("href", "/admin-apple-icon.png");
+      document.head.appendChild(newLink);
+    }
+    
+    // Dynamic page title update
+    const originalTitle = document.title;
+    document.title = "AdminHub — Dashboard";
+    
+    return () => {
+      // Revert when leaving the admin page
+      document.title = originalTitle;
+      const currentLinks = document.querySelectorAll("link[rel='apple-touch-icon']");
+      currentLinks.forEach((link: any, idx) => {
+        if (originalHrefs[idx] !== undefined) {
+          link.setAttribute("href", originalHrefs[idx]);
+        } else {
+          link.remove();
+        }
+      });
+    };
+  }, []);
+
   // Dashboard Data
   const [users, setUsers] = useState<any[]>([]);
   const [attempts, setAttempts] = useState<any[]>([]);
