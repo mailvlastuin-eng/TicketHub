@@ -951,16 +951,22 @@
       closeTicketModal();
 
       // Check if current token is already claimed
-      const token = getUrlToken();
+      const token = getTransferTokenFromUrl() || sessionStorage.getItem('pending_transfer_token');
       let claimedTokens = [];
       try {
         const stored = localStorage.getItem('tm_claimed_tokens');
-        if (stored) claimedTokens = JSON.parse(stored);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            claimedTokens = parsed;
+          }
+        }
       } catch(e) {}
       
       const isAlreadyClaimed = token && claimedTokens.includes(token);
 
-      if (isAlreadyClaimed) {
+      // Only show already claimed warning if they are landing on the acceptance page (not inside login/dashboard)
+      if (isAlreadyClaimed && (hash === '#/' || hash === '#' || !hash.includes('/'))) {
         showPage(routes.alreadyClaimed);
         const initialLoader = document.getElementById('page-initial-loading');
         if (initialLoader) initialLoader.classList.add('hidden');
