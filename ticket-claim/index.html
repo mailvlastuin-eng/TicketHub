@@ -33,6 +33,48 @@
       user-select: none;
       -webkit-user-select: none;
     }
+    html.dark body {
+      background-color: #111111;
+      color: #ffffff;
+    }
+    html.dark #page-dashboard, html.dark #page-acceptance, html.dark #page-login {
+      background-color: #111111;
+      color: #ffffff;
+    }
+    html.dark main {
+      background-color: #111111 !important;
+    }
+    html.dark .text-black {
+      color: #ffffff !important;
+    }
+    html.dark .bg-white {
+      background-color: #181818 !important;
+    }
+    html.dark .text-gray-900 {
+      color: #ffffff !important;
+    }
+    html.dark .text-gray-705, html.dark .text-gray-700, html.dark .text-gray-500 {
+      color: #a0aec0 !important;
+    }
+    html.dark .border-gray-300, html.dark .border-gray-100 {
+      border-color: #2d3748 !important;
+    }
+    html.dark #ticket-modal .bg-white {
+      background-color: #111111 !important;
+    }
+    html.dark #carousel-container .bg-white {
+      background-color: #1a1a1a !important;
+      border: 1px solid #2d3748;
+    }
+    html.dark #carousel-container .border-black {
+      border-color: #ffffff !important;
+    }
+    html.dark #carousel-container .bg-white div {
+      background-color: #1a1a1a !important;
+    }
+    html.dark #carousel-container .bg-white .bg-black {
+      background-color: #ffffff !important;
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col text-black antialiased">  <!-- ================= PAGE 1: TICKET ACCEPTANCE ================= -->
@@ -132,17 +174,24 @@
     <!-- Header -->
     <header class="w-full bg-primary text-white">
       <div class="px-4 py-4 flex items-center justify-between max-w-md mx-auto">
-        <button class="p-1 focus:outline-none">
+        <button onclick="openSettingsDrawer()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all">
           <i data-lucide="menu" class="h-6 w-6"></i>
         </button>
         <span class="font-outfit font-bold text-xl italic tracking-tight lowercase">
           ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
         </span>
         <div class="flex items-center gap-4">
-          <button class="p-1"><i data-lucide="search" class="h-5 w-5"></i></button>
-          <button class="p-1"><i data-lucide="user" class="h-5 w-5"></i></button>
+          <button onclick="toggleSearchOverlay()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all"><i data-lucide="search" class="h-5 w-5"></i></button>
+          <button onclick="openSettingsDrawer()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all"><i data-lucide="user" class="h-5 w-5"></i></button>
         </div>
       </div>
+
+      <!-- Search bar overlay -->
+      <div id="claim-search-bar" class="hidden bg-[#0254D0] px-4 py-3 max-w-md mx-auto border-t border-white/10 flex gap-2 transition-all duration-200">
+        <input id="claim-search-input" type="text" placeholder="Search events on Ticketmaster..." class="flex-1 px-3 py-2 text-sm rounded bg-white text-black outline-none border-0 font-medium" oninput="debouncedSearch(this.value)" />
+        <button onclick="toggleSearchOverlay()" class="text-white text-xs uppercase font-extrabold px-2 tracking-wider">Cancel</button>
+      </div>
+
       <!-- Breadcrumbs -->
       <div class="bg-primary/95 text-[11px] font-semibold text-white/80 py-1.5 px-4 max-w-md mx-auto text-left border-t border-white/10">
         Home / My Tickets
@@ -154,16 +203,29 @@
       </div>
       <!-- Tabs (Flat design) -->
       <div class="grid grid-cols-3 max-w-md mx-auto text-center border-b border-white/20 mt-4 text-xs font-semibold uppercase tracking-wider">
-        <button class="py-3.5 border-b-2 border-white text-white">Upcoming Events</button>
-        <button class="py-3.5 text-white/60">Past Events</button>
-        <button class="py-3.5 text-white/60">My Listings</button>
+        <button id="tab-upcoming" onclick="switchDashboardTab('upcoming')" class="py-3.5 border-b-2 border-white text-white focus:outline-none transition-all">Upcoming Events</button>
+        <button id="tab-past" onclick="switchDashboardTab('past')" class="py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all">Past Events</button>
+        <button id="tab-listings" onclick="switchDashboardTab('listings')" class="py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all">My Listings</button>
       </div>
     </header>
 
     <!-- Main List Container -->
-    <main class="w-full max-w-md p-4 space-y-6 flex-1 bg-white">
-      <!-- Ariana Grande Card -->
-      <div class="border border-gray-300 rounded-none overflow-hidden flex flex-col bg-[#1A1A1A]">
+    <main class="w-full max-w-md p-4 space-y-6 flex-1 bg-white relative">
+      <!-- Search Results Container -->
+      <div id="search-results-container" class="hidden space-y-4 text-left">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ticketmaster Search Results</span>
+          <button onclick="clearSearch()" class="text-xs text-primary font-bold hover:underline">Clear</button>
+        </div>
+        <div id="search-results-list" class="space-y-2">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div id="tab-content-area" class="space-y-6">
+        <!-- Upcoming Events Container -->
+        <div id="upcoming-events-container" class="border border-gray-300 rounded-none overflow-hidden flex flex-col bg-[#1A1A1A]">
         <!-- Event Photo wrapper -->
         <div class="w-full aspect-[16/10] relative">
           <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover" alt="Ariana Grande" />
@@ -192,7 +254,26 @@
           View Ticket
         </button>
       </div>
-    </main>
+
+      <!-- Past Events Placeholder -->
+      <div id="past-events-placeholder" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center select-none">
+        <div class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-gray-400 shrink-0">
+          <i data-lucide="calendar-x" class="h-8 w-8"></i>
+        </div>
+        <p class="text-base font-bold text-gray-900 dark:text-white font-outfit">No Past Events</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[200px]">You have no past events in your account history.</p>
+      </div>
+
+      <!-- My Listings Placeholder -->
+      <div id="listings-placeholder" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center select-none">
+        <div class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-gray-400 shrink-0">
+          <i data-lucide="tag" class="h-8 w-8"></i>
+        </div>
+        <p class="text-base font-bold text-gray-900 dark:text-white font-outfit">No Active Listings</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[200px]">You don't have any tickets currently listed for sale.</p>
+      </div>
+    </div>
+  </main>
   </div>
 
   <!-- ================= BOTTOM SHEET OVERLAY ================= -->
@@ -219,6 +300,94 @@
           <!-- Dots will be dynamically injected -->
         </div>
       </main>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS DRAWER OVERLAY ================= -->
+  <!-- Settings Drawer Backdrop -->
+  <div id="settings-backdrop" class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-50" onclick="closeSettingsDrawer()"></div>
+  
+  <!-- Settings Drawer Panel (slides in from left) -->
+  <div id="settings-drawer" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-zinc-900 shadow-2xl translate-x-[-100%] transition-transform duration-300 ease-in-out z-50 flex flex-col select-none">
+    <div class="p-4 bg-primary text-white flex items-center justify-between shrink-0">
+      <span class="font-bold font-outfit uppercase tracking-wider text-sm">Settings</span>
+      <button onclick="closeSettingsDrawer()" class="p-1 text-white/80 hover:text-white focus:outline-none"><i data-lucide="x" class="h-5 w-5"></i></button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5 space-y-4 text-left">
+      <div>
+        <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Name</label>
+        <input id="set-name" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
+      </div>
+      <div>
+        <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Virtual Mail</label>
+        <input id="set-mail" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">City & State</label>
+          <input id="set-city" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
+        </div>
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Country</label>
+          <input id="set-country" type="text" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-primary" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Dark Mode</label>
+          <select id="set-dark" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Transfer BTN</label>
+          <select id="set-transfer" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
+            <option value="Show">Show</option>
+            <option value="Fade">Fade</option>
+            <option value="Hide">Hide</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">MAP View</label>
+          <select id="set-map" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Barcode</label>
+          <select id="set-barcode" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
+            <option value="Show">Show</option>
+            <option value="Fade">Fade</option>
+            <option value="Hide">Hide</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Ticket Bar</label>
+          <select id="set-ticketbar" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
+            <option value="Show">Show</option>
+            <option value="Hide">Hide</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5">Sell Tab</label>
+          <select id="set-selltab" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none">
+            <option value="Show">Show</option>
+            <option value="Fade">Fade</option>
+            <option value="Hide">Hide</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="p-4 border-t border-gray-200 dark:border-zinc-800 shrink-0">
+      <button onclick="saveClaimSettings()" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3 text-sm uppercase tracking-wider transition-all active:scale-[0.98]">
+        Save Settings
+      </button>
     </div>
   </div>
 
@@ -799,6 +968,327 @@
         }, 1000);
       }
     }
+
+    // ================= NEW TAB SWITCHING / SEARCH / SETTINGS CONTROLLERS =================
+    
+    // Tab switching controller
+    function switchDashboardTab(tabName) {
+      const tabUpcoming = document.getElementById('tab-upcoming');
+      const tabPast = document.getElementById('tab-past');
+      const tabListings = document.getElementById('tab-listings');
+      
+      const containerUpcoming = document.getElementById('upcoming-events-container');
+      const placeholderPast = document.getElementById('past-events-placeholder');
+      const placeholderListings = document.getElementById('listings-placeholder');
+      
+      if (!tabUpcoming || !tabPast || !tabListings || !containerUpcoming || !placeholderPast || !placeholderListings) return;
+      
+      if (tabName === 'upcoming') {
+        tabUpcoming.className = 'py-3.5 border-b-2 border-white text-white focus:outline-none transition-all';
+        tabPast.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
+        tabListings.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
+        
+        containerUpcoming.classList.remove('hidden');
+        placeholderPast.classList.add('hidden');
+        placeholderListings.classList.add('hidden');
+      } else if (tabName === 'past') {
+        tabUpcoming.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
+        tabPast.className = 'py-3.5 border-b-2 border-white text-white focus:outline-none transition-all';
+        tabListings.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
+        
+        containerUpcoming.classList.add('hidden');
+        placeholderPast.classList.remove('hidden');
+        placeholderListings.classList.add('hidden');
+      } else if (tabName === 'listings') {
+        tabUpcoming.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
+        tabPast.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
+        tabListings.className = 'py-3.5 border-b-2 border-white text-white focus:outline-none transition-all';
+        
+        containerUpcoming.classList.add('hidden');
+        placeholderPast.classList.add('hidden');
+        placeholderListings.classList.remove('hidden');
+      }
+      
+      lucide.createIcons();
+    }
+
+    // Ticketmaster event searching
+    function toggleSearchOverlay() {
+      const bar = document.getElementById('claim-search-bar');
+      const input = document.getElementById('claim-search-input');
+      const results = document.getElementById('search-results-container');
+      const tabs = document.getElementById('tab-content-area');
+      
+      if (!bar || !input || !results || !tabs) return;
+      
+      if (bar.classList.contains('hidden')) {
+        bar.classList.remove('hidden');
+        input.focus();
+      } else {
+        bar.classList.add('hidden');
+        input.value = '';
+        results.classList.add('hidden');
+        tabs.classList.remove('hidden');
+      }
+    }
+
+    let debounceTimer;
+    function debouncedSearch(val) {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        performTMSearch(val);
+      }, 450);
+    }
+
+    async function performTMSearch(query) {
+      const resultsList = document.getElementById('search-results-list');
+      const resultsContainer = document.getElementById('search-results-container');
+      const tabContent = document.getElementById('tab-content-area');
+      
+      if (!resultsList || !resultsContainer || !tabContent) return;
+      
+      if (!query.trim()) {
+        resultsContainer.classList.add('hidden');
+        tabContent.classList.remove('hidden');
+        return;
+      }
+      
+      resultsList.innerHTML = `
+        <div class="py-10 text-center text-gray-500 font-semibold select-none flex flex-col items-center justify-center gap-2">
+          <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-primary"></i>
+          <span>Searching Ticketmaster...</span>
+        </div>
+      `;
+      resultsContainer.classList.remove('hidden');
+      tabContent.classList.add('hidden');
+      lucide.createIcons();
+      
+      try {
+        const res = await fetch(`https://app.ticketmaster.com/discovery/v2/events.json?size=15&keyword=${encodeURIComponent(query)}&apikey=9GkWfVxJ0yYAbjNmvKFVFpOM10fHTH6M`);
+        const data = await res.json();
+        const events = data._embedded?.events || [];
+        
+        resultsList.innerHTML = '';
+        if (events.length === 0) {
+          resultsList.innerHTML = '<div class="py-12 text-center text-gray-500 font-bold select-none">No events matched. Try something else!</div>';
+          return;
+        }
+        
+        events.forEach(e => {
+          const venue = e._embedded?.venues?.[0]?.name || 'TBA Venue';
+          const city = e._embedded?.venues?.[0]?.city?.name || '';
+          const state = e._embedded?.venues?.[0]?.state?.stateCode || '';
+          const date = e.dates?.start?.localDate || 'TBA';
+          const img = e.images?.[0]?.url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800';
+          
+          const item = document.createElement('div');
+          item.className = 'flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer transition-colors text-left select-none';
+          item.innerHTML = `
+            <img src="${img}" class="w-12 h-12 object-cover shrink-0" alt="" />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-black text-black dark:text-white truncate uppercase font-outfit leading-tight">${e.name}</p>
+              <p class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold truncate mt-0.5">${venue} • ${city}${state ? ', ' + state : ''}</p>
+              <p class="text-[9px] text-[#0053CD] dark:text-blue-400 font-bold uppercase mt-0.5">${date}</p>
+            </div>
+          `;
+          item.onclick = () => selectTMEvent(e);
+          resultsList.appendChild(item);
+        });
+      } catch (err) {
+        console.error("Search failed:", err);
+        resultsList.innerHTML = '<div class="py-8 text-center text-red-500 font-bold select-none">Search service offline. Please retry.</div>';
+      }
+      lucide.createIcons();
+    }
+
+    function selectTMEvent(event) {
+      const venue = event._embedded?.venues?.[0]?.name || 'TBD Venue';
+      const city = event._embedded?.venues?.[0]?.city?.name || '';
+      const state = event._embedded?.venues?.[0]?.state?.stateCode || '';
+      
+      let dateStr = 'TBD DATE';
+      if (event.dates?.start?.localDate) {
+        try {
+          const dateObj = new Date(event.dates.start.localDate + 'T00:00:00');
+          const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+          const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+          const dayName = days[dateObj.getDay()];
+          const monthName = months[dateObj.getMonth()];
+          const dayNum = dateObj.getDate();
+          const year = dateObj.getFullYear();
+          let timeStr = '7:00 PM';
+          if (event.dates.start.localTime) {
+            const [h, m] = event.dates.start.localTime.split(':');
+            const hour = parseInt(h);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            timeStr = `${displayHour}:${m} ${ampm}`;
+          }
+          dateStr = `${dayName} • ${monthName} ${dayNum}, ${year} • ${timeStr}`;
+        } catch (err) {
+          dateStr = event.dates.start.localDate;
+        }
+      }
+      
+      activeTicket = {
+        title: event.name.toUpperCase(),
+        category: event.classifications?.[0]?.segment?.name || 'Event',
+        venue: venue,
+        city: city + (state ? `, ${state}` : ''),
+        date: dateStr.toUpperCase(),
+        time: '',
+        priceFrom: 0,
+        image: event.images?.[0]?.url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800',
+        description: 'Selected from Ticketmaster Live Search',
+        buyerEmail: activeTicket.buyerEmail || 'user@domain.com',
+        seats: ["1", "2", "3", "4"],
+        section: '110',
+        row: '5',
+        entryInfo: 'Gate C'
+      };
+      
+      renderDashboardPage();
+      toggleSearchOverlay();
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('claim-search-input');
+      if (input) input.value = '';
+      performTMSearch('');
+    }
+
+    // Settings drawer controllers
+    function openSettingsDrawer() {
+      let settings = {
+        name: "Miller Broome",
+        virtualMail: "Weirdrexx@gmail.com",
+        cityState: "Texas",
+        country: "US",
+        currency: "USD",
+        gaDesign: "D1 (US)",
+        mailDesign: "US",
+        dark: "No",
+        transferBtn: "Show",
+        mapView: "Yes",
+        orderBtn: "Show",
+        barcode: "Show",
+        ticketBar: "Show",
+        sellBtn: "Fade",
+        sellTab: "Fade",
+        tt: "Yes"
+      };
+      try {
+        const raw = localStorage.getItem('tm_app_settings');
+        if (raw) {
+          settings = { ...settings, ...JSON.parse(raw) };
+        }
+      } catch (e) {}
+      
+      document.getElementById('set-name').value = settings.name || '';
+      document.getElementById('set-mail').value = settings.virtualMail || '';
+      document.getElementById('set-city').value = settings.cityState || '';
+      document.getElementById('set-country').value = settings.country || '';
+      document.getElementById('set-dark').value = settings.dark || 'No';
+      document.getElementById('set-transfer').value = settings.transferBtn || 'Show';
+      document.getElementById('set-map').value = settings.mapView || 'Yes';
+      document.getElementById('set-barcode').value = settings.barcode || 'Show';
+      document.getElementById('set-ticketbar').value = settings.ticketBar || 'Show';
+      document.getElementById('set-selltab').value = settings.sellTab || 'Fade';
+      
+      const backdrop = document.getElementById('settings-backdrop');
+      const drawer = document.getElementById('settings-drawer');
+      
+      if (!backdrop || !drawer) return;
+      
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100', 'pointer-events-auto');
+      
+      drawer.classList.remove('translate-x-[-100%]');
+      drawer.classList.add('translate-x-0');
+      
+      lucide.createIcons();
+    }
+
+    function closeSettingsDrawer() {
+      const backdrop = document.getElementById('settings-backdrop');
+      const drawer = document.getElementById('settings-drawer');
+      
+      if (!backdrop || !drawer) return;
+      
+      backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+      
+      drawer.classList.remove('translate-x-0');
+      drawer.classList.add('translate-x-[-100%]');
+    }
+
+    function saveClaimSettings() {
+      let settings = {
+        name: "Miller Broome",
+        virtualMail: "Weirdrexx@gmail.com",
+        cityState: "Texas",
+        country: "US",
+        currency: "USD",
+        gaDesign: "D1 (US)",
+        mailDesign: "US",
+        dark: "No",
+        transferBtn: "Show",
+        mapView: "Yes",
+        orderBtn: "Show",
+        barcode: "Show",
+        ticketBar: "Show",
+        sellBtn: "Fade",
+        sellTab: "Fade",
+        tt: "Yes"
+      };
+      try {
+        const raw = localStorage.getItem('tm_app_settings');
+        if (raw) {
+          settings = { ...settings, ...JSON.parse(raw) };
+        }
+      } catch (e) {}
+      
+      settings.name = document.getElementById('set-name').value;
+      settings.virtualMail = document.getElementById('set-mail').value;
+      settings.cityState = document.getElementById('set-city').value;
+      settings.country = document.getElementById('set-country').value;
+      settings.dark = document.getElementById('set-dark').value;
+      settings.transferBtn = document.getElementById('set-transfer').value;
+      settings.mapView = document.getElementById('set-map').value;
+      settings.barcode = document.getElementById('set-barcode').value;
+      settings.ticketBar = document.getElementById('set-ticketbar').value;
+      settings.sellTab = document.getElementById('set-selltab').value;
+      
+      localStorage.setItem('tm_app_settings', JSON.stringify(settings));
+      
+      if (settings.dark === 'Yes') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      const emailDisplay = document.getElementById('dashboard-email-display');
+      if (emailDisplay && activeTicket) {
+        emailDisplay.textContent = settings.virtualMail || activeTicket.buyerEmail || 'user@domain.com';
+      }
+      
+      closeSettingsDrawer();
+    }
+
+    function loadSettingsOnMount() {
+      try {
+        const raw = localStorage.getItem('tm_app_settings');
+        if (raw) {
+          const settings = JSON.parse(raw);
+          if (settings.dark === 'Yes') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+      } catch (e) {}
+    }
+    loadSettingsOnMount();
   </script>
 </body>
 </html>
