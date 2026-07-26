@@ -44,9 +44,58 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+import { sendEmail, compileAcceptanceEmailHtml } from "./admin/email";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === '/api/accept-transfer') {
+        if (request.method === 'OPTIONS') {
+          return new Response(null, {
+            status: 204,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type'
+            }
+          });
+        }
+        if (request.method === 'POST') {
+          try {
+            const data = await request.json();
+            if (data.senderEmail) {
+              const html = compileAcceptanceEmailHtml(data);
+              await sendEmail({
+                to: data.senderEmail,
+                subject: `Ticket Transfer Accepted: Your tickets were accepted by ${data.buyerName}`,
+                html,
+              });
+            }
+            return new Response(JSON.stringify({ success: true }), {
+              status: 200,
+              headers: {
+                'content-type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+              }
+            });
+          } catch (err: any) {
+            console.error('Acceptance email error:', err);
+            return new Response(JSON.stringify({ success: false, error: err.message }), {
+              status: 500,
+              headers: {
+                'content-type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+              }
+            });
+          }
+        }
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
