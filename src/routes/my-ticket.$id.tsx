@@ -658,6 +658,19 @@ function MyTicketDetail() {
 
                         const buyerName = `${firstName.trim()} ${lastName.trim()}`.trim();
                         
+                        const ticketData = {
+                          title: ticket.title,
+                          image: absoluteImage,
+                          venue: ticket.venue,
+                          city: ticket.city || "",
+                          date: formatDateBar(ticket),
+                          seats: selectedSeats,
+                          section: seatRows[0]?.section || "B23",
+                          row: seatRows[0]?.row || "14",
+                          buyerEmail: emailPhone.trim()
+                        };
+                        const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
+
                         await sendTransferEmailFn({
                           data: {
                             buyerName,
@@ -669,7 +682,7 @@ function MyTicketDetail() {
                             ticketImage: absoluteImage,
                             seatDetails,
                             quantity: selectedSeats.length,
-                            eventDetailsUrl: `https://ticket-claim.vercel.app/#/?eventId=${ticket.id}`,
+                            eventDetailsUrl: `https://ticket-claim.vercel.app/?token=${base64Token}`,
                             senderName: user?.name || "JACQUELINE",
                             senderEmail: user?.email,
                           }
