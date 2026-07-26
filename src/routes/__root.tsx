@@ -94,8 +94,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "manifest", href: "/manifest.json" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -105,10 +103,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const pathname = router.state.location.pathname;
+  const isAdmin = pathname.startsWith("/admin");
+
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        {isAdmin ? (
+          <>
+            <link rel="manifest" href="/admin-manifest.json" />
+            <link rel="apple-touch-icon" href="/admin-apple-icon.png" />
+          </>
+        ) : (
+          <>
+            <link rel="manifest" href="/manifest.json" />
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          </>
+        )}
       </head>
       <body>
         {children}
