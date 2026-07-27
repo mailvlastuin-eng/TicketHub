@@ -379,10 +379,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Solid White Sheet Container */}
-          <div 
-            className="bg-white w-full rounded-t-[16px] shadow-2xl flex flex-col pb-6 relative z-10"
-            style={{ minHeight: "calc(100dvh - min(100vw, 448px) * 3 / 4 - 152px)" }}
-          >
+          <div className="bg-white w-full rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
@@ -529,7 +526,6 @@ function MyTicketDetail() {
               </div>
             )}
           </div>
-
         </div>
       </div>
 
