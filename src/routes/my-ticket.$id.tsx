@@ -420,6 +420,7 @@ function MyTicketDetail() {
                       seat={s}
                       ticketType={ticket.ticketType}
                       entryInfo={ticket.entryInfo}
+                      ticketId={ticket.id}
                     />
                   ))}
                 </div>
@@ -595,26 +596,40 @@ function MyTicketDetail() {
                 {/* Responsive wrapping Seat Grid */}
                 <div className="grid grid-cols-4 gap-[8px] px-[20px] py-[16px]">
                   {seatRows.map((s) => {
+                    const isAccepted = user?.acceptedTransfers?.some(
+                      (t: any) => t.ticketId === ticket.id && t.seats.includes(s.seat)
+                    );
                     const isSelected = selectedSeats.includes(s.seat);
                     return (
                       <button
                         key={s.seat}
+                        disabled={isAccepted}
                         onClick={() => toggleSeatSelection(s.seat)}
-                        className="w-full border border-zinc-200 rounded-[8px] overflow-hidden flex flex-col bg-white shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                        className={`w-full border rounded-[8px] overflow-hidden flex flex-col shadow-[0_1px_4px_rgba(0,0,0,0.05)] transition-all ${
+                          isAccepted 
+                            ? "border-zinc-200 bg-zinc-50 opacity-60 cursor-not-allowed select-none" 
+                            : "border-zinc-200 bg-white"
+                        }`}
                       >
-                        <div className="bg-[#1A56DB] text-white text-[10px] font-bold text-center py-1.5 uppercase tracking-wide w-full">
+                        <div className={`text-[10px] font-bold text-center py-1.5 uppercase tracking-wide w-full ${
+                          isAccepted ? "bg-zinc-400 text-zinc-100" : "bg-[#1A56DB] text-white"
+                        }`}>
                           Seat {s.seat}
                         </div>
                         <div className="h-[46px] flex items-center justify-center w-full">
-                          <div
-                            className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                              isSelected ? "border-[#1A56DB] bg-[#1A56DB]" : "border-[1.5px] border-zinc-300 bg-white"
-                            }`}
-                          >
-                            {isSelected && (
-                              <div className="w-2 h-2 rounded-full bg-white" />
-                            )}
-                          </div>
+                          {isAccepted ? (
+                            <span className="text-[10px] text-zinc-400 font-bold uppercase select-none">Sent</span>
+                          ) : (
+                            <div
+                              className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                                isSelected ? "border-[#1A56DB] bg-[#1A56DB]" : "border-[1.5px] border-zinc-300 bg-white"
+                              }`}
+                            >
+                              {isSelected && (
+                                <div className="w-2 h-2 rounded-full bg-white" />
+                              )}
+                            </div>
+                          )}
                         </div>
                       </button>
                     );
@@ -808,6 +823,8 @@ function MyTicketDetail() {
                         const buyerName = `${firstName.trim()} ${lastName.trim()}`.trim();
                         
                         const ticketData = {
+                          ticketId: ticket.id,
+                          seats: selectedSeats,
                           title: ticket.title,
                           image: absoluteImage,
                           venue: ticket.venue,
@@ -1099,11 +1116,18 @@ function SeatCard({
   seat,
   ticketType,
   entryInfo,
+  ticketId,
 }: {
   seat: { section: string; row: string; seat: string };
   ticketType?: string;
   entryInfo?: string;
+  ticketId: string;
 }) {
+  const { user } = useUser();
+  const acceptedTransfer = user?.acceptedTransfers?.find(
+    (t: any) => t.ticketId === ticketId && t.seats.includes(seat.seat)
+  );
+
   return (
     <div className="flex flex-col gap-[2px] w-full select-none">
       <div className="bg-[#eaeaea] px-5 py-[14.5px] rounded-none flex items-center justify-between">
@@ -1119,6 +1143,16 @@ function SeatCard({
         <SeatCell label="ROW" value={seat.row || "—"} alignCenter />
         <SeatCell label="SEAT" value={seat.seat} alignRight />
       </div>
+      {acceptedTransfer && (
+        <div className="bg-[#eaeaea] px-5 py-[10px] flex items-center gap-2 border-t border-zinc-300/20">
+          <div className="w-[18px] h-[18px] rounded-full bg-zinc-500 flex items-center justify-center text-white select-none shrink-0">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-[14px] font-bold text-black/80">
+            Transfer Accepted: {acceptedTransfer.buyerName}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

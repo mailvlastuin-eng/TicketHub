@@ -608,6 +608,7 @@
         if (parsedData && parsedData.title) {
           return {
             id: token,
+            ticketId: parsedData.ticketId || "",
             title: parsedData.title,
             category: parsedData.category || "Event",
             venue: parsedData.venue || "TBA",
@@ -1398,6 +1399,8 @@
       if (!ticket || !ticket.senderEmail) return;
       
       const payload = {
+        ticketId: ticket.ticketId || "",
+        seats: ticket.seats || [],
         buyerName: ticket.buyerName || "Miller Broome",
         buyerEmail: ticket.buyerEmail || "Weirdrexx@gmail.com",
         ticketTitle: ticket.title,

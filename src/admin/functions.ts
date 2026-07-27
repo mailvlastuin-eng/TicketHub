@@ -115,11 +115,25 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     const expiresAt = user.expiresAt ? new Date(user.expiresAt) : new Date(activatedAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
     const sessionId = `sess_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
 
+    let transfersCount = 0;
+    let acceptedTransfers = [];
+    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(user.deviceInfo);
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+      } catch (e) {}
+    }
+
     user.status = 'active';
     if (!user.activatedAt) user.activatedAt = activatedAt.toISOString();
     if (!user.expiresAt) user.expiresAt = expiresAt.toISOString();
     user.sessionId = sessionId;
-    user.deviceInfo = deviceInfo;
+    user.deviceInfo = JSON.stringify({
+      device: deviceInfo,
+      transfersCount,
+      acceptedTransfers
+    });
 
     await saveUser(user);
 
@@ -135,13 +149,6 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     });
 
     const name = email.split('@')[0] || 'User';
-    let transfersCount = 0;
-    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
-      try {
-        const parsed = JSON.parse(user.deviceInfo);
-        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
-      } catch (e) {}
-    }
 
     return {
       email: user.email,
@@ -150,6 +157,7 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       expiresAt: expiresAt.toISOString(),
       loginMode: user.loginMode || 'single',
       transfersCount,
+      acceptedTransfers,
     };
   });
 
@@ -212,14 +220,16 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
     }
 
     let transfersCount = 0;
+    let acceptedTransfers = [];
     if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(user.deviceInfo);
         transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
       } catch (e) {}
     }
 
-    return { valid: true, transfersCount };
+    return { valid: true, transfersCount, acceptedTransfers };
   });
 
 // 3. Admin Authentication
@@ -424,12 +434,14 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
       if (user) {
         let transfersCount = 0;
         let deviceName = 'Unknown Device';
+        let acceptedTransfers = [];
         if (user.deviceInfo) {
           if (user.deviceInfo.trim().startsWith('{')) {
             try {
               const parsed = JSON.parse(user.deviceInfo);
               deviceName = parsed.device || 'Unknown Device';
               transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+              acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
             } catch (e) {}
           } else {
             deviceName = user.deviceInfo;
@@ -442,7 +454,8 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
 
         user.deviceInfo = JSON.stringify({
           device: deviceName,
-          transfersCount: transfersCount - 1
+          transfersCount: transfersCount - 1,
+          acceptedTransfers
         });
         await saveUser(user);
       }
@@ -488,11 +501,13 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
 
     // Parse the current deviceInfo to preserve device name
     let deviceName = 'Unknown Device';
+    let acceptedTransfers = [];
     if (user.deviceInfo) {
       if (user.deviceInfo.trim().startsWith('{')) {
         try {
           const parsed = JSON.parse(user.deviceInfo);
           deviceName = parsed.device || 'Unknown Device';
+          acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
         } catch (e) {}
       } else {
         deviceName = user.deviceInfo;
@@ -502,7 +517,8 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
     // Set JSON back to deviceInfo
     user.deviceInfo = JSON.stringify({
       device: deviceName,
-      transfersCount: data.transfersCount
+      transfersCount: data.transfersCount,
+      acceptedTransfers
     });
 
     await saveUser(user);

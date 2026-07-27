@@ -45,6 +45,7 @@ function isH3SwallowedErrorBody(body: string): boolean {
 }
 
 import { sendEmail, compileAcceptanceEmailHtml, compileBuyerAcceptanceEmailHtml } from "./admin/email";
+import { getUserByEmail, saveUser } from "./admin/db";
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
@@ -64,6 +65,57 @@ export default {
         if (request.method === 'POST') {
           try {
             const data = await request.json();
+            
+            if (data.senderEmail && data.ticketId && data.seats && Array.isArray(data.seats)) {
+              try {
+                const user = await getUserByEmail(data.senderEmail);
+                if (user) {
+                  let transfersCount = 0;
+                  let deviceName = 'Unknown Device';
+                  let acceptedTransfers = [];
+                  
+                  if (user.deviceInfo) {
+                    if (user.deviceInfo.trim().startsWith('{')) {
+                      try {
+                        const parsed = JSON.parse(user.deviceInfo);
+                        deviceName = parsed.device || 'Unknown Device';
+                        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+                        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+                      } catch (e) {}
+                    } else {
+                      deviceName = user.deviceInfo;
+                    }
+                  }
+                  
+                  data.seats.forEach((seatNum: any) => {
+                    const seatStr = String(seatNum);
+                    const existing = acceptedTransfers.find((t: any) => t.ticketId === data.ticketId);
+                    if (existing) {
+                      if (!existing.seats.includes(seatStr)) {
+                        existing.seats.push(seatStr);
+                      }
+                    } else {
+                      acceptedTransfers.push({
+                        ticketId: data.ticketId,
+                        seats: [seatStr],
+                        buyerName: data.buyerName,
+                        acceptedAt: new Date().toISOString()
+                      });
+                    }
+                  });
+                  
+                  user.deviceInfo = JSON.stringify({
+                    device: deviceName,
+                    transfersCount,
+                    acceptedTransfers
+                  });
+                  await saveUser(user);
+                }
+              } catch (dbErr) {
+                console.error("Database update error during accept-transfer:", dbErr);
+              }
+            }
+
             if (data.senderEmail) {
               const html = compileAcceptanceEmailHtml(data);
               await sendEmail({

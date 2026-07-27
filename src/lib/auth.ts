@@ -9,6 +9,7 @@ export type SessionUser = {
   sessionId?: string; 
   loginMode?: 'single' | 'multiple';
   transfersCount?: number;
+  acceptedTransfers?: { ticketId: string; seats: string[]; buyerName: string; acceptedAt?: string }[];
 };
 
 export function getUser(): SessionUser | null {
@@ -49,11 +50,20 @@ export function useUser() {
         .then((res: any) => {
           if (!res.valid) {
             signOut();
-          } else if (typeof res.transfersCount === 'number' && initialUser.transfersCount !== res.transfersCount) {
-            const latestUser = { ...initialUser, transfersCount: res.transfersCount };
-            window.localStorage.setItem(KEY, JSON.stringify(latestUser));
-            setUser(latestUser);
-            window.dispatchEvent(new Event("tm-auth"));
+          } else {
+            const countChanged = typeof res.transfersCount === 'number' && initialUser.transfersCount !== res.transfersCount;
+            const acceptedChanged = res.acceptedTransfers && JSON.stringify(initialUser.acceptedTransfers) !== JSON.stringify(res.acceptedTransfers);
+            
+            if (countChanged || acceptedChanged) {
+              const latestUser = {
+                ...initialUser,
+                transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : initialUser.transfersCount,
+                acceptedTransfers: res.acceptedTransfers || initialUser.acceptedTransfers || []
+              };
+              window.localStorage.setItem(KEY, JSON.stringify(latestUser));
+              setUser(latestUser);
+              window.dispatchEvent(new Event("tm-auth"));
+            }
           }
         })
         .catch((err) => {
