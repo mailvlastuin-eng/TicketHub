@@ -44,7 +44,7 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-import { sendEmail, compileAcceptanceEmailHtml } from "./admin/email";
+import { sendEmail, compileAcceptanceEmailHtml, compileBuyerAcceptanceEmailHtml } from "./admin/email";
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
@@ -70,6 +70,14 @@ export default {
                 to: data.senderEmail,
                 subject: `Ticket Transfer Accepted: Your tickets were accepted by ${data.buyerName}`,
                 html,
+              });
+            }
+            if (data.buyerEmail) {
+              const buyerHtml = compileBuyerAcceptanceEmailHtml(data);
+              await sendEmail({
+                to: data.buyerEmail,
+                subject: `Success! You've accepted the ticket transfer.`,
+                html: buyerHtml,
               });
             }
             return new Response(JSON.stringify({ success: true }), {
