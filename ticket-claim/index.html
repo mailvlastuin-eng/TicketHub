@@ -617,7 +617,7 @@
             seats: parsedData.seats || ["1"],
             section: parsedData.section || "B23",
             row: parsedData.row || "14",
-            buyerEmail: parsedData.buyerEmail || "claimant@domain.com",
+            buyerEmail: parsedData.buyerEmail || "",
             buyerName: parsedData.buyerName || "",
             senderEmail: parsedData.senderEmail || "",
             senderName: parsedData.senderName || "JACQUELINE"
@@ -641,7 +641,7 @@
             ...mockupEvents[key],
             id: token,
             seats: ["24", "25", "26"], // Custom seats array
-            buyerEmail: "claimant@domain.com"
+            buyerEmail: ""
           };
         }
       }
@@ -656,7 +656,7 @@
             return {
               ...custom,
               seats: custom.seats || ["5", "6", "7"],
-              buyerEmail: "claimant@domain.com"
+              buyerEmail: ""
             };
           }
         }
@@ -667,7 +667,7 @@
         ...mockupEvents.ariana,
         id: token,
         seats: ["12", "13", "14"],
-        buyerEmail: "claimant@domain.com"
+        buyerEmail: ""
       };
     }
 
@@ -721,7 +721,7 @@
           seats: storedTicket.seats || ["5", "6", "7", "8"],
           section: storedTicket.section || "B23",
           row: storedTicket.row || "14",
-          buyerEmail: "claimant@domain.com"
+          buyerEmail: ""
         };
         return;
       }
@@ -1013,7 +1013,7 @@
         showPage(routes.login);
         const loginEmailInput = document.getElementById('login-email');
         if (loginEmailInput) {
-          loginEmailInput.value = activeTicket.buyerEmail || '';
+          loginEmailInput.value = '';
         }
       } else if (hash.startsWith('#/my-tickets')) {
         renderDashboardPage();

@@ -818,7 +818,9 @@ function MyTicketDetail() {
                           seatDetails: seatDetails,
                           orderId: orderId,
                           buyerName: buyerName,
+                          buyerEmail: emailPhone.trim(),
                           senderName: settings.name || user?.name || "JACQUELINE",
+                          senderEmail: user?.email || "",
                           backendUrl: typeof window !== "undefined" ? window.location.origin : ""
                         };
                         const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
