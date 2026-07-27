@@ -72,7 +72,7 @@ function MyTicketDetail() {
   const [tab, setTab] = useState<"tickets" | "extras">("tickets");
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [transferStep, setTransferStep] = useState<"none" | "select" | "form">("none");
+  const [transferStep, setTransferStep] = useState<"none" | "select" | "recipient_select" | "form">("none");
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -551,13 +551,17 @@ function MyTicketDetail() {
           {/* Drawer Sheet */}
           <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[16px] shadow-[0_-8px_30px_rgba(0,0,0,0.15)] z-50 overflow-hidden animate-in slide-in-from-bottom duration-300 ease-out">
             <div
-              className="w-[200%] flex transition-transform duration-300 ease-in-out"
+              className="w-[300%] flex transition-transform duration-300 ease-in-out"
               style={{
-                transform: transferStep === "form" ? "translateX(-50%)" : "translateX(0%)",
+                transform: transferStep === "form" 
+                  ? "translateX(-66.66%)" 
+                  : transferStep === "recipient_select" 
+                    ? "translateX(-33.33%)" 
+                    : "translateX(0%)",
               }}
             >
-              {/* Step 1: Select tickets (width 50%) */}
-              <div className="w-1/2 flex flex-col bg-white">
+              {/* Step 1: Select tickets (width 33.33%) */}
+              <div className="w-1/3 flex flex-col bg-white">
                 {/* Header */}
                 <div className="text-center py-4 border-b border-zinc-200">
                   <span className="text-[12px] font-extrabold tracking-wider text-black uppercase">
@@ -623,7 +627,7 @@ function MyTicketDetail() {
                     {selectedSeats.length} Selected
                   </span>
                   <button
-                    onClick={() => setTransferStep("form")}
+                    onClick={() => setTransferStep("recipient_select")}
                     disabled={selectedSeats.length === 0}
                     className="text-[15px] font-bold text-[#1A56DB] uppercase flex items-center gap-0.5 tracking-wider disabled:opacity-40 disabled:pointer-events-none"
                   >
@@ -632,8 +636,64 @@ function MyTicketDetail() {
                 </div>
               </div>
 
-              {/* Step 2: Form (width 50%) */}
-              <div className="w-1/2 flex flex-col bg-white">
+              {/* Step 2: Recipient Select (width 33.33%) */}
+              <div className="w-1/3 flex flex-col bg-white">
+                {/* Header */}
+                <div className="relative py-4 border-b border-zinc-200 flex items-center justify-center">
+                  <button 
+                    onClick={() => setTransferStep("select")}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-[#1A56DB] uppercase flex items-center gap-0.5 tracking-wider"
+                  >
+                    &lt; Back
+                  </button>
+                  <span className="text-[12px] font-extrabold tracking-wider text-black uppercase">
+                    Transfer To
+                  </span>
+                </div>
+
+                {/* Body Content */}
+                <div className="px-[20px] py-[24px] flex flex-col gap-4">
+                  {/* Select From Contacts Button (Disabled) */}
+                  <button
+                    disabled
+                    className="w-full h-[56px] border border-zinc-200 rounded-[8px] px-4 flex items-center justify-between bg-white opacity-50 cursor-not-allowed text-left"
+                  >
+                    <span className="text-[15px] font-bold text-black">Select From Contacts</span>
+                    <svg className="w-5 h-5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m14-10a4 4 0 11-8 0 4 4 0 018 0zm6-1h-2m2 4h-4" />
+                    </svg>
+                  </button>
+
+                  {/* Manually Enter A Recipient Button (Active) */}
+                  <button
+                    onClick={() => setTransferStep("form")}
+                    className="w-full h-[56px] border border-zinc-200 rounded-[8px] px-4 flex items-center justify-between bg-white text-left transition-colors hover:bg-zinc-50 active:scale-[0.99] cursor-pointer"
+                  >
+                    <span className="text-[15px] font-bold text-black">Manually Enter A Recipient</span>
+                    <svg className="w-5 h-5 text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+
+                  {/* Icon and Text Blocks in the Center */}
+                  <div className="flex flex-col items-center justify-center mt-8 pb-10">
+                    <div className="w-16 h-16 bg-zinc-100/70 rounded-full flex items-center justify-center mb-6">
+                      <Send className="h-6 w-6 text-zinc-500 -rotate-45 translate-x-0.5 -translate-y-0.5" />
+                    </div>
+
+                    <h4 className="text-[16px] font-bold text-black text-center px-4 leading-tight mb-2">
+                      Transfer Tickets Via Email or Text Message
+                    </h4>
+
+                    <p className="text-[14px] text-zinc-500 text-center px-6 leading-[1.4]">
+                      Select an Email or mobile number to transfer tickets to your recipient.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Form (width 33.33%) */}
+              <div className="w-1/3 flex flex-col bg-white">
                 {/* Header */}
                 <div className="text-center py-4 border-b border-zinc-200">
                   <span className="text-[12px] font-extrabold tracking-wider text-black uppercase">
@@ -710,7 +770,7 @@ function MyTicketDetail() {
                 {/* Bottom Actions Bar */}
                 <div className="mt-auto border-t border-zinc-200 px-[20px] pt-[16px] pb-[calc(16px+env(safe-area-inset-bottom))] flex items-center justify-between bg-white">
                   <button
-                    onClick={() => setTransferStep("select")}
+                    onClick={() => setTransferStep("recipient_select")}
                     className="text-[15px] font-bold text-[#1A56DB] uppercase flex items-center gap-0.5 tracking-wider"
                   >
                     &lt; Back
@@ -738,12 +798,11 @@ function MyTicketDetail() {
                           venue: ticket.venue,
                           city: ticket.city || "",
                           date: formatDateBar(ticket),
-                          seats: selectedSeats,
-                          section: seatRows[0]?.section || "B23",
-                          row: seatRows[0]?.row || "14",
-                          buyerEmail: emailPhone.trim(),
+                          time: ticket.time || "",
+                          quantity: selectedSeats.length,
+                          seatDetails: seatDetails,
+                          orderId: orderId,
                           buyerName: buyerName,
-                          senderEmail: user?.email || "",
                           senderName: settings.name || user?.name || "JACQUELINE",
                           backendUrl: typeof window !== "undefined" ? window.location.origin : ""
                         };
