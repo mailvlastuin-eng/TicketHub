@@ -29,8 +29,8 @@ export interface DbSchema {
   attempts: LoginAttempt[];
 }
 
-const SUPABASE_URL = 'https://dzrtttgdpcunckuuobmu.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cnR0dGdkcGN1bmNrdXVvYm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MjcxODEsImV4cCI6MjEwMDUwMzE4MX0.7Km-pRohbCcUB83PuTmCDsBRj4xAJmEnnbwpqaMD6V0';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzrtttgdpcunckuuobmu.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cnR0dGdkcGN1bmNrdXVvYm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MjcxODEsImV4cCI6MjEwMDUwMzE4MX0.7Km-pRohbCcUB83PuTmCDsBRj4xAJmEnnbwpqaMD6V0';
 
 async function supabaseFetch(path: string, options: RequestInit = {}) {
   const headers = {
