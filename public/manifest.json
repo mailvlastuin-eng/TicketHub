@@ -1,6 +1,6 @@
 {
-  "name": "TicketHub",
-  "short_name": "TicketHub",
+  "name": "Ticketmaster",
+  "short_name": "Ticketmaster",
   "description": "Discover live events near you and manage your tickets.",
   "start_url": "/",
   "display": "standalone",

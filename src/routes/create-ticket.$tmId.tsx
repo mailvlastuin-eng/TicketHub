@@ -7,7 +7,7 @@ import { addCustomTicket } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/create-ticket/$tmId")({
-  head: () => ({ meta: [{ title: "Create Ticket — TicketHub" }] }),
+  head: () => ({ meta: [{ title: "Create Ticket — Ticketmaster" }] }),
   component: CreateTicketPage,
   errorComponent: ({ error }) => (
     <div className="min-h-screen flex items-center justify-center p-6 text-center">
