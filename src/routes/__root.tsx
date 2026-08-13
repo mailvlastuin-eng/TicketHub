@@ -131,6 +131,64 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+const playNotificationSound = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+    osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.12); // A5
+    
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (err) {
+    console.warn("Failed to play notification sound:", err);
+  }
+};
+
+const playReloadSound = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc1.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.25); // D6
+    
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(880.00, ctx.currentTime); // A5
+    osc2.frequency.exponentialRampToValueAtTime(1760.00, ctx.currentTime + 0.25); // A6
+    
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc1.start();
+    osc2.start();
+    osc1.stop(ctx.currentTime + 0.3);
+    osc2.stop(ctx.currentTime + 0.3);
+  } catch (err) {
+    console.warn("Failed to play reload sound:", err);
+  }
+};
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const [hasUpdate, setHasUpdate] = useState(false);
@@ -175,6 +233,19 @@ function RootComponent() {
     };
   }, []);
 
+  useEffect(() => {
+    if (hasUpdate) {
+      playNotificationSound();
+    }
+  }, [hasUpdate]);
+
+  const handleReload = () => {
+    playReloadSound();
+    setTimeout(() => {
+      window.location.reload();
+    }, 450);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
@@ -183,7 +254,7 @@ function RootComponent() {
       {hasUpdate && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[340px] px-4 animate-bounce">
           <button
-            onClick={() => window.location.reload()}
+            onClick={handleReload}
             className="w-full bg-slate-900/95 text-white py-3.5 px-5 rounded-xl border border-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.36)] flex items-center justify-between gap-3 text-xs cursor-pointer backdrop-blur-md"
           >
             <div className="flex items-center gap-2">
