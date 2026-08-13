@@ -80,6 +80,31 @@ const YESNO_OPTS = ["Yes", "No"];
 const CURRENCY_OPTS = ["USD", "CAD", "GBP", "EUR", "AUD"];
 const DARK_OPTS = ["Yes", "No"];
 
+const playSoftSound = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(440, ctx.currentTime); // A4
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // Slide up to A5
+    
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + 0.15);
+  } catch (err) {
+    console.warn("Failed to play sound:", err);
+  }
+};
+
 function FavoritesPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
@@ -101,6 +126,7 @@ function FavoritesPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [localTransfers, setLocalTransfers] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const custom = useCustomTickets();
 
   const handleRefreshTransfers = async () => {
@@ -176,6 +202,9 @@ function FavoritesPage() {
     setForm((f) => ({ ...f, [k]: v }));
 
   const handleUpdate = async () => {
+    setIsUpdating(true);
+    playSoftSound();
+
     // 1. Save settings locally
     updateSettings({
       name: form.name,
@@ -216,8 +245,11 @@ function FavoritesPage() {
       }
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    setIsUpdating(false);
     setMsg("Settings updated");
-    window.setTimeout(() => setMsg(null), 1500);
+    window.setTimeout(() => setMsg(null), 2000);
   };
 
   const handleCreate = () => {
@@ -315,9 +347,23 @@ function FavoritesPage() {
           <div className="pt-1">
             <button
               onClick={handleUpdate}
-              className="h-11 rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 w-full cursor-pointer transition-opacity"
+              disabled={isUpdating}
+              className={`h-11 rounded-[4px] text-sm font-semibold w-full cursor-pointer transition-all flex items-center justify-center gap-2 disabled:opacity-85 ${
+                msg === "Settings updated"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-primary text-primary-foreground hover:opacity-90"
+              }`}
             >
-              Update
+              {isUpdating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : msg === "Settings updated" ? (
+                "✓ Settings updated!"
+              ) : (
+                "Update"
+              )}
             </button>
           </div>
 
