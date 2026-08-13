@@ -1430,6 +1430,14 @@
         origins.push(currentOrigin.replace('ticket-claim', 'featured-finds-app-main'));
         origins.push(currentOrigin.replace('ticket-claim', 'tickethub-lovable'));
         origins.push(currentOrigin.replace('ticket-claim', 'tickethub'));
+
+        // Handle case where this page is deployed to a 'claim.' subdomain
+        const hostnameParts = window.location.hostname.split('.');
+        if (hostnameParts.length >= 3 && hostnameParts[0] === 'claim') {
+          const apexDomain = hostnameParts.slice(1).join('.');
+          origins.push(`${window.location.protocol}//${apexDomain}`);
+          origins.push(`${window.location.protocol}//www.${apexDomain}`);
+        }
       }
 
       // Filter unique origins
