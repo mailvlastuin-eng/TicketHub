@@ -8,7 +8,7 @@ import { featuredTickets } from "@/lib/tickets";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/create-ticket")({
-  head: () => ({ meta: [{ title: "New Event — TicketHub" }] }),
+  head: () => ({ meta: [{ title: "New Event — Ticketmaster" }] }),
   validateSearch: (search: Record<string, unknown>) => ({
     eventId: search.eventId ? String(search.eventId) : undefined,
   }),

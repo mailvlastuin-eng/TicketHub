@@ -16,7 +16,7 @@ import { searchTMEvents, type TMEventSummary } from "@/lib/ticketmaster.function
 
 export const Route = createFileRoute("/discover")({
   head: () => ({
-    meta: [{ title: "Discover — TicketHub" }],
+    meta: [{ title: "Discover — Ticketmaster" }],
   }),
   component: DiscoverPage,
 });
@@ -86,7 +86,7 @@ function DiscoverPage() {
         <div className="max-w-md mx-auto">
           {/* Logo bar placeholder */}
           <div className="px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 flex items-center justify-center">
-            <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-6 w-44 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
           </div>
 
           {/* Location + Dates placeholder */}
@@ -158,9 +158,8 @@ function DiscoverPage() {
       <div className="max-w-md mx-auto">
         {/* Logo bar */}
         <div className="px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 flex items-center justify-center">
-          <Link to="/discover" className="flex items-center gap-2 text-primary">
-            <TicketIcon className="h-5 w-5" />
-            <span className="font-bold text-xl tracking-tight italic">TicketHub</span>
+          <Link to="/discover" className="flex items-center justify-center">
+            <img src="/ticketmaster-logo.png" alt="Ticketmaster" className="h-7 w-auto object-contain dark:brightness-0 dark:invert" />
           </Link>
         </div>
 

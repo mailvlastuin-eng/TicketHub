@@ -19,7 +19,7 @@ import { useSettings, getSettings, saveSettings } from "@/lib/settings-store";
 import { updateUserProfileFn } from "../admin/functions";
 
 export const Route = createFileRoute("/my-account")({
-  head: () => ({ meta: [{ title: "My Account — TicketHub" }] }),
+  head: () => ({ meta: [{ title: "My Account — Ticketmaster" }] }),
   component: MyAccountPage,
 });
 

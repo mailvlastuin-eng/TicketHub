@@ -12,7 +12,7 @@ import { useSettings, getSettings } from "@/lib/settings-store";
 import { updateUserProfileFn, checkSessionFn } from "../admin/functions";
 
 export const Route = createFileRoute("/favorites")({
-  head: () => ({ meta: [{ title: "Manager — TicketHub" }] }),
+  head: () => ({ meta: [{ title: "Manager — Ticketmaster" }] }),
   component: FavoritesPage,
 });
 

@@ -19,7 +19,7 @@ import { getGoogleMapsKey } from "@/lib/ticketmaster.functions";
 import { sendTransferEmailFn } from "../admin/functions";
 
 export const Route = createFileRoute("/my-ticket/$id")({
-  head: () => ({ meta: [{ title: "Ticket — TicketHub" }] }),
+  head: () => ({ meta: [{ title: "Ticket — Ticketmaster" }] }),
   component: MyTicketDetail,
   notFoundComponent: () => (
     <div className="min-h-screen flex items-center justify-center">

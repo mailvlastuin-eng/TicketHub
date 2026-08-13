@@ -7,7 +7,7 @@ import { useUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/ticket/$id")({
   head: () => ({
-    meta: [{ title: "Ticket — TicketHub" }],
+    meta: [{ title: "Ticket — Ticketmaster" }],
   }),
   component: TicketDetail,
   notFoundComponent: () => (
