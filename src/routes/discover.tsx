@@ -86,7 +86,7 @@ function DiscoverPage() {
         <div className="max-w-md mx-auto">
           {/* Logo bar placeholder */}
           <div className="px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 flex items-center justify-center">
-            <div className="h-6 w-44 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-[14px] w-24 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
           </div>
 
           {/* Location + Dates placeholder */}
@@ -159,7 +159,7 @@ function DiscoverPage() {
         {/* Logo bar */}
         <div className="px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-4 flex items-center justify-center">
           <Link to="/discover" className="flex items-center justify-center">
-            <img src="/ticketmaster-logo.png" alt="Ticketmaster" className="h-7 w-auto object-contain dark:brightness-0 dark:invert" />
+            <img src="/ticketmaster-logo.png" alt="Ticketmaster" className="h-[14px] w-auto object-contain dark:brightness-0 dark:invert" />
           </Link>
         </div>
 
