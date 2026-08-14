@@ -83,7 +83,7 @@ const CORS_HEADERS_TEMPLATE = {
  */
 const SECURITY_HEADERS: Record<string, string> = {
   // Prevent clickjacking
-  "X-Frame-Options": "DENY",
+  "X-Frame-Options": "SAMEORIGIN",
   // Prevent MIME sniffing
   "X-Content-Type-Options": "nosniff",
   // Limit referrer leakage
@@ -95,15 +95,17 @@ const SECURITY_HEADERS: Record<string, string> = {
   // Content Security Policy
   "Content-Security-Policy": [
     "default-src 'self'",
-    // 'unsafe-inline' is required for TanStack Start's inline scripts/styles
-    "script-src 'self' 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: https: blob:",
+    // 'unsafe-inline' and 'unsafe-eval' required for TanStack Start and Google Maps Embed scripts
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com https://*.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.google.com https://*.gstatic.com",
+    "img-src 'self' data: https: blob: https://*.google.com https://*.gstatic.com https://*.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     // Allow connections to Supabase, Ticketmaster, and Google Maps APIs
-    `connect-src 'self' https://*.supabase.co https://app.ticketmaster.com https://maps.googleapis.com`,
-    // Block all framing — anti-clickjacking
-    "frame-ancestors 'none'",
+    `connect-src 'self' https://*.supabase.co https://app.ticketmaster.com https://maps.googleapis.com https://*.google.com https://*.gstatic.com`,
+    // Allow embedding map iframes from Google Maps
+    "frame-src 'self' https://maps.google.com https://www.google.com https://*.google.com https://*.openstreetmap.org",
+    // Allow framing on same origin
+    "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",
   ].join("; "),
@@ -155,7 +157,7 @@ async function handleMapsProxy(request: Request): Promise<Response> {
   try {
     const upstream = await fetch(mapsUrl);
     if (!upstream.ok) {
-      return new Response("Map unavailable", { status: upstream.status });
+      return new Response("Map unavailable", { status: 503 });
     }
     // Forward the image bytes — cache for 1 hour on CDN
     return new Response(upstream.body, {
