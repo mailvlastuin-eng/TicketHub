@@ -68,7 +68,7 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     const ip = getCallerIp(headers as Record<string, string | string[] | undefined>);
     const deviceInfo = getDeviceString(userAgent);
 
-    // --- Rate limit: 5 attempts per 15 min per IP ---
+    // --- Rate limit: 6 attempts per 2 min, then 9 attempts per 6 min ---
     const rl = checkRateLimit(ip, RATE_LIMITS.login);
     if (!rl.allowed) {
       throw new Error(
