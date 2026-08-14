@@ -22,10 +22,11 @@ import { hashPassword, verifyPassword } from '../lib/crypto';
 function requireEnv(name: string): string {
   const val = process.env[name];
   if (!val) {
-    throw new Error(
-      `Server misconfiguration: ${name} environment variable must be set. ` +
-      `Add it to your Vercel / Cloudflare dashboard and redeploy.`,
+    console.error(
+      `[CRITICAL] Server misconfiguration: ${name} environment variable must be set. ` +
+      `Add it to your Vercel / Cloudflare dashboard and redeploy.`
     );
+    throw new Error('Internal Server Error');
   }
   return val;
 }

@@ -50,9 +50,10 @@ function mapSummary(e: any): TMEventSummary {
 function getTicketmasterKey(): string {
   const key = process.env.TICKETMASTER_API_KEY;
   if (!key) {
-    throw new Error(
-      "Server misconfiguration: TICKETMASTER_API_KEY env var must be set.",
+    console.error(
+      "[CRITICAL] Server misconfiguration: TICKETMASTER_API_KEY env var must be set."
     );
+    throw new Error("Internal Server Error");
   }
   return key;
 }
