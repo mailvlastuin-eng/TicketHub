@@ -29,23 +29,37 @@ export interface DbSchema {
   attempts: LoginAttempt[];
 }
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzrtttgdpcunckuuobmu.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6cnR0dGdkcGN1bmNrdXVvYm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MjcxODEsImV4cCI6MjEwMDUwMzE4MX0.7Km-pRohbCcUB83PuTmCDsBRj4xAJmEnnbwpqaMD6V0';
+// SECURITY: credentials must be set as environment variables — never hard-coded.
+// Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your Vercel / Cloudflare dashboard.
+function getSupabaseCredentials(): { url: string; key: string } {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      'Server misconfiguration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars must be set.',
+    );
+  }
+  return { url, key };
+}
 
 async function supabaseFetch(path: string, options: RequestInit = {}) {
+  const { url, key } = getSupabaseCredentials();
   const headers = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'apikey': key,
+    'Authorization': `Bearer ${key}`,
     'Content-Type': 'application/json',
     ...options.headers
   };
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  const res = await fetch(`${url}/rest/v1/${path}`, {
     ...options,
     headers
   });
   if (!res.ok) {
+    // Do NOT include the raw response body in errors returned to callers —
+    // it may contain DB schema details. Log server-side only.
     const text = await res.text();
-    throw new Error(`Supabase request failed: ${res.status} ${res.statusText} - ${text}`);
+    console.error(`Supabase error [${res.status}]:`, text);
+    throw new Error(`Database request failed (${res.status}).`);
   }
   return res;
 }
@@ -89,22 +103,8 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
   return undefined;
 }
 
-export async function getUserByPassword(password: string): Promise<UserAccess | undefined> {
-  try {
-    const res = await supabaseFetch(`users?password=eq.${password}`);
-    const data = await res.json();
-    if (data.length > 0) {
-      return {
-        ...data[0],
-        loginMode: data[0].loginMode || 'single'
-      };
-    }
-  } catch (err) {
-    console.error('Failed to get user by password from Supabase:', err);
-    throw err;
-  }
-  return undefined;
-}
+// getUserByPassword removed — querying the database by a raw password value
+// is a security antipattern and was not used by any handler.
 
 export async function saveUser(user: UserAccess) {
   try {

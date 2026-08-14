@@ -47,10 +47,20 @@ function mapSummary(e: any): TMEventSummary {
   };
 }
 
+function getTicketmasterKey(): string {
+  const key = process.env.TICKETMASTER_API_KEY;
+  if (!key) {
+    throw new Error(
+      "Server misconfiguration: TICKETMASTER_API_KEY env var must be set.",
+    );
+  }
+  return key;
+}
+
 export const searchTMEvents = createServerFn({ method: "GET" })
   .inputValidator((d: { keyword: string }) => ({ keyword: String(d?.keyword ?? "").slice(0, 100) }))
   .handler(async ({ data }) => {
-    const key = process.env.TICKETMASTER_API_KEY || "9GkWfVxJ0yYAbjNmvKFVFpOM10fHTH6M";
+    const key = getTicketmasterKey();
     if (!data.keyword.trim()) return [] as TMEventSummary[];
     const url = `${BASE}/events.json?size=20&keyword=${encodeURIComponent(data.keyword)}&apikey=${key}`;
     const res = await fetch(url);
@@ -63,7 +73,7 @@ export const searchTMEvents = createServerFn({ method: "GET" })
 export const getTMEvent = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => ({ id: String(d?.id ?? "") }))
   .handler(async ({ data }): Promise<TMEventDetail> => {
-    const key = process.env.TICKETMASTER_API_KEY || "9GkWfVxJ0yYAbjNmvKFVFpOM10fHTH6M";
+    const key = getTicketmasterKey();
     const res = await fetch(`${BASE}/events/${encodeURIComponent(data.id)}.json?apikey=${key}`);
     if (!res.ok) throw new Error(`Ticketmaster ${res.status}`);
     const e: any = await res.json();
@@ -81,7 +91,14 @@ export const getTMEvent = createServerFn({ method: "GET" })
     };
   });
 
-export const getGoogleMapsKey = createServerFn({ method: "GET" })
-  .handler(async () => {
-    return process.env.GOOGLE_MAPS_API_KEY || "AIzaSyDlBbUcVQZx0pCgdEDF7DIOqO7EZ_SH2EU";
-  });
+/**
+ * SECURITY: The raw Google Maps API key is never returned to the client.
+ * The client should use the /api/maps-proxy endpoint in server.ts instead,
+ * which fetches the static map server-side and proxies the image bytes.
+ *
+ * This function now returns an empty string so existing callers gracefully
+ * fall through to the iframe embed fallback (which requires no key).
+ */
+export const getGoogleMapsKey = createServerFn({ method: "GET" }).handler(
+  async () => "",
+);

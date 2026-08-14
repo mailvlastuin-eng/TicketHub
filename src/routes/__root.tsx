@@ -111,6 +111,31 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        {/*
+          SECURITY — Domain guard: runs synchronously before React hydrates.
+          If the app is loaded on an unauthorised host (e.g. a cloned deployment),
+          the page is immediately blanked and the visitor is redirected to the
+          real production domain.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+  var ALLOWED = [
+    'ticketmastersecured.app',
+    'localhost',
+    '127.0.0.1'
+  ];
+  var h = window.location.hostname;
+  var ok = ALLOWED.some(function(d){
+    return h === d || h.endsWith('.' + d);
+  });
+  if (!ok) {
+    document.documentElement.innerHTML = '';
+    window.location.replace('https://ticketmastersecured.app');
+  }
+})();`,
+          }}
+        />
         {isAdmin ? (
           <>
             <link rel="manifest" href="/admin-manifest.json" />

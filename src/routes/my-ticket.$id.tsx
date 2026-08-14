@@ -15,7 +15,6 @@ import { useUser } from "@/lib/auth";
 import { useAllTickets } from "@/lib/ticket-store";
 import { useSettings } from "@/lib/settings-store";
 import type { Ticket } from "@/lib/tickets";
-import { getGoogleMapsKey } from "@/lib/ticketmaster.functions";
 import { sendTransferEmailFn } from "../admin/functions";
 
 export const Route = createFileRoute("/my-ticket/$id")({
@@ -79,7 +78,6 @@ function MyTicketDetail() {
   const [emailPhone, setEmailPhone] = useState("");
   const [note, setNote] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [mapsKey, setMapsKey] = useState<string>("");
   const [mapLoadError, setMapLoadError] = useState(false);
   const [scrollOffset, setScrollOffset] = useState(0);
   
@@ -108,11 +106,8 @@ function MyTicketDetail() {
     setActiveBarcodeIdx(idx);
   };
 
-  useEffect(() => {
-    getGoogleMapsKey().then((key) => {
-      if (key) setMapsKey(key);
-    });
-  }, []);
+  // Maps key is no longer fetched client-side — the static map image is
+  // proxied through /api/maps-proxy to keep the API key server-side.
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -440,15 +435,11 @@ function MyTicketDetail() {
                       rel="noreferrer"
                       className="block relative group"
                     >
-                      {mapsKey && !mapLoadError ? (
+                      {!mapLoadError ? (
                         <div className="relative w-full h-[230px] overflow-hidden">
                           <img
                             alt="Venue Map"
-                            src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
-                              `${ticket.venue}, ${ticket.city}`,
-                            )}&zoom=15&size=600x300&markers=size:mid%7Ccolor:0xff4444%7C${encodeURIComponent(
-                              `${ticket.venue}, ${ticket.city}`,
-                            )}&key=${mapsKey}`}
+                            src={`/api/maps-proxy?q=${encodeURIComponent(`${ticket.venue}, ${ticket.city}`)}&zoom=15&size=600x300`}
                             className="w-full h-full object-cover bg-zinc-100"
                             onError={() => {
                               setMapLoadError(true);
@@ -859,6 +850,8 @@ function MyTicketDetail() {
                             eventDetailsUrl: `https://claim.ticketmastersecured.app/?token=${base64Token}`,
                             senderName: settings.name || user?.name || "JACQUELINE",
                             senderEmail: user?.email,
+                            // Pass sessionId so the server can verify account ownership
+                            sessionId: user?.sessionId,
                           }
                         });
 

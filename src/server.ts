@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { checkRateLimit, RATE_LIMITS } from "./lib/rate-limiter";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -44,127 +45,296 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Security configuration
+// ---------------------------------------------------------------------------
+const PRODUCTION_DOMAIN = "ticketmastersecured.app";
+
+/**
+ * Origins explicitly allowed for cross-origin requests to /api/accept-transfer.
+ * The ticket-claim page is served from a subdomain; the main app is on the root domain.
+ */
+const ALLOWED_CORS_ORIGINS = [
+  `https://${PRODUCTION_DOMAIN}`,
+  `https://claim.${PRODUCTION_DOMAIN}`,
+  // Allow local dev origins
+  "http://localhost:8080",
+  "http://localhost:8081",
+  "http://localhost:3000",
+  "http://localhost:3001",
+];
+
+function getCorsOrigin(requestOrigin: string | null): string {
+  if (!requestOrigin) return `https://${PRODUCTION_DOMAIN}`;
+  return ALLOWED_CORS_ORIGINS.includes(requestOrigin)
+    ? requestOrigin
+    : `https://${PRODUCTION_DOMAIN}`;
+}
+
+const CORS_HEADERS_TEMPLATE = {
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Vary": "Origin",
+};
+
+/**
+ * Security headers applied to EVERY response.
+ * Equivalent of Helmet.js for Cloudflare Workers / Nitro.
+ */
+const SECURITY_HEADERS: Record<string, string> = {
+  // Prevent clickjacking
+  "X-Frame-Options": "DENY",
+  // Prevent MIME sniffing
+  "X-Content-Type-Options": "nosniff",
+  // Limit referrer leakage
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  // Disable unused browser features
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  // Force HTTPS for 1 year (only effective on HTTPS origins)
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  // Content Security Policy
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    // 'unsafe-inline' is required for TanStack Start's inline scripts/styles
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' https://fonts.gstatic.com",
+    // Allow connections to Supabase, Ticketmaster, and Google Maps APIs
+    `connect-src 'self' https://*.supabase.co https://app.ticketmaster.com https://maps.googleapis.com`,
+    // Block all framing — anti-clickjacking
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+  ].join("; "),
+};
+
+/**
+ * Clone a Response and inject the global security headers.
+ * Preserves all existing headers from the original response.
+ */
+function withSecurityHeaders(response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    headers.set(name, value);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Google Static Maps proxy
+// The raw API key never leaves the server. The client uses /api/maps-proxy.
+// ---------------------------------------------------------------------------
+async function handleMapsProxy(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const q = url.searchParams.get("q") ?? "";
+  const zoom = url.searchParams.get("zoom") ?? "15";
+  const size = url.searchParams.get("size") ?? "600x300";
+
+  if (!q) {
+    return new Response("Missing query", { status: 400 });
+  }
+
+  const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!mapsKey) {
+    // Fall through gracefully — client shows iframe fallback
+    return new Response("Maps key not configured", { status: 503 });
+  }
+
+  const encoded = encodeURIComponent(q);
+  const mapsUrl =
+    `https://maps.googleapis.com/maps/api/staticmap` +
+    `?center=${encoded}&zoom=${zoom}&size=${size}` +
+    `&markers=size:mid%7Ccolor:0xff4444%7C${encoded}` +
+    `&key=${mapsKey}`;
+
+  try {
+    const upstream = await fetch(mapsUrl);
+    if (!upstream.ok) {
+      return new Response("Map unavailable", { status: upstream.status });
+    }
+    // Forward the image bytes — cache for 1 hour on CDN
+    return new Response(upstream.body, {
+      status: 200,
+      headers: {
+        "Content-Type": upstream.headers.get("Content-Type") ?? "image/png",
+        "Cache-Control": "public, max-age=3600, s-maxage=3600",
+      },
+    });
+  } catch (err) {
+    console.error("Maps proxy error:", err);
+    return new Response("Map unavailable", { status: 503 });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// /api/accept-transfer handler
+// ---------------------------------------------------------------------------
 import { sendEmail, compileAcceptanceEmailHtml, compileBuyerAcceptanceEmailHtml } from "./admin/email";
 import { getUserByEmail, saveUser } from "./admin/db";
 
+async function handleAcceptTransfer(request: Request): Promise<Response> {
+  const requestOrigin = request.headers.get("origin");
+  const allowOrigin = getCorsOrigin(requestOrigin);
+
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowOrigin,
+    ...CORS_HEADERS_TEMPLATE,
+  };
+
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+  }
+
+  // Rate limit: 10 accept-transfer requests per hour per IP
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    request.headers.get("x-real-ip") ??
+    "127.0.0.1";
+
+  const rl = checkRateLimit(ip, RATE_LIMITS.acceptTransfer);
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Too many requests. Try again later." }),
+      {
+        status: 429,
+        headers: {
+          "content-type": "application/json",
+          "Retry-After": String(rl.retryAfter),
+          ...corsHeaders,
+        },
+      },
+    );
+  }
+
+  try {
+    const data = await request.json();
+
+    if (data.senderEmail && data.ticketId && data.seats && Array.isArray(data.seats)) {
+      try {
+        const user = await getUserByEmail(data.senderEmail);
+        if (user) {
+          let transfersCount = 0;
+          let deviceName = "Unknown Device";
+          let acceptedTransfers: any[] = [];
+
+          if (user.deviceInfo) {
+            if (user.deviceInfo.trim().startsWith("{")) {
+              try {
+                const parsed = JSON.parse(user.deviceInfo);
+                deviceName = parsed.device || "Unknown Device";
+                transfersCount =
+                  typeof parsed.transfersCount === "number" ? parsed.transfersCount : 0;
+                acceptedTransfers = Array.isArray(parsed.acceptedTransfers)
+                  ? parsed.acceptedTransfers
+                  : [];
+              } catch (e) {}
+            } else {
+              deviceName = user.deviceInfo;
+            }
+          }
+
+          data.seats.forEach((seatNum: any) => {
+            const seatStr = String(seatNum);
+            const existing = acceptedTransfers.find((t: any) => t.ticketId === data.ticketId);
+            if (existing) {
+              if (!existing.seats.includes(seatStr)) {
+                existing.seats.push(seatStr);
+              }
+            } else {
+              acceptedTransfers.push({
+                ticketId: data.ticketId,
+                seats: [seatStr],
+                buyerName: data.buyerName,
+                acceptedAt: new Date().toISOString(),
+              });
+            }
+          });
+
+          user.deviceInfo = JSON.stringify({
+            device: deviceName,
+            transfersCount,
+            acceptedTransfers,
+          });
+          await saveUser(user);
+        }
+      } catch (dbErr) {
+        console.error("Database update error during accept-transfer:", dbErr);
+      }
+    }
+
+    if (data.senderEmail) {
+      const html = compileAcceptanceEmailHtml(data);
+      await sendEmail({
+        to: data.senderEmail,
+        subject: `Ticket Transfer Accepted: Your tickets were accepted by ${data.buyerName}`,
+        html,
+      });
+    }
+    if (data.buyerEmail) {
+      const buyerHtml = compileBuyerAcceptanceEmailHtml(data);
+      await sendEmail({
+        to: data.buyerEmail,
+        subject: `Success! You've accepted the ticket transfer.`,
+        html: buyerHtml,
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "content-type": "application/json", ...corsHeaders },
+    });
+  } catch (err: any) {
+    // SECURITY: do not leak internal error details to the client
+    console.error("Acceptance error:", err);
+    return new Response(JSON.stringify({ success: false, error: "Transfer could not be processed." }), {
+      status: 500,
+      headers: { "content-type": "application/json", ...corsHeaders },
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main fetch handler
+// ---------------------------------------------------------------------------
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const url = new URL(request.url);
-      if (url.pathname === '/api/accept-transfer') {
-        if (request.method === 'OPTIONS') {
-          return new Response(null, {
-            status: 204,
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'POST, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type'
-            }
-          });
-        }
-        if (request.method === 'POST') {
-          try {
-            const data = await request.json();
-            
-            if (data.senderEmail && data.ticketId && data.seats && Array.isArray(data.seats)) {
-              try {
-                const user = await getUserByEmail(data.senderEmail);
-                if (user) {
-                  let transfersCount = 0;
-                  let deviceName = 'Unknown Device';
-                  let acceptedTransfers = [];
-                  
-                  if (user.deviceInfo) {
-                    if (user.deviceInfo.trim().startsWith('{')) {
-                      try {
-                        const parsed = JSON.parse(user.deviceInfo);
-                        deviceName = parsed.device || 'Unknown Device';
-                        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
-                        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
-                      } catch (e) {}
-                    } else {
-                      deviceName = user.deviceInfo;
-                    }
-                  }
-                  
-                  data.seats.forEach((seatNum: any) => {
-                    const seatStr = String(seatNum);
-                    const existing = acceptedTransfers.find((t: any) => t.ticketId === data.ticketId);
-                    if (existing) {
-                      if (!existing.seats.includes(seatStr)) {
-                        existing.seats.push(seatStr);
-                      }
-                    } else {
-                      acceptedTransfers.push({
-                        ticketId: data.ticketId,
-                        seats: [seatStr],
-                        buyerName: data.buyerName,
-                        acceptedAt: new Date().toISOString()
-                      });
-                    }
-                  });
-                  
-                  user.deviceInfo = JSON.stringify({
-                    device: deviceName,
-                    transfersCount,
-                    acceptedTransfers
-                  });
-                  await saveUser(user);
-                }
-              } catch (dbErr) {
-                console.error("Database update error during accept-transfer:", dbErr);
-              }
-            }
 
-            if (data.senderEmail) {
-              const html = compileAcceptanceEmailHtml(data);
-              await sendEmail({
-                to: data.senderEmail,
-                subject: `Ticket Transfer Accepted: Your tickets were accepted by ${data.buyerName}`,
-                html,
-              });
-            }
-            if (data.buyerEmail) {
-              const buyerHtml = compileBuyerAcceptanceEmailHtml(data);
-              await sendEmail({
-                to: data.buyerEmail,
-                subject: `Success! You've accepted the ticket transfer.`,
-                html: buyerHtml,
-              });
-            }
-            return new Response(JSON.stringify({ success: true }), {
-              status: 200,
-              headers: {
-                'content-type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
-              }
-            });
-          } catch (err: any) {
-            console.error('Acceptance email error:', err);
-            return new Response(JSON.stringify({ success: false, error: err.message }), {
-              status: 500,
-              headers: {
-                'content-type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type'
-              }
-            });
-          }
-        }
+      // Route: Google Maps image proxy (key never leaves the server)
+      if (url.pathname === "/api/maps-proxy") {
+        const res = await handleMapsProxy(request);
+        return withSecurityHeaders(res);
       }
 
+      // Route: ticket transfer acceptance (called from the claim page)
+      if (url.pathname === "/api/accept-transfer") {
+        const res = await handleAcceptTransfer(request);
+        return withSecurityHeaders(res);
+      }
+
+      // All other routes — TanStack Start SSR handler
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      return withSecurityHeaders(normalized);
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      return withSecurityHeaders(
+        new Response(renderErrorPage(), {
+          status: 500,
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+      );
     }
   },
 };
