@@ -130,16 +130,18 @@ export function AdminDashboardApp() {
   const [editingTransfers, setEditingTransfers] = useState<Record<string, number>>({});
   const [savingTransfers, setSavingTransfers] = useState<Record<string, boolean>>({});
 
-  // 1. Authenticate on mount if token exists in session
+  // 1. Authenticate on mount if token exists in persistent storage or session
   useEffect(() => {
-    const savedPass = sessionStorage.getItem('tm_admin_token');
+    const savedPass = localStorage.getItem('tm_admin_token') || sessionStorage.getItem('tm_admin_token');
     if (savedPass) {
       adminLoginFn({ data: { adminPass: savedPass } })
         .then(() => {
           setAdminPass(savedPass);
           setIsAdmin(true);
+          localStorage.setItem('tm_admin_token', savedPass);
         })
         .catch(() => {
+          localStorage.removeItem('tm_admin_token');
           sessionStorage.removeItem('tm_admin_token');
         })
         .finally(() => {
@@ -197,6 +199,7 @@ export function AdminDashboardApp() {
     setLoggingIn(true);
     try {
       await adminLoginFn({ data: { adminPass } });
+      localStorage.setItem('tm_admin_token', adminPass);
       sessionStorage.setItem('tm_admin_token', adminPass);
       setIsAdmin(true);
       toast.success('Successfully authenticated as Admin');
@@ -209,6 +212,7 @@ export function AdminDashboardApp() {
 
   // Sign out
   const handleSignOut = () => {
+    localStorage.removeItem('tm_admin_token');
     sessionStorage.removeItem('tm_admin_token');
     setAdminPass('');
     setIsAdmin(false);
