@@ -122,6 +122,8 @@ function RootShell({ children }: { children: ReactNode }) {
             __html: `(function(){
   var ALLOWED = [
     'ticketmastersecured.app',
+    'ticket-hub-o68j.vercel.app',
+    'ticket-hub-virid.vercel.app',
     'localhost',
     '127.0.0.1'
   ];
