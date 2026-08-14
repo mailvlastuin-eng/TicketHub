@@ -435,35 +435,19 @@ function MyTicketDetail() {
                       rel="noreferrer"
                       className="block relative group"
                     >
-                      {!mapLoadError ? (
-                        <div className="relative w-full h-[230px] overflow-hidden">
-                          <img
-                            alt="Venue Map"
-                            src={`/api/maps-proxy?q=${encodeURIComponent(`${ticket.venue}, ${ticket.city}`)}&zoom=15&size=600x300`}
-                            className="w-full h-full object-cover bg-zinc-100"
-                            onError={() => {
-                              setMapLoadError(true);
-                            }}
-                          />
-                          <div className="absolute top-3 left-4 text-white text-[19px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] [text-shadow:0_2px_4px_rgba(0,0,0,0.85)]">
-                            {ticket.venue}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="relative w-full h-[230px] overflow-hidden">
-                          <iframe
-                            title="Venue Map"
-                            width="100%"
-                            height="230"
-                            style={{ border: 0 }}
-                            loading="lazy"
-                            src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                              `${ticket.venue}, ${ticket.city}`,
-                            )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                            className="w-full h-full bg-zinc-100 pointer-events-none select-none"
-                          />
-                        </div>
-                      )}
+                      <div className="relative w-full h-[230px] overflow-hidden">
+                        <iframe
+                          title="Venue Map"
+                          width="100%"
+                          height="230"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                            `${ticket.venue}, ${ticket.city}`,
+                          )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                          className="w-full h-full bg-zinc-100 pointer-events-none select-none"
+                        />
+                      </div>
                     </a>
                   )}
                   <a
