@@ -13,4 +13,8 @@ export default defineConfig({
     server: { entry: "server" },
   },
   nitro: true,
+  // SECURITY: never emit source maps in production — they expose minified source.
+  vite: {
+    build: { sourcemap: false },
+  },
 });
