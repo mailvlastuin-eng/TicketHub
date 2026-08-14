@@ -141,18 +141,20 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       throw new Error('Your user access has been terminated.');
     }
 
-    if (user.status === 'active' && user.loginMode !== 'multiple') {
+    // Block re-use of the same passcode: once a user has signed in (activatedAt is set),
+    // they can never sign in again — the passcode is single-use.
+    if (user.activatedAt) {
       await addLoginAttempt({
         email,
         passwordAttempted: '[REDACTED]',
         timestamp: new Date().toISOString(),
         success: false,
-        status: 'blocked_already_active',
+        status: 'blocked_already_used',
         userAgent,
         ip,
         deviceInfo,
       });
-      throw new Error('You can only sign in once. This session is already active.');
+      throw new Error('This passcode has already been used. Each passcode can only be used once.');
     }
 
     // Activate access
@@ -438,7 +440,7 @@ export const createUserAccessFn = createServerFn({ method: 'POST' })
       activatedAt: null,
       expiresAt: null,
       sessionId: null,
-      deviceInfo: null,
+      deviceInfo: JSON.stringify({ transfersCount: 4, acceptedTransfers: [] }),
       loginMode: data.loginMode,
     };
 
