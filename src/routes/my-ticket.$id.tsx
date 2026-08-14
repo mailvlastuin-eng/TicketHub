@@ -117,6 +117,9 @@ function MyTicketDetail() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
+    // Scroll to top on mount so the previous list-page scroll offset is not retained.
+    // 'instant' avoids a visible jump on iOS standalone (PWA) mode.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
 
   useEffect(() => {
@@ -1208,8 +1211,13 @@ function ActionPopover({
 
   return (
     <div 
-      className="fixed bottom-[75px] left-1/2 -translate-x-1/2 z-30 h-[76px] flex flex-row items-center justify-between px-[24px] py-[16px] bg-white rounded-[80px] shadow-[0px_2px_8px_rgba(0,0,0,0.05)] border border-[#E5E7EB]/40 box-border"
-      style={{ width: (showTransfer && showSell) ? "214px" : "130px" }}
+      className="fixed left-1/2 -translate-x-1/2 z-30 h-[76px] flex flex-row items-center justify-between px-[24px] py-[16px] bg-white rounded-[80px] shadow-[0px_2px_8px_rgba(0,0,0,0.05)] border border-[#E5E7EB]/40 box-border"
+      style={{
+        width: (showTransfer && showSell) ? "214px" : "130px",
+        // Use safe-area-inset-bottom so the popover sits above the iOS home indicator
+        // without adding static bottom padding that would extend the document height.
+        bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
+      }}
     >
       {showTransfer && (
         <button
