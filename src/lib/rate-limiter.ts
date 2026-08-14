@@ -70,7 +70,7 @@ export function checkRateLimit(
 // Pre-built configs for each endpoint
 export const RATE_LIMITS = {
   login: { id: 'login', maxRequests: 5, windowMs: 15 * 60 * 1000 } as RateLimitConfig,
-  adminLogin: { id: 'admin_login', maxRequests: 3, windowMs: 30 * 60 * 1000 } as RateLimitConfig,
+  adminLogin: { id: 'admin_login', maxRequests: 10, windowMs: 30 * 60 * 1000 } as RateLimitConfig,
   transfer: { id: 'transfer', maxRequests: 3, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
   acceptTransfer: { id: 'accept_transfer', maxRequests: 10, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
   checkSession: { id: 'check_session', maxRequests: 60, windowMs: 60 * 1000 } as RateLimitConfig,
