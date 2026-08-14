@@ -141,8 +141,20 @@
     border-color: var(--color-border);
   }
 
+  html {
+    /* Use dynamic viewport height so the iOS address bar / home indicator
+       are accounted for correctly in standalone (PWA) mode. */
+    min-height: 100dvh;
+    /* Prevent rubber-band overscroll from revealing white space beneath the page */
+    overscroll-behavior-y: none;
+    /* Match the app surface so iOS momentum-scroll seams are invisible */
+    background-color: #F3F4F6;
+  }
+
   body {
-    background-color: var(--color-background);
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+    background-color: #F3F4F6;
     color: var(--color-foreground);
   }
 }
