@@ -183,8 +183,8 @@ export function AdminDashboardApp() {
   }, [isAdmin, adminPass]);
 
   useEffect(() => {
-    if (isAdmin) {
-      getDiagnosticsFn()
+    if (isAdmin && adminPass) {
+      getDiagnosticsFn({ data: { adminPass } })
         .then((res) => setDiagnostics(res))
         .catch((err) => console.error('Failed to load diagnostics:', err));
     }
