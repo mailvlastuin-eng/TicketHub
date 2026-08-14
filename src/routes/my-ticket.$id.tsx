@@ -60,12 +60,6 @@ function MyTicketDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { user, ready } = useUser();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
   const { settings } = useSettings();
   const all = useAllTickets();
   const ticket = all.find((t) => t.id === id);
@@ -189,49 +183,6 @@ function MyTicketDetail() {
 
   if (!ready || !user) return null;
 
-  if (loading) {
-    return (
-      <main className="h-[100dvh] w-full overflow-hidden bg-zinc-950 relative">
-        <div className="max-w-md mx-auto h-[100dvh] relative bg-[#F3F4F6] select-none overflow-hidden">
-          {/* Header Placeholder */}
-          <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3">
-            <div className="h-8 w-8 bg-zinc-700/50 rounded-full animate-pulse" />
-            <div className="h-8 w-16 bg-zinc-700/50 rounded-full animate-pulse" />
-          </div>
-
-          {/* Fixed Background Image and Title placeholder */}
-          <div className="absolute top-0 left-0 w-full z-0 flex flex-col bg-[#F3F4F6]">
-            <div className="w-full aspect-[16/10] bg-zinc-800 animate-pulse" />
-            <div className="bg-[#111] p-4 pb-6 space-y-4">
-              <div className="h-6 w-3/4 bg-zinc-700 rounded animate-pulse" />
-              <div className="h-4 w-1/2 bg-zinc-700 rounded-md animate-pulse" />
-              <div className="h-10 w-full bg-zinc-800 rounded animate-pulse" />
-            </div>
-          </div>
-
-          {/* Overlay Scroll Container (Visual placeholder of the sheet) */}
-          <div className="absolute top-[380px] left-0 right-0 bottom-0 bg-white rounded-t-[16px] shadow-2xl p-4 space-y-6 z-10">
-            {/* Tabs placeholder */}
-            <div className="grid grid-cols-2 border-b border-zinc-200 pb-3">
-              <div className="h-4 w-20 bg-zinc-200 rounded animate-pulse mx-auto" />
-              <div className="h-4 w-20 bg-zinc-200 rounded animate-pulse mx-auto" />
-            </div>
-
-            {/* Content card placeholder */}
-            <div className="space-y-4">
-              <div className="h-5 w-40 bg-zinc-200 rounded animate-pulse" />
-              <div className="h-3 w-20 bg-zinc-200 rounded animate-pulse" />
-              <div className="border border-zinc-200 rounded-lg p-4 space-y-3">
-                <div className="h-4 w-32 bg-zinc-200 rounded animate-pulse" />
-                <div className="h-8 w-full bg-zinc-100 rounded animate-pulse" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   if (!ticket) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -261,7 +212,7 @@ function MyTicketDetail() {
         }
       `}</style>
 
-      <div className="max-w-md mx-auto h-[100dvh] relative bg-[#F3F4F6] select-none overflow-hidden">
+      <div className="max-w-md mx-auto h-[100dvh] relative bg-white select-none overflow-hidden">
         {/* Sticky Top Header (Back/Help buttons & title) */}
         <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 text-white overflow-hidden pointer-events-none">
           {/* Header background image slice that covers the scrolling text */}
@@ -344,7 +295,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Title and details block */}
-          <div className="flex flex-col w-full bg-[#F3F4F6] shrink-0">
+          <div className="flex flex-col w-full bg-[#111] shrink-0">
             {/* Title block */}
             <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative h-[100px] box-border">
               <div className="flex-1 min-w-0">
@@ -379,7 +330,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
+          <div className="bg-white w-full flex flex-col min-h-[calc(100dvh-152px)] pb-40 relative z-10">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
@@ -853,7 +804,7 @@ function MyTicketDetail() {
                             ticketImage: absoluteImage,
                             seatDetails,
                             quantity: selectedSeats.length,
-                            eventDetailsUrl: `https://ticket-claim.vercel.app/?token=${base64Token}`,
+                            eventDetailsUrl: `https://claim.ticketmastersecured.app/?token=${base64Token}`,
                             senderName: settings.name || user?.name || "JACQUELINE",
                             senderEmail: user?.email,
                           }
