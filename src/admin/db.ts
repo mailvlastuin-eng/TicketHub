@@ -35,9 +35,10 @@ function getSupabaseCredentials(): { url: string; key: string } {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
   if (!url || !key) {
-    throw new Error(
-      'Server misconfiguration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars must be set.',
+    console.error(
+      '[CRITICAL] Server misconfiguration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars must be set.'
     );
+    throw new Error('Internal Server Error');
   }
   return { url, key };
 }
