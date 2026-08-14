@@ -72,7 +72,7 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     const rl = checkRateLimit(ip, RATE_LIMITS.login);
     if (!rl.allowed) {
       throw new Error(
-        `Too many login attempts. Please wait ${rl.retryAfter} seconds before trying again.`,
+        `Too many login attempts. Please wait ${Math.ceil(rl.retryAfter! / 60)} minutes before trying again.`,
       );
     }
 
@@ -309,7 +309,7 @@ export const adminLoginFn = createServerFn({ method: 'POST' })
     // Rate limit: 3 attempts per 30 min per IP
     const rl = checkRateLimit(ip, RATE_LIMITS.adminLogin);
     if (!rl.allowed) {
-      throw new Error(`Too many admin login attempts. Try again in ${rl.retryAfter} seconds.`);
+      throw new Error(`Too many admin login attempts. Try again in ${Math.ceil(rl.retryAfter! / 60)} minutes.`);
     }
 
     const correctPassword = getAdminPassword();
@@ -544,7 +544,7 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
     // Rate limit: 3 transfers per hour per IP
     const rl = checkRateLimit(ip, RATE_LIMITS.transfer);
     if (!rl.allowed) {
-      throw new Error(`Transfer limit reached. Please wait ${rl.retryAfter} seconds.`);
+      throw new Error(`Transfer limit reached. Please wait ${Math.ceil(rl.retryAfter! / 60)} minutes.`);
     }
 
     if (data.senderEmail) {
