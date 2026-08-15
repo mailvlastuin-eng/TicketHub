@@ -141,9 +141,9 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       throw new Error('Your user access has been terminated.');
     }
 
-    // Block re-use of the same passcode: once a user has signed in (activatedAt is set),
-    // they can never sign in again — the passcode is single-use.
-    if (user.activatedAt) {
+    // Block re-use of the same passcode for single-mode users only.
+    // Multiple-mode users may sign in any number of times across devices.
+    if (user.activatedAt && user.loginMode !== 'multiple') {
       await addLoginAttempt({
         email,
         passwordAttempted: '[REDACTED]',
@@ -668,4 +668,46 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
 
     await saveUser(user);
     return { success: true, transfersCount: data.transfersCount };
+  });
+
+// ---------------------------------------------------------------------------
+// 13. Renew User Duration (admin-gated)
+// Extends the user's access by resetting expiresAt from now.
+// Works for active, expired, and terminated users.
+// ---------------------------------------------------------------------------
+export const renewUserDurationFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { adminPass: string; userId: string; duration: '1m' | '3m' | '6m' | '1y' }) => ({
+      adminPass: String(d?.adminPass ?? '').trim(),
+      userId: String(d?.userId ?? '').trim(),
+      duration: d?.duration || '1m',
+    }),
+  )
+  .handler(async ({ data }) => {
+    const correctPassword = getAdminPassword();
+    if (data.adminPass !== correctPassword) {
+      throw new Error('Unauthorized access');
+    }
+
+    const users = await getAllUsers();
+    const user = users.find((u) => u.id === data.userId);
+    if (!user) throw new Error('User not found');
+
+    let durationDays = 30;
+    if (data.duration === '3m') durationDays = 90;
+    if (data.duration === '6m') durationDays = 180;
+    if (data.duration === '1y') durationDays = 360;
+
+    const now = new Date();
+    const newExpiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+
+    user.duration = data.duration;
+    user.expiresAt = newExpiresAt;
+    // If user was expired or terminated, reactivate them
+    if (user.status === 'expired' || user.status === 'terminated') {
+      user.status = user.activatedAt ? 'active' : 'pending';
+    }
+
+    await saveUser(user);
+    return { success: true, expiresAt: newExpiresAt };
   });
