@@ -16,6 +16,7 @@ import { useAllTickets } from "@/lib/ticket-store";
 import { useSettings } from "@/lib/settings-store";
 import type { Ticket } from "@/lib/tickets";
 import { sendTransferEmailFn } from "../admin/functions";
+import { CachedMap } from "@/components/CachedMap";
 
 export const Route = createFileRoute("/my-ticket/$id")({
   head: () => ({ meta: [{ title: "Ticket — Ticketmaster" }] }),
@@ -436,17 +437,7 @@ function MyTicketDetail() {
                       className="block relative group"
                     >
                       <div className="relative w-full h-[230px] overflow-hidden">
-                        <iframe
-                          title="Venue Map"
-                          width="100%"
-                          height="230"
-                          style={{ border: 0 }}
-                          loading="lazy"
-                          src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                            `${ticket.venue}, ${ticket.city}`,
-                          )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                          className="w-full h-full bg-zinc-100 pointer-events-none select-none"
-                        />
+                        <CachedMap venue={ticket.venue} city={ticket.city} />
                       </div>
                     </a>
                   )}

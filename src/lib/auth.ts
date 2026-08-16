@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { checkSessionFn } from "../admin/functions";
+import { getCustomTickets } from "./ticket-store";
 
 const KEY = "tm_user";
 
@@ -10,6 +11,8 @@ export type SessionUser = {
   loginMode?: 'single' | 'multiple';
   transfersCount?: number;
   acceptedTransfers?: { ticketId: string; seats: string[]; buyerName: string; acceptedAt?: string }[];
+  ticketSlots?: number;
+  ticketsCreatedCount?: number;
 };
 
 export function getUser(): SessionUser | null {
@@ -45,6 +48,7 @@ export function useUser() {
         data: {
           email: initialUser.email,
           sessionId: initialUser.sessionId,
+          ticketsCount: getCustomTickets().length,
         },
       })
         .then((res: any) => {
@@ -53,12 +57,16 @@ export function useUser() {
           } else {
             const countChanged = typeof res.transfersCount === 'number' && initialUser.transfersCount !== res.transfersCount;
             const acceptedChanged = res.acceptedTransfers && JSON.stringify(initialUser.acceptedTransfers) !== JSON.stringify(res.acceptedTransfers);
+            const slotsChanged = typeof res.ticketSlots === 'number' && initialUser.ticketSlots !== res.ticketSlots;
+            const createdChanged = typeof res.ticketsCreatedCount === 'number' && initialUser.ticketsCreatedCount !== res.ticketsCreatedCount;
             
-            if (countChanged || acceptedChanged) {
+            if (countChanged || acceptedChanged || slotsChanged || createdChanged) {
               const latestUser = {
                 ...initialUser,
                 transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : initialUser.transfersCount,
-                acceptedTransfers: res.acceptedTransfers || initialUser.acceptedTransfers || []
+                acceptedTransfers: res.acceptedTransfers || initialUser.acceptedTransfers || [],
+                ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : initialUser.ticketSlots,
+                ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : initialUser.ticketsCreatedCount,
               };
               window.localStorage.setItem(KEY, JSON.stringify(latestUser));
               setUser(latestUser);
@@ -79,5 +87,44 @@ export function useUser() {
       window.removeEventListener("storage", onChange);
     };
   }, []);
+
+  // Listen to ticket updates (created/deleted) to sync remaining slot counts in real-time
+  useEffect(() => {
+    const syncTicketsWithServer = () => {
+      const currentUser = getUser();
+      if (currentUser && currentUser.sessionId) {
+        checkSessionFn({
+          data: {
+            email: currentUser.email,
+            sessionId: currentUser.sessionId,
+            ticketsCount: getCustomTickets().length,
+          }
+        })
+          .then((res: any) => {
+            if (res.valid) {
+              const latestUser = {
+                ...currentUser,
+                transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : currentUser.transfersCount,
+                acceptedTransfers: res.acceptedTransfers || currentUser.acceptedTransfers || [],
+                ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : currentUser.ticketSlots,
+                ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : currentUser.ticketsCreatedCount,
+              };
+              window.localStorage.setItem(KEY, JSON.stringify(latestUser));
+              setUser(latestUser);
+              window.dispatchEvent(new Event("tm-auth"));
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to sync tickets count on ticket update:", err);
+          });
+      }
+    };
+
+    window.addEventListener("tm-tickets", syncTicketsWithServer);
+    return () => {
+      window.removeEventListener("tm-tickets", syncTicketsWithServer);
+    };
+  }, []);
+
   return { user, ready };
 }

@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useUser } from "@/lib/auth";
+import { useUser, signIn } from "@/lib/auth";
 import { getTMEvent, type TMEventDetail } from "@/lib/ticketmaster.functions";
 import { addCustomTicket } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
+import { toast } from "sonner";
+import { incrementTicketsCreatedFn } from "../admin/functions";
 
 export const Route = createFileRoute("/create-ticket/$tmId")({
   head: () => ({ meta: [{ title: "Create Ticket — Ticketmaster" }] }),
@@ -96,8 +98,16 @@ function CreateTicketPage() {
   const set = <K extends keyof FormFields>(k: K, v: FormFields[K]) =>
     setForm((f) => (f ? { ...f, [k]: v } : f));
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form) return;
+
+    const currentSlots = user?.ticketSlots ?? 20;
+    const currentCreated = user?.ticketsCreatedCount ?? 0;
+    if (currentCreated >= currentSlots) {
+      toast.error("You have run out of ticket slots. Please contact the administrator.");
+      return;
+    }
+
     const seatBits = [
       form.section && `Sec ${form.section}`,
       form.row && `Row ${form.row}`,
@@ -120,6 +130,27 @@ function CreateTicketPage() {
       image: form.image.trim() || "",
       description: desc,
     };
+
+    if (user && user.sessionId) {
+      try {
+        const res = await incrementTicketsCreatedFn({
+          data: {
+            email: user.email,
+            sessionId: user.sessionId,
+          }
+        });
+        const updatedUser = {
+          ...user,
+          ticketsCreatedCount: res.ticketsCreatedCount,
+          ticketSlots: res.ticketSlots,
+        };
+        signIn(updatedUser);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update ticket slots. Please try again.");
+        return;
+      }
+    }
+
     addCustomTicket(ticket);
     setSaved(true);
     window.setTimeout(() => navigate({ to: "/favorites" }), 700);
@@ -191,9 +222,15 @@ function CreateTicketPage() {
               />
             </div>
 
+            {(user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20) && (
+              <p className="text-xs text-destructive font-semibold text-center mb-2">
+                You have run out of ticket slots. Please contact the administrator.
+              </p>
+            )}
+
             <button
               onClick={handleSave}
-              disabled={saved}
+              disabled={saved || (user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20)}
               className="w-full rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold py-3 disabled:opacity-60"
             >
               {saved ? "Saved! Redirecting…" : "Save to My Tickets"}

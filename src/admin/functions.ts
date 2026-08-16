@@ -171,11 +171,17 @@ export const loginUserFn = createServerFn({ method: 'POST' })
 
     let transfersCount = 0;
     let acceptedTransfers: any[] = [];
+    let ticketSlots = 20;
+    let ticketsCreatedCount = 0;
+    let ticketsCount = 0;
     if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(user.deviceInfo);
         transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
         acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+        ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
+        ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+        ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
       } catch (e) {}
     }
 
@@ -187,6 +193,9 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       device: deviceInfo,
       transfersCount,
       acceptedTransfers,
+      ticketSlots,
+      ticketsCreatedCount,
+      ticketsCount,
     });
 
     await saveUser(user);
@@ -212,6 +221,8 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       loginMode: user.loginMode || 'single',
       transfersCount,
       acceptedTransfers,
+      ticketSlots,
+      ticketsCreatedCount,
     };
   });
 
@@ -219,9 +230,10 @@ export const loginUserFn = createServerFn({ method: 'POST' })
 // 2. Validate session on client page loads
 // ---------------------------------------------------------------------------
 export const checkSessionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { email: string; sessionId: string }) => ({
+  .inputValidator((d: { email: string; sessionId: string; ticketsCount?: number }) => ({
     email: String(d?.email ?? '').trim(),
     sessionId: String(d?.sessionId ?? '').trim(),
+    ticketsCount: typeof d?.ticketsCount === 'number' ? d.ticketsCount : undefined,
   }))
   .handler(async ({ data }) => {
     const headers = getRequestHeaders();
@@ -286,15 +298,46 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
 
     let transfersCount = 0;
     let acceptedTransfers: any[] = [];
+    let currentDevice = '';
+    let ticketSlots = 20;
+    let ticketsCreatedCount = 0;
+    let ticketsCount = data.ticketsCount;
+
     if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(user.deviceInfo);
         transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
         acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+        currentDevice = parsed.device || '';
+        ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
+        ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+        if (ticketsCount === undefined && typeof parsed.ticketsCount === 'number') {
+          ticketsCount = parsed.ticketsCount;
+        }
       } catch (e) {}
+    } else if (user.deviceInfo) {
+      currentDevice = user.deviceInfo;
     }
 
-    return { valid: true, transfersCount, acceptedTransfers };
+    if (data.ticketsCount !== undefined) {
+      user.deviceInfo = JSON.stringify({
+        device: currentDevice,
+        transfersCount,
+        acceptedTransfers,
+        ticketsCount: data.ticketsCount,
+        ticketSlots,
+        ticketsCreatedCount,
+      });
+      await saveUser(user);
+    }
+
+    return {
+      valid: true,
+      transfersCount,
+      acceptedTransfers,
+      ticketSlots,
+      ticketsCreatedCount,
+    };
   });
 
 // ---------------------------------------------------------------------------
@@ -440,7 +483,7 @@ export const createUserAccessFn = createServerFn({ method: 'POST' })
       activatedAt: null,
       expiresAt: null,
       sessionId: null,
-      deviceInfo: JSON.stringify({ transfersCount: 4, acceptedTransfers: [] }),
+      deviceInfo: JSON.stringify({ transfersCount: 4, acceptedTransfers: [], ticketSlots: 20, ticketsCreatedCount: 0 }),
       loginMode: data.loginMode,
     };
 
@@ -646,6 +689,9 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
 
     let deviceName = 'Unknown Device';
     let acceptedTransfers: any[] = [];
+    let ticketsCount = 0;
+    let ticketSlots = 20;
+    let ticketsCreatedCount = 0;
     if (user.deviceInfo) {
       if (user.deviceInfo.trim().startsWith('{')) {
         try {
@@ -654,6 +700,9 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
           acceptedTransfers = Array.isArray(parsed.acceptedTransfers)
             ? parsed.acceptedTransfers
             : [];
+          ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+          ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
+          ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
         } catch (e) {}
       } else {
         deviceName = user.deviceInfo;
@@ -664,6 +713,9 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
       device: deviceName,
       transfersCount: data.transfersCount,
       acceptedTransfers,
+      ticketsCount,
+      ticketSlots,
+      ticketsCreatedCount,
     });
 
     await saveUser(user);
@@ -699,7 +751,14 @@ export const renewUserDurationFn = createServerFn({ method: 'POST' })
     if (data.duration === '1y') durationDays = 360;
 
     const now = new Date();
-    const newExpiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+    let baseTime = now.getTime();
+    if (user.expiresAt && user.status === 'active') {
+      const currentExpiry = new Date(user.expiresAt);
+      if (currentExpiry > now) {
+        baseTime = currentExpiry.getTime();
+      }
+    }
+    const newExpiresAt = new Date(baseTime + durationDays * 24 * 60 * 60 * 1000).toISOString();
 
     user.duration = data.duration;
     user.expiresAt = newExpiresAt;
@@ -711,3 +770,113 @@ export const renewUserDurationFn = createServerFn({ method: 'POST' })
     await saveUser(user);
     return { success: true, expiresAt: newExpiresAt };
   });
+
+// ---------------------------------------------------------------------------
+// 14. Update User Ticket Slots (admin-gated)
+// ---------------------------------------------------------------------------
+export const updateUserSlotsFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { adminPass: string; userId: string; ticketSlots: number }) => ({
+      adminPass: String(d?.adminPass ?? '').trim(),
+      userId: String(d?.userId ?? '').trim(),
+      ticketSlots: Number(d?.ticketSlots ?? 20),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const correctPassword = getAdminPassword();
+    if (data.adminPass !== correctPassword) {
+      throw new Error('Unauthorized access');
+    }
+
+    const users = await getAllUsers();
+    const user = users.find((u) => u.id === data.userId);
+    if (!user) throw new Error('User not found');
+
+    let deviceStr = 'Unknown Device';
+    let acceptedTransfers: any[] = [];
+    let ticketsCount = 0;
+    let transfersCount = 0;
+    let ticketsCreatedCount = 0;
+
+    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(user.deviceInfo);
+        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+        deviceStr = parsed.device || '';
+        ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+      } catch (e) {}
+    } else if (user.deviceInfo) {
+      deviceStr = user.deviceInfo;
+    }
+
+    user.deviceInfo = JSON.stringify({
+      device: deviceStr,
+      transfersCount,
+      acceptedTransfers,
+      ticketsCount,
+      ticketSlots: data.ticketSlots,
+      ticketsCreatedCount,
+    });
+
+    await saveUser(user);
+    return { success: true, ticketSlots: data.ticketSlots };
+  });
+
+// ---------------------------------------------------------------------------
+// 15. Increment Tickets Created Count (session-gated)
+// ---------------------------------------------------------------------------
+export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { email: string; sessionId: string }) => ({
+      email: String(d?.email ?? '').trim(),
+      sessionId: String(d?.sessionId ?? '').trim(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const user = await getUserByEmail(data.email);
+    if (!user || user.sessionId !== data.sessionId || user.status !== 'active') {
+      throw new Error('Unauthorized session');
+    }
+
+    let deviceStr = 'Unknown Device';
+    let acceptedTransfers: any[] = [];
+    let ticketsCount = 0;
+    let transfersCount = 0;
+    let ticketSlots = 20;
+    let ticketsCreatedCount = 0;
+
+    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(user.deviceInfo);
+        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+        deviceStr = parsed.device || '';
+        ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
+        ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+      } catch (e) {}
+    } else if (user.deviceInfo) {
+      deviceStr = user.deviceInfo;
+    }
+
+    if (ticketsCreatedCount >= ticketSlots) {
+      throw new Error('You have run out of ticket slots. Please contact the administrator.');
+    }
+
+    const newCreatedCount = ticketsCreatedCount + 1;
+
+    user.deviceInfo = JSON.stringify({
+      device: deviceStr,
+      transfersCount,
+      acceptedTransfers,
+      ticketsCount,
+      ticketSlots,
+      ticketsCreatedCount: newCreatedCount,
+    });
+
+    await saveUser(user);
+    return { success: true, ticketsCreatedCount: newCreatedCount, ticketSlots };
+  });
+

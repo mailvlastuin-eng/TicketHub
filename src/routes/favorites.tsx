@@ -6,10 +6,12 @@ import {
   addCustomTicket,
   deleteCustomTicket,
   useCustomTickets,
+  getCustomTickets,
 } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { useSettings, getSettings } from "@/lib/settings-store";
-import { updateUserProfileFn, checkSessionFn } from "../admin/functions";
+import { updateUserProfileFn, checkSessionFn, incrementTicketsCreatedFn } from "../admin/functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({ meta: [{ title: "Manager — Ticketmaster" }] }),
@@ -137,20 +139,28 @@ function FavoritesPage() {
         data: {
           email: user.email,
           sessionId: user.sessionId,
+          ticketsCount: getCustomTickets().length,
         }
       });
       if (!res.valid) {
         signOut();
         navigate({ to: "/", replace: true });
-      } else if (typeof res.transfersCount === 'number') {
-        const latestUser = { ...user, transfersCount: res.transfersCount };
+      } else {
+        const latestUser = { 
+          ...user, 
+          transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : user.transfersCount,
+          ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : user.ticketSlots,
+          ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : user.ticketsCreatedCount,
+        };
         signIn(latestUser);
-        setLocalTransfers(res.transfersCount);
-        setMsg("Transfers updated!");
+        if (typeof res.transfersCount === 'number') {
+          setLocalTransfers(res.transfersCount);
+        }
+        setMsg("Refreshed successfully!");
         window.setTimeout(() => setMsg(null), 1500);
       }
     } catch (err) {
-      console.error("Failed to refresh user transfers:", err);
+      console.error("Failed to refresh user details:", err);
       setMsg("Failed to refresh");
       window.setTimeout(() => setMsg(null), 1500);
     } finally {
@@ -158,23 +168,32 @@ function FavoritesPage() {
     }
   };
 
-  // Sync transfers count in background on mount / user change
+  // Sync transfers count and ticket slots in background on mount / user change
   useEffect(() => {
     if (user && user.sessionId) {
       checkSessionFn({
         data: {
           email: user.email,
           sessionId: user.sessionId,
+          ticketsCount: getCustomTickets().length,
         }
       })
         .then((res: any) => {
-          if (res.valid && typeof res.transfersCount === 'number') {
-            const latestUser = { ...user, transfersCount: res.transfersCount };
+          if (res.valid) {
+            const latestUser = { 
+              ...user, 
+              transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : user.transfersCount,
+              ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : user.ticketSlots,
+              ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : user.ticketsCreatedCount,
+            };
             window.localStorage.setItem("tm_user", JSON.stringify(latestUser));
-            setLocalTransfers(res.transfersCount);
+            if (typeof res.transfersCount === 'number') {
+              setLocalTransfers(res.transfersCount);
+            }
+            window.dispatchEvent(new Event("tm-auth"));
           }
         })
-        .catch(err => console.error("Initial load transfers sync failed:", err));
+        .catch(err => console.error("Initial load sync failed:", err));
     }
   }, [user?.email, user?.sessionId]);
 
@@ -258,6 +277,16 @@ function FavoritesPage() {
       window.setTimeout(() => setMsg(null), 1500);
       return;
     }
+
+    const currentSlots = user?.ticketSlots ?? 20;
+    const currentCreated = user?.ticketsCreatedCount ?? 0;
+    if (currentCreated >= currentSlots) {
+      setMsg("No ticket slots remaining. Please contact the admin.");
+      toast.error("You have run out of ticket slots.");
+      window.setTimeout(() => setMsg(null), 1500);
+      return;
+    }
+
     const ticket: Ticket = {
       id: `evt-${Date.now()}`,
       title: form.eventTitle.trim(),
@@ -272,22 +301,58 @@ function FavoritesPage() {
         form.description.trim() ||
         "A new event created from the Manager panel.",
     };
-    addCustomTicket(ticket);
-    setForm((f) => ({
-      ...f,
-      eventTitle: "",
-      category: "",
-      venue: "",
-      city: "",
-      date: "",
-      time: "",
-      priceFrom: "",
-      description: "",
-      image: "",
-    }));
-    setShowNew(false);
-    setMsg("Event created");
-    window.setTimeout(() => setMsg(null), 1500);
+
+    if (user && user.sessionId) {
+      incrementTicketsCreatedFn({
+        data: {
+          email: user.email,
+          sessionId: user.sessionId,
+        }
+      }).then((res) => {
+        const updatedUser = {
+          ...user,
+          ticketsCreatedCount: res.ticketsCreatedCount,
+          ticketSlots: res.ticketSlots,
+        };
+        signIn(updatedUser);
+        addCustomTicket(ticket);
+        
+        setForm((f) => ({
+          ...f,
+          eventTitle: "",
+          category: "",
+          venue: "",
+          city: "",
+          date: "",
+          time: "",
+          priceFrom: "",
+          description: "",
+        }));
+        setShowNew(false);
+        setMsg("Event created successfully");
+        window.setTimeout(() => setMsg(null), 1500);
+      }).catch((err) => {
+        toast.error(err.message || "Failed to create event. Please try again.");
+        setMsg("Failed to create event");
+        window.setTimeout(() => setMsg(null), 1500);
+      });
+    } else {
+      addCustomTicket(ticket);
+      setForm((f) => ({
+        ...f,
+        eventTitle: "",
+        category: "",
+        venue: "",
+        city: "",
+        date: "",
+        time: "",
+        priceFrom: "",
+        description: "",
+      }));
+      setShowNew(false);
+      setMsg("Event created successfully");
+      window.setTimeout(() => setMsg(null), 1500);
+    }
   };
 
   return (
@@ -302,9 +367,19 @@ function FavoritesPage() {
         <div className="mx-5 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between text-blue-955 select-none">
           <div className="flex items-center gap-3">
             <TicketIcon className="h-5 w-5 text-blue-600" />
-            <div>
-              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Ticket Transfers Left</p>
-              <p className="text-sm font-bold mt-0.5">{localTransfers !== null ? localTransfers : (user?.transfersCount ?? 0)} remaining</p>
+            <div className="flex gap-6">
+              <div>
+                <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Transfers</p>
+                <p className="text-xs font-bold mt-0.5">{localTransfers !== null ? localTransfers : (user?.transfersCount ?? 0)} remaining</p>
+              </div>
+              <div className="border-l border-blue-200 pl-4">
+                <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Ticket Slots</p>
+                <p className="text-xs font-bold mt-0.5">
+                  {user?.ticketsCreatedCount !== undefined && user?.ticketSlots !== undefined 
+                    ? Math.max(0, user.ticketSlots - user.ticketsCreatedCount) 
+                    : 20} left
+                </p>
+              </div>
             </div>
           </div>
           <button
@@ -492,15 +567,10 @@ function EventRow({
   const [hidden, setHidden] = useState(false);
   return (
     <div className="rounded-[4px] overflow-hidden border border-foreground/10 shadow-sm">
-      <div className={`px-4 py-3.5 ${hidden ? "bg-foreground/20" : "bg-gradient-to-r from-indigo-600 to-violet-700"} flex items-center justify-between`}>
+      <div className={`px-4 py-3.5 ${hidden ? "bg-foreground/20" : "bg-black"} flex items-center justify-between`}>
         <p className="text-sm font-bold text-white leading-snug tracking-tight">
           {ticket.title}
         </p>
-        {!hidden && (
-          <span className="text-[9px] font-black uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded border border-white/20 shrink-0 ml-2 select-none">
-            Custom Event
-          </span>
-        )}
       </div>
       <div className="flex gap-2 px-3 py-2 border-t border-foreground/10 bg-background">
         <button
