@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Search, Plus, Trash2, Ticket as TicketIcon } from "lucide-react";
-import { useUser } from "@/lib/auth";
+import { useUser, signIn } from "@/lib/auth";
 import { searchTMEvents, getTMEvent, type TMEventSummary } from "@/lib/ticketmaster.functions";
 import { addCustomTicket, useAllTickets } from "@/lib/ticket-store";
 import { featuredTickets } from "@/lib/tickets";
+import { toast } from "sonner";
+import { incrementTicketsCreatedFn } from "../admin/functions";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/create-ticket")({
@@ -224,9 +226,17 @@ function CreateTicketSearchPage() {
   };
 
   // Save reseller ticket to Ticket store
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title.trim()) {
       setError("Please select or specify an event title");
+      return;
+    }
+
+    const currentSlots = user?.ticketSlots ?? 20;
+    const currentCreated = user?.ticketsCreatedCount ?? 0;
+    if (currentCreated >= currentSlots) {
+      toast.error("You have run out of ticket slots. Please contact the administrator.");
+      setError("You have run out of ticket slots. Please contact the administrator.");
       return;
     }
 
@@ -247,6 +257,27 @@ function CreateTicketSearchPage() {
       entryInfo: form.entryInfo.trim(),
       seats: seats.map((s) => s.trim()).filter(Boolean),
     };
+
+    if (user && user.sessionId) {
+      try {
+        const res = await incrementTicketsCreatedFn({
+          data: {
+            email: user.email,
+            sessionId: user.sessionId,
+          }
+        });
+        const updatedUser = {
+          ...user,
+          ticketsCreatedCount: res.ticketsCreatedCount,
+          ticketSlots: res.ticketSlots,
+        };
+        signIn(updatedUser);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update ticket slots. Please try again.");
+        setError(err.message || "Failed to update ticket slots.");
+        return;
+      }
+    }
 
     addCustomTicket(ticket);
     setSaved(true);
@@ -537,9 +568,15 @@ function CreateTicketSearchPage() {
             </div>
           </div>
 
+          {(user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20) && (
+            <p className="text-xs text-destructive font-semibold text-center mb-2">
+              You have run out of ticket slots. Please contact the administrator.
+            </p>
+          )}
+
           <button
             onClick={handleSave}
-            disabled={saved}
+            disabled={saved || (user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20)}
             className="w-full rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold py-3.5 hover:bg-primary/95 disabled:opacity-60 transition-colors"
           >
             {saved ? "Saving ticket..." : "Save to My Tickets"}

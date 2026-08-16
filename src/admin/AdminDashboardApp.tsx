@@ -20,6 +20,7 @@ import {
   Tablet,
   Globe,
   Lock,
+  Ticket,
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import {
@@ -31,6 +32,7 @@ import {
   getDiagnosticsFn,
   updateUserTransfersFn,
   renewUserDurationFn,
+  updateUserSlotsFn,
 } from './functions';
 
 export function AdminDashboardApp() {
@@ -130,6 +132,10 @@ export function AdminDashboardApp() {
   // Transfers Count Edit State
   const [editingTransfers, setEditingTransfers] = useState<Record<string, number>>({});
   const [savingTransfers, setSavingTransfers] = useState<Record<string, boolean>>({});
+
+  // Ticket Slots Edit State
+  const [editingSlots, setEditingSlots] = useState<Record<string, number>>({});
+  const [savingSlots, setSavingSlots] = useState<Record<string, boolean>>({});
 
   // Renew Duration State
   const [renewingUserId, setRenewingUserId] = useState<string | null>(null);
@@ -305,17 +311,20 @@ export function AdminDashboardApp() {
   );
 
   const parseDeviceInfo = (deviceInfoStr: string | null) => {
-    if (!deviceInfoStr) return { device: '', transfersCount: 0 };
+    if (!deviceInfoStr) return { device: '', transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0 };
     if (deviceInfoStr.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(deviceInfoStr);
         return {
           device: parsed.device || 'Unknown Device',
-          transfersCount: typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0
+          transfersCount: typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0,
+          ticketsCount: typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0,
+          ticketSlots: typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20,
+          ticketsCreatedCount: typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0,
         };
       } catch (e) {}
     }
-    return { device: deviceInfoStr, transfersCount: 0 };
+    return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0 };
   };
 
   const handleUpdateTransfers = async (userId: string, count: number) => {
@@ -328,6 +337,19 @@ export function AdminDashboardApp() {
       toast.error(err.message || 'Failed to update transfers');
     } finally {
       setSavingTransfers(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  const handleUpdateSlots = async (userId: string, count: number) => {
+    setSavingSlots(prev => ({ ...prev, [userId]: true }));
+    try {
+      await updateUserSlotsFn({ data: { adminPass, userId, ticketSlots: count } });
+      toast.success('Ticket slots updated successfully');
+      fetchDashboardData(true);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update ticket slots');
+    } finally {
+      setSavingSlots(prev => ({ ...prev, [userId]: false }));
     }
   };
 
@@ -788,22 +810,18 @@ export function AdminDashboardApp() {
                                   )}
                                 </div>
 
-                                {/* Connected Device */}
-                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2">
-                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Registered Device</span>
-                                  {u.deviceInfo ? (
-                                    <div className="flex items-start gap-2.5 mt-1 text-xs text-slate-700 min-w-0">
-                                      <div className="p-1.5 bg-slate-100 text-slate-600 rounded-lg mt-0.5 shrink-0">
-                                        {getDeviceIcon(u.deviceInfo)}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="font-bold truncate">{parsedDev.device}</p>
-                                        <p className="text-[10px] text-slate-400 font-semibold truncate mt-0.5">Device user string registered</p>
-                                      </div>
+                                {/* Tickets Created */}
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Tickets Created</span>
+                                  <div className="flex items-center gap-2.5 mt-1.5 text-xs text-slate-700 min-w-0">
+                                    <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+                                      <Ticket className="h-4 w-4" />
                                     </div>
-                                  ) : (
-                                    <span className="text-xs font-semibold text-slate-450 italic">No device bound yet</span>
-                                  )}
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-sm text-slate-900">{parsedDev.ticketsCount}</p>
+                                      <p className="text-[9px] text-slate-400 font-semibold truncate mt-0.5">Tickets created</p>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 {/* Transfers Management */}
@@ -823,6 +841,27 @@ export function AdminDashboardApp() {
                                       className="px-3 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
                                     >
                                       {isSaving ? 'Saving' : 'Save'}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Ticket Slots Management */}
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Ticket Slots</span>
+                                  <div className="flex items-center gap-2 mt-1.5">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={editingSlots[u.id] !== undefined ? editingSlots[u.id] : parsedDev.ticketSlots}
+                                      onChange={(e) => setEditingSlots(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                                      className="w-14 h-8 text-center border border-slate-300 rounded-lg bg-white text-slate-800 font-bold focus:outline-none focus:border-blue-500 text-xs"
+                                    />
+                                    <button
+                                      onClick={() => handleUpdateSlots(u.id, editingSlots[u.id] !== undefined ? editingSlots[u.id] : parsedDev.ticketSlots)}
+                                      disabled={savingSlots[u.id] || (editingSlots[u.id] === undefined && parsedDev.ticketSlots === (editingSlots[u.id] ?? parsedDev.ticketSlots))}
+                                      className="px-3 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                                    >
+                                      {savingSlots[u.id] ? 'Saving' : 'Save'}
                                     </button>
                                   </div>
                                 </div>
