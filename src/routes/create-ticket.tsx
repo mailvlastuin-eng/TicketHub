@@ -6,7 +6,7 @@ import { searchTMEvents, getTMEvent, type TMEventSummary } from "@/lib/ticketmas
 import { addCustomTicket, useAllTickets } from "@/lib/ticket-store";
 import { featuredTickets } from "@/lib/tickets";
 import { toast } from "sonner";
-import { incrementTicketsCreatedFn } from "../admin/functions";
+import { incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/create-ticket")({
@@ -225,19 +225,30 @@ function CreateTicketSearchPage() {
     });
   };
 
-  // Save reseller ticket to Ticket store
   const handleSave = async () => {
     if (!form.title.trim()) {
       setError("Please select or specify an event title");
       return;
     }
 
-    const currentSlots = user?.ticketSlots ?? 20;
-    const currentCreated = user?.ticketsCreatedCount ?? 0;
-    if (currentCreated >= currentSlots) {
-      toast.error("You have run out of ticket slots. Please contact the administrator.");
-      setError("You have run out of ticket slots. Please contact the administrator.");
-      return;
+    const isTokenUser = user?.userType === 'token';
+
+    if (isTokenUser) {
+      // Token user: need at least 1 token
+      if ((user?.tokensCount ?? 0) < 1) {
+        toast.error("Insufficient tokens. You need at least 1 token to create a ticket.");
+        setError("Insufficient tokens. Please contact the administrator.");
+        return;
+      }
+    } else {
+      // Payment user: slot check
+      const currentSlots = user?.ticketSlots ?? 20;
+      const currentCreated = user?.ticketsCreatedCount ?? 0;
+      if (currentCreated >= currentSlots) {
+        toast.error("You have run out of ticket slots. Please contact the administrator.");
+        setError("You have run out of ticket slots. Please contact the administrator.");
+        return;
+      }
     }
 
     const ticket: Ticket = {
@@ -260,21 +271,16 @@ function CreateTicketSearchPage() {
 
     if (user && user.sessionId) {
       try {
-        const res = await incrementTicketsCreatedFn({
-          data: {
-            email: user.email,
-            sessionId: user.sessionId,
-          }
-        });
-        const updatedUser = {
-          ...user,
-          ticketsCreatedCount: res.ticketsCreatedCount,
-          ticketSlots: res.ticketSlots,
-        };
-        signIn(updatedUser);
+        if (isTokenUser) {
+          const res = await consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId } });
+          signIn({ ...user, tokensCount: res.tokensCount });
+        } else {
+          const res = await incrementTicketsCreatedFn({ data: { email: user.email, sessionId: user.sessionId } });
+          signIn({ ...user, ticketsCreatedCount: res.ticketsCreatedCount, ticketSlots: res.ticketSlots });
+        }
       } catch (err: any) {
-        toast.error(err.message || "Failed to update ticket slots. Please try again.");
-        setError(err.message || "Failed to update ticket slots.");
+        toast.error(err.message || "Failed to update your token balance. Please try again.");
+        setError(err.message || "Failed to update token balance.");
         return;
       }
     }

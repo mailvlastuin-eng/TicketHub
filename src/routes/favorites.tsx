@@ -10,7 +10,7 @@ import {
 } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { useSettings, getSettings } from "@/lib/settings-store";
-import { updateUserProfileFn, checkSessionFn, incrementTicketsCreatedFn } from "../admin/functions";
+import { updateUserProfileFn, checkSessionFn, incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/favorites")({
@@ -278,13 +278,24 @@ function FavoritesPage() {
       return;
     }
 
-    const currentSlots = user?.ticketSlots ?? 20;
-    const currentCreated = user?.ticketsCreatedCount ?? 0;
-    if (currentCreated >= currentSlots) {
-      setMsg("No ticket slots remaining. Please contact the admin.");
-      toast.error("You have run out of ticket slots.");
-      window.setTimeout(() => setMsg(null), 1500);
-      return;
+    const isTokenUser = user?.userType === 'token';
+
+    if (isTokenUser) {
+      if ((user?.tokensCount ?? 0) < 1) {
+        setMsg("Insufficient tokens. Please contact the admin.");
+        toast.error("You need at least 1 token to create a ticket.");
+        window.setTimeout(() => setMsg(null), 1500);
+        return;
+      }
+    } else {
+      const currentSlots = user?.ticketSlots ?? 20;
+      const currentCreated = user?.ticketsCreatedCount ?? 0;
+      if (currentCreated >= currentSlots) {
+        setMsg("No ticket slots remaining. Please contact the admin.");
+        toast.error("You have run out of ticket slots.");
+        window.setTimeout(() => setMsg(null), 1500);
+        return;
+      }
     }
 
     const ticket: Ticket = {
@@ -302,56 +313,33 @@ function FavoritesPage() {
         "A new event created from the Manager panel.",
     };
 
+    const resetForm = () => {
+      setForm((f) => ({ ...f, eventTitle: "", category: "", venue: "", city: "", date: "", time: "", priceFrom: "", description: "" }));
+      setShowNew(false);
+      setMsg("Event created successfully");
+      window.setTimeout(() => setMsg(null), 1500);
+    };
+
     if (user && user.sessionId) {
-      incrementTicketsCreatedFn({
-        data: {
-          email: user.email,
-          sessionId: user.sessionId,
-        }
-      }).then((res) => {
-        const updatedUser = {
-          ...user,
-          ticketsCreatedCount: res.ticketsCreatedCount,
-          ticketSlots: res.ticketSlots,
-        };
-        signIn(updatedUser);
+      const fn = isTokenUser
+        ? consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId } }).then((res) => {
+            signIn({ ...user, tokensCount: res.tokensCount });
+          })
+        : incrementTicketsCreatedFn({ data: { email: user.email, sessionId: user.sessionId } }).then((res) => {
+            signIn({ ...user, ticketsCreatedCount: res.ticketsCreatedCount, ticketSlots: res.ticketSlots });
+          });
+
+      fn.then(() => {
         addCustomTicket(ticket);
-        
-        setForm((f) => ({
-          ...f,
-          eventTitle: "",
-          category: "",
-          venue: "",
-          city: "",
-          date: "",
-          time: "",
-          priceFrom: "",
-          description: "",
-        }));
-        setShowNew(false);
-        setMsg("Event created successfully");
-        window.setTimeout(() => setMsg(null), 1500);
-      }).catch((err) => {
+        resetForm();
+      }).catch((err: any) => {
         toast.error(err.message || "Failed to create event. Please try again.");
         setMsg("Failed to create event");
         window.setTimeout(() => setMsg(null), 1500);
       });
     } else {
       addCustomTicket(ticket);
-      setForm((f) => ({
-        ...f,
-        eventTitle: "",
-        category: "",
-        venue: "",
-        city: "",
-        date: "",
-        time: "",
-        priceFrom: "",
-        description: "",
-      }));
-      setShowNew(false);
-      setMsg("Event created successfully");
-      window.setTimeout(() => setMsg(null), 1500);
+      resetForm();
     }
   };
 
@@ -363,24 +351,33 @@ function FavoritesPage() {
           <h1 className="text-lg font-medium">Manager</h1>
         </div>
 
-        {/* Transfers Left Banner */}
+        {/* Transfers / Tokens Banner */}
         <div className="mx-5 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between text-blue-955 select-none">
           <div className="flex items-center gap-3">
             <TicketIcon className="h-5 w-5 text-blue-600" />
-            <div className="flex gap-6">
+            {user?.userType === 'token' ? (
+              // Token User: show single token balance
               <div>
-                <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Transfers</p>
-                <p className="text-xs font-bold mt-0.5">{localTransfers !== null ? localTransfers : (user?.transfersCount ?? 0)} remaining</p>
+                <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Tokens</p>
+                <p className="text-xs font-bold mt-0.5">{user.tokensCount ?? 0} remaining</p>
               </div>
-              <div className="border-l border-blue-200 pl-4">
-                <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Ticket Slots</p>
-                <p className="text-xs font-bold mt-0.5">
-                  {user?.ticketsCreatedCount !== undefined && user?.ticketSlots !== undefined 
-                    ? Math.max(0, user.ticketSlots - user.ticketsCreatedCount) 
-                    : 20} left
-                </p>
+            ) : (
+              // Payment User: show Transfers + Ticket Slots
+              <div className="flex gap-6">
+                <div>
+                  <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Transfers</p>
+                  <p className="text-xs font-bold mt-0.5">{localTransfers !== null ? localTransfers : (typeof user?.transfersCount === 'number' ? user.transfersCount : 4)} remaining</p>
+                </div>
+                <div className="border-l border-blue-200 pl-4">
+                  <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Ticket Slots</p>
+                  <p className="text-xs font-bold mt-0.5">
+                    {user?.ticketsCreatedCount !== undefined && user?.ticketSlots !== undefined 
+                      ? Math.max(0, user.ticketSlots - user.ticketsCreatedCount) 
+                      : 20} left
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <button
             onClick={handleRefreshTransfers}

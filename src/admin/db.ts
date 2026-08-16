@@ -9,7 +9,8 @@ export interface UserAccess {
   expiresAt: string | null;
   sessionId: string | null;
   deviceInfo: string | null;
-  loginMode?: 'single' | 'multiple';
+  loginMode?: 'single' | 'multiple' | 'token';
+  userType?: 'payment' | 'token';
 }
 
 export interface LoginAttempt {
@@ -76,10 +77,20 @@ export async function getAllUsers(): Promise<UserAccess[]> {
   try {
     const res = await supabaseFetch('users?select=*');
     const data = await res.json();
-    return data.map((u: any) => ({
-      ...u,
-      loginMode: u.loginMode || 'single'
-    }));
+    return data.map((u: any) => {
+      let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
+      if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(u.deviceInfo);
+          if (parsed.userType === 'token') userType = 'token';
+        } catch (e) {}
+      }
+      return {
+        ...u,
+        loginMode: u.loginMode || 'single',
+        userType,
+      };
+    });
   } catch (err) {
     console.error('Failed to fetch users from Supabase:', err);
     return [];
@@ -92,9 +103,18 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
     const res = await supabaseFetch(`users?email=ilike.${normalizedEmail}`);
     const data = await res.json();
     if (data.length > 0) {
+      const u = data[0];
+      let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
+      if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(u.deviceInfo);
+          if (parsed.userType === 'token') userType = 'token';
+        } catch (e) {}
+      }
       return {
-        ...data[0],
-        loginMode: data[0].loginMode || 'single'
+        ...u,
+        loginMode: u.loginMode || 'single',
+        userType,
       };
     }
   } catch (err) {
@@ -109,12 +129,27 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
 
 export async function saveUser(user: UserAccess) {
   try {
+    // Only send columns that exist in the Supabase schema to prevent 400 Bad Request
+    const payload: Record<string, any> = {
+      id: user.id,
+      email: user.email,
+      password: user.password,
+      duration: user.duration,
+      status: user.status,
+      createdAt: user.createdAt,
+      activatedAt: user.activatedAt,
+      expiresAt: user.expiresAt,
+      sessionId: user.sessionId,
+      deviceInfo: user.deviceInfo,
+      loginMode: user.loginMode || 'single',
+    };
+
     await supabaseFetch('users', {
       method: 'POST',
       headers: {
         'Prefer': 'resolution=merge-duplicates'
       },
-      body: JSON.stringify(user)
+      body: JSON.stringify(payload)
     });
   } catch (err) {
     console.error('Failed to save user in Supabase:', err);

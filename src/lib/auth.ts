@@ -8,8 +8,10 @@ export type SessionUser = {
   email: string; 
   name: string; 
   sessionId?: string; 
-  loginMode?: 'single' | 'multiple';
+  loginMode?: 'single' | 'multiple' | 'token';
+  userType?: 'payment' | 'token';
   transfersCount?: number;
+  tokensCount?: number;
   acceptedTransfers?: { ticketId: string; seats: string[]; buyerName: string; acceptedAt?: string }[];
   ticketSlots?: number;
   ticketsCreatedCount?: number;
@@ -59,14 +61,16 @@ export function useUser() {
             const acceptedChanged = res.acceptedTransfers && JSON.stringify(initialUser.acceptedTransfers) !== JSON.stringify(res.acceptedTransfers);
             const slotsChanged = typeof res.ticketSlots === 'number' && initialUser.ticketSlots !== res.ticketSlots;
             const createdChanged = typeof res.ticketsCreatedCount === 'number' && initialUser.ticketsCreatedCount !== res.ticketsCreatedCount;
+            const tokensChanged = typeof res.tokensCount === 'number' && initialUser.tokensCount !== res.tokensCount;
             
-            if (countChanged || acceptedChanged || slotsChanged || createdChanged) {
+            if (countChanged || acceptedChanged || slotsChanged || createdChanged || tokensChanged) {
               const latestUser = {
                 ...initialUser,
                 transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : initialUser.transfersCount,
                 acceptedTransfers: res.acceptedTransfers || initialUser.acceptedTransfers || [],
                 ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : initialUser.ticketSlots,
                 ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : initialUser.ticketsCreatedCount,
+                tokensCount: typeof res.tokensCount === 'number' ? res.tokensCount : initialUser.tokensCount,
               };
               window.localStorage.setItem(KEY, JSON.stringify(latestUser));
               setUser(latestUser);
@@ -108,6 +112,7 @@ export function useUser() {
                 acceptedTransfers: res.acceptedTransfers || currentUser.acceptedTransfers || [],
                 ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : currentUser.ticketSlots,
                 ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : currentUser.ticketsCreatedCount,
+                tokensCount: typeof res.tokensCount === 'number' ? res.tokensCount : currentUser.tokensCount,
               };
               window.localStorage.setItem(KEY, JSON.stringify(latestUser));
               setUser(latestUser);
