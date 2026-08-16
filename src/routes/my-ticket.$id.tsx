@@ -83,6 +83,7 @@ function MyTicketDetail() {
   const [scrollOffset, setScrollOffset] = useState(0);
   
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+  const [showResaleModal, setShowResaleModal] = useState(false);
   const [activeBarcodeIdx, setActiveBarcodeIdx] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -516,8 +517,45 @@ function MyTicketDetail() {
             setTransferStep("select");
             setSelectedSeats([]);
           }}
-          onSell={() => showToast("Listed for sale")}
+          onSell={() => setShowResaleModal(true)}
         />
+      )}
+
+      {/* Resale Unavailable Bottom Sheet Modal Overlay */}
+      {showResaleModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setShowResaleModal(false)}
+            className="fixed inset-0 bg-black/60 z-50 transition-opacity duration-300 animate-in fade-in"
+          />
+
+          {/* Bottom Sheet Card */}
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[24px] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] z-50 overflow-hidden animate-in slide-in-from-bottom duration-300 ease-out px-6 pt-3 pb-8 text-left">
+            {/* Pill drag handle */}
+            <div className="w-12 h-1 bg-black rounded-full mx-auto mb-6 mt-1" />
+
+            {/* Title */}
+            <h3 className="text-[19px] font-bold text-black text-center mb-6">
+              Resale Unavailable
+            </h3>
+
+            {/* Message Body */}
+            <div className="space-y-4 px-1">
+              <p className="text-[15px] font-semibold text-zinc-900 leading-relaxed">
+                Resale for this event has not been turned on by the Event Organiser.
+              </p>
+              <p className="text-[15px] font-normal text-zinc-500 leading-relaxed">
+                Please check back again as this may change.
+              </p>
+            </div>
+
+            {/* iOS Bottom Indicator */}
+            <div className="mt-8 flex justify-center">
+              <div className="w-32 h-1 bg-black rounded-full" />
+            </div>
+          </div>
+        </>
       )}
 
       {/* Drawer Overlay for Transfer Flow */}
@@ -1237,12 +1275,11 @@ function ActionPopover({
 
       {showSell && (
         <button
-          onClick={fadeSell ? undefined : onSell}
-          disabled={fadeSell}
-          className={`flex flex-col items-center justify-center flex-1 gap-[4px] transition-all ${
+          onClick={onSell}
+          className={`flex flex-col items-center justify-center flex-1 gap-[4px] transition-all cursor-pointer ${
             fadeSell 
-              ? "text-zinc-400 opacity-60 cursor-not-allowed" 
-              : "text-black hover:opacity-80 active:scale-95 cursor-pointer"
+              ? "text-zinc-400 opacity-60 hover:opacity-80 active:scale-95" 
+              : "text-black hover:opacity-80 active:scale-95"
           }`}
         >
           <RefreshCw className="h-6 w-6" />
