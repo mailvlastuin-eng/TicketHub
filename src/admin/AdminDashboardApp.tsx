@@ -21,6 +21,8 @@ import {
   Globe,
   Lock,
   Ticket,
+  X,
+  Coins,
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import {
@@ -33,6 +35,7 @@ import {
   updateUserTransfersFn,
   renewUserDurationFn,
   updateUserSlotsFn,
+  updateUserTokensFn,
 } from './functions';
 
 export function AdminDashboardApp() {
@@ -118,11 +121,14 @@ export function AdminDashboardApp() {
   const [userQuery, setUserQuery] = useState('');
   const [attemptQuery, setAttemptQuery] = useState('');
 
-  // Create User Form State
+  // Create User Form & Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedUserType, setSelectedUserType] = useState<'payment' | 'token'>('payment');
   const [newEmail, setNewEmail] = useState('');
   const [newDuration, setNewDuration] = useState<'1m' | '3m' | '6m' | '1y'>('1m');
   const [newPassword, setNewPassword] = useState('');
   const [newLoginMode, setNewLoginMode] = useState<'single' | 'multiple'>('single');
+  const [newTokens, setNewTokens] = useState<number>(10);
   const [creatingUser, setCreatingUser] = useState(false);
   const [lastCreatedUser, setLastCreatedUser] = useState<any | null>(null);
 
@@ -136,6 +142,10 @@ export function AdminDashboardApp() {
   // Ticket Slots Edit State
   const [editingSlots, setEditingSlots] = useState<Record<string, number>>({});
   const [savingSlots, setSavingSlots] = useState<Record<string, boolean>>({});
+
+  // Tokens Balance Edit State
+  const [editingTokens, setEditingTokens] = useState<Record<string, number>>({});
+  const [savingTokens, setSavingTokens] = useState<Record<string, boolean>>({});
 
   // Renew Duration State
   const [renewingUserId, setRenewingUserId] = useState<string | null>(null);
@@ -243,17 +253,25 @@ export function AdminDashboardApp() {
       const res = await createUserAccessFn({
         data: {
           adminPass,
-          email: newEmail,
+          email: newEmail.trim(),
           duration: newDuration,
-          password: newPassword ? newPassword : undefined,
-          loginMode: newLoginMode,
+          password: newPassword.trim() ? newPassword.trim() : undefined,
+          loginMode: selectedUserType === 'token' ? 'token' : newLoginMode,
+          userType: selectedUserType,
+          initialTokens: selectedUserType === 'token' ? Number(newTokens) || 0 : 0,
         },
       });
-      toast.success(`Access generated for ${newEmail}`);
+      toast.success(selectedUserType === 'token' ? `Token User created for ${newEmail}` : `Access generated for ${newEmail}`);
+      setLastCreatedUser({
+        email: newEmail.trim(),
+        password: res.generatedPassword,
+        duration: newDuration,
+        userType: selectedUserType,
+        initialTokens: selectedUserType === 'token' ? Number(newTokens) || 0 : undefined,
+      });
       setNewEmail('');
       setNewPassword('');
       setNewLoginMode('single');
-      setLastCreatedUser(res.user);
       fetchDashboardData(true);
     } catch (err: any) {
       toast.error(err.message || 'Failed to generate access');
@@ -311,7 +329,7 @@ export function AdminDashboardApp() {
   );
 
   const parseDeviceInfo = (deviceInfoStr: string | null) => {
-    if (!deviceInfoStr) return { device: '', transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0 };
+    if (!deviceInfoStr) return { device: '', transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token' };
     if (deviceInfoStr.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(deviceInfoStr);
@@ -321,10 +339,12 @@ export function AdminDashboardApp() {
           ticketsCount: typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0,
           ticketSlots: typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20,
           ticketsCreatedCount: typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0,
+          tokensCount: typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0,
+          userType: (parsed.userType === 'token' ? 'token' : 'payment') as 'payment' | 'token',
         };
       } catch (e) {}
     }
-    return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0 };
+    return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token' };
   };
 
   const handleUpdateTransfers = async (userId: string, count: number) => {
@@ -350,6 +370,19 @@ export function AdminDashboardApp() {
       toast.error(err.message || 'Failed to update ticket slots');
     } finally {
       setSavingSlots(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  const handleUpdateTokens = async (userId: string, count: number) => {
+    setSavingTokens(prev => ({ ...prev, [userId]: true }));
+    try {
+      await updateUserTokensFn({ data: { adminPass, userId, tokensCount: count } });
+      toast.success('Token balance updated successfully');
+      fetchDashboardData(true);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update tokens');
+    } finally {
+      setSavingTokens(prev => ({ ...prev, [userId]: false }));
     }
   };
 
@@ -674,478 +707,610 @@ export function AdminDashboardApp() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main List Column */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Tab Selector (Pills) */}
-            <div className="bg-slate-200/65 border border-slate-200/80 p-1.5 rounded-full flex gap-1.5">
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`flex-1 py-2.5 text-center rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeTab === 'users'
-                    ? 'bg-white text-blue-600 shadow-md shadow-slate-300/40 border border-slate-200/10'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Access Keys ({filteredUsers.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('attempts')}
-                className={`flex-1 py-2.5 text-center rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  activeTab === 'attempts'
-                    ? 'bg-white text-blue-600 shadow-md shadow-slate-300/40 border border-slate-200/10'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Sign-In Logs ({filteredAttempts.length})
-              </button>
-            </div>
+        <div className="w-full space-y-6">
+          {/* Tab Selector (Pills) */}
+          <div className="bg-slate-200/65 border border-slate-200/80 p-1.5 rounded-full flex gap-1.5 max-w-md mx-auto">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex-1 py-2.5 text-center rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                activeTab === 'users'
+                  ? 'bg-white text-blue-600 shadow-md shadow-slate-300/40 border border-slate-200/10'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Access Keys ({filteredUsers.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('attempts')}
+              className={`flex-1 py-2.5 text-center rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                activeTab === 'attempts'
+                  ? 'bg-white text-blue-600 shadow-md shadow-slate-300/40 border border-slate-200/10'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Sign-In Logs ({filteredAttempts.length})
+            </button>
+          </div>
 
-            {/* Users Tab */}
-            {activeTab === 'users' && (
-              <div className="space-y-4">
-                {/* Search and Header Controls */}
-                <div className="bg-white border border-slate-200/65 rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
-                  <div className="flex flex-col text-left">
-                    <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-850">
-                      Granted Access Keys
-                    </h2>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Click any account to expand settings and detail info</p>
-                  </div>
-                  <div className="relative w-full sm:w-64">
-                    <input
-                      type="text"
-                      placeholder="Search key email..."
-                      value={userQuery}
-                      onChange={(e) => setUserQuery(e.target.value)}
-                      className="w-full h-10 border border-slate-200 bg-white text-slate-850 rounded-full pl-10 pr-4 text-xs focus:border-blue-500 focus:shadow-sm outline-none transition-all"
-                    />
-                    <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
-                  </div>
+          {/* Users Tab */}
+          {activeTab === 'users' && (
+            <div className="space-y-4">
+              {/* Search and Header Controls */}
+              <div className="bg-white border border-slate-200/65 rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex flex-col text-left">
+                  <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-850">
+                    Granted Access Keys
+                  </h2>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Click any account to expand settings and detail info</p>
                 </div>
+                <div className="relative w-full sm:w-64">
+                  <input
+                    type="text"
+                    placeholder="Search key email..."
+                    value={userQuery}
+                    onChange={(e) => setUserQuery(e.target.value)}
+                    className="w-full h-10 border border-slate-200 bg-white text-slate-850 rounded-full pl-10 pr-4 text-xs focus:border-blue-500 focus:shadow-sm outline-none transition-all"
+                  />
+                  <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
+                </div>
+              </div>
 
-                {/* Collapsible Card List */}
-                <div className="space-y-3">
-                  {filteredUsers.length === 0 ? (
-                    <div className="bg-white border border-slate-200/60 rounded-2xl py-12 text-center text-slate-400 font-medium">
-                      No access keys registered.
-                    </div>
-                  ) : (
-                    filteredUsers.map((u) => {
-                      const isExpanded = expandedUserId === u.id;
-                      const parsedDev = parseDeviceInfo(u.deviceInfo);
-                      const currentTransfers = editingTransfers[u.id] !== undefined ? editingTransfers[u.id] : parsedDev.transfersCount;
-                      const isSaving = savingTransfers[u.id];
+              {/* Collapsible Card List */}
+              <div className="space-y-3">
+                {filteredUsers.length === 0 ? (
+                  <div className="bg-white border border-slate-200/60 rounded-2xl py-12 text-center text-slate-400 font-medium">
+                    No access keys registered.
+                  </div>
+                ) : (
+                  filteredUsers.map((u) => {
+                    const isExpanded = expandedUserId === u.id;
+                    const parsedDev = parseDeviceInfo(u.deviceInfo);
+                    const isTokenUser = u.userType === 'token' || parsedDev.userType === 'token' || u.loginMode === 'token';
+                    const currentTransfers = editingTransfers[u.id] !== undefined ? editingTransfers[u.id] : parsedDev.transfersCount;
+                    const isSaving = savingTransfers[u.id];
 
-                      return (
+                    return (
+                      <div 
+                        key={u.id} 
+                        className={`bg-white border rounded-2xl shadow-sm transition-all duration-200 overflow-hidden ${
+                          isExpanded ? 'border-blue-300 ring-2 ring-blue-5/50 shadow-md' : 'border-slate-200/60 hover:border-slate-300'
+                        }`}
+                      >
+                        {/* Compact View Header */}
                         <div 
-                          key={u.id} 
-                          className={`bg-white border rounded-2xl shadow-sm transition-all duration-200 overflow-hidden ${
-                            isExpanded ? 'border-blue-300 ring-2 ring-blue-5/50 shadow-md' : 'border-slate-200/60 hover:border-slate-300'
-                          }`}
+                          onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
+                          className="p-5 flex items-center justify-between cursor-pointer select-none"
                         >
-                          {/* Compact View Header */}
-                          <div 
-                            onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
-                            className="p-5 flex items-center justify-between cursor-pointer select-none"
-                          >
-                            <div className="flex flex-col text-left min-w-0 pr-4">
+                          <div className="flex flex-col text-left min-w-0 pr-4">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm text-slate-900 truncate tracking-tight">{u.email}</span>
-                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1.5">
-                                <Clock className="h-3 w-3" />
-                                {getDurationDisplay(u)}
-                              </span>
+                              {isTokenUser && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 flex items-center gap-1">
+                                  <Coins className="h-2.5 w-2.5" />
+                                  Token User
+                                </span>
+                              )}
                             </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              {getStatusBadge(u.status)}
-                              <div className={`p-1 text-slate-400 hover:text-slate-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
-                                </svg>
-                              </div>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1.5">
+                              <Clock className="h-3 w-3" />
+                              {getDurationDisplay(u)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            {getStatusBadge(u.status)}
+                            <div className={`p-1 text-slate-400 hover:text-slate-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+                              </svg>
                             </div>
                           </div>
+                        </div>
 
-                          {/* Expanded Detail Panel */}
-                          {isExpanded && (
-                            <div className="px-5 pb-5 pt-3 border-t border-slate-100 bg-slate-50/60 space-y-4">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
-                                {/* Passcode Detail */}
-                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
-                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Passcode</span>
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-mono font-black text-sm text-blue-600 bg-blue-50/30 px-2 py-0.5 rounded border border-blue-100">{u.password}</span>
-                                    <button
-                                      onClick={() => handleCopy(`${u.email} | ${u.password}`, u.id)}
-                                      className="p-1 text-slate-400 hover:text-blue-600 active:scale-95 transition-all cursor-pointer"
-                                      title="Copy Credentials"
-                                    >
-                                      {copiedId === u.id ? (
-                                        <Check className="h-4 w-4 text-emerald-600" />
-                                      ) : (
-                                        <Copy className="h-4 w-4" />
-                                      )}
-                                    </button>
+                        {/* Expanded Detail Panel */}
+                        {isExpanded && (
+                          <div className="px-5 pb-5 pt-3 border-t border-slate-100 bg-slate-50/60 space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                              {/* Passcode Detail */}
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Passcode</span>
+                                <div className="flex items-center justify-between">
+                                  <span className="font-mono font-black text-sm text-blue-600 bg-blue-50/30 px-2 py-0.5 rounded border border-blue-100">{u.password}</span>
+                                  <button
+                                    onClick={() => handleCopy(`${u.email} | ${u.password}`, u.id)}
+                                    className="p-1 text-slate-400 hover:text-blue-600 active:scale-95 transition-all cursor-pointer"
+                                    title="Copy Credentials"
+                                  >
+                                    {copiedId === u.id ? (
+                                      <Check className="h-4 w-4 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Login Mode / Type */}
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Account Type</span>
+                                <span className={`text-xs font-bold inline-block mt-0.5 uppercase tracking-wide ${isTokenUser ? 'text-purple-700 font-extrabold' : u.loginMode === 'multiple' ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                  {isTokenUser ? 'Token User (Pay Per Use)' : u.loginMode === 'multiple' ? 'Multiple Sign-Ins' : 'Single Session Limit'}
+                                </span>
+                              </div>
+
+                              {/* Activation Dates */}
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2 lg:col-span-1">
+                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Authorization Details</span>
+                                {u.activatedAt ? (
+                                  <div className="text-[11px] text-slate-600 space-y-0.5">
+                                    <p><strong className="text-slate-800">Started:</strong> {new Date(u.activatedAt).toLocaleString()}</p>
+                                    <p><strong className="text-slate-800">Expires:</strong> {new Date(u.expiresAt).toLocaleString()}</p>
                                   </div>
-                                </div>
+                                ) : (
+                                  <span className="text-xs font-semibold text-slate-400 italic">Awaiting buyer login...</span>
+                                )}
+                              </div>
 
-                                {/* Login Mode */}
-                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
-                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Login Permission</span>
-                                  <span className={`text-xs font-bold inline-block mt-0.5 uppercase tracking-wide ${u.loginMode === 'multiple' ? 'text-emerald-600' : 'text-blue-600'}`}>
-                                    {u.loginMode === 'multiple' ? 'Multiple Sign-Ins' : 'Single Session Limit'}
-                                  </span>
-                                </div>
-
-                                {/* Activation Dates */}
-                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2 lg:col-span-1">
-                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Authorization Details</span>
-                                  {u.activatedAt ? (
-                                    <div className="text-[11px] text-slate-600 space-y-0.5">
-                                      <p><strong className="text-slate-800">Started:</strong> {new Date(u.activatedAt).toLocaleString()}</p>
-                                      <p><strong className="text-slate-800">Expires:</strong> {new Date(u.expiresAt).toLocaleString()}</p>
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs font-semibold text-slate-400 italic">Awaiting buyer login...</span>
-                                  )}
-                                </div>
-
-                                {/* Tickets Created */}
-                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
-                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Tickets Created</span>
-                                  <div className="flex items-center gap-2.5 mt-1.5 text-xs text-slate-700 min-w-0">
-                                    <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-                                      <Ticket className="h-4 w-4" />
-                                    </div>
-                                    <div className="min-w-0">
-                                      <p className="font-bold text-sm text-slate-900">{parsedDev.ticketsCount}</p>
-                                      <p className="text-[9px] text-slate-400 font-semibold truncate mt-0.5">Tickets created</p>
-                                    </div>
+                              {/* Tickets Created */}
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
+                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Tickets Created</span>
+                                <div className="flex items-center gap-2.5 mt-1.5 text-xs text-slate-700 min-w-0">
+                                  <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+                                    <Ticket className="h-4 w-4" />
                                   </div>
-                                </div>
-
-                                {/* Transfers Management */}
-                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
-                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Transfers Allowance</span>
-                                  <div className="flex items-center gap-2 mt-1.5">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={currentTransfers}
-                                      onChange={(e) => setEditingTransfers(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
-                                      className="w-14 h-8 text-center border border-slate-300 rounded-lg bg-white text-slate-800 font-bold focus:outline-none focus:border-blue-500 text-xs"
-                                    />
-                                    <button
-                                      onClick={() => handleUpdateTransfers(u.id, currentTransfers)}
-                                      disabled={isSaving || (editingTransfers[u.id] === undefined && parsedDev.transfersCount === currentTransfers)}
-                                      className="px-3 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                                    >
-                                      {isSaving ? 'Saving' : 'Save'}
-                                    </button>
-                                  </div>
-                                </div>
-
-                                {/* Ticket Slots Management */}
-                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
-                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Ticket Slots</span>
-                                  <div className="flex items-center gap-2 mt-1.5">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={editingSlots[u.id] !== undefined ? editingSlots[u.id] : parsedDev.ticketSlots}
-                                      onChange={(e) => setEditingSlots(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
-                                      className="w-14 h-8 text-center border border-slate-300 rounded-lg bg-white text-slate-800 font-bold focus:outline-none focus:border-blue-500 text-xs"
-                                    />
-                                    <button
-                                      onClick={() => handleUpdateSlots(u.id, editingSlots[u.id] !== undefined ? editingSlots[u.id] : parsedDev.ticketSlots)}
-                                      disabled={savingSlots[u.id] || (editingSlots[u.id] === undefined && parsedDev.ticketSlots === (editingSlots[u.id] ?? parsedDev.ticketSlots))}
-                                      className="px-3 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                                    >
-                                      {savingSlots[u.id] ? 'Saving' : 'Save'}
-                                    </button>
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-sm text-slate-900">{parsedDev.ticketsCreatedCount || parsedDev.ticketsCount || 0}</p>
+                                    <p className="text-[9px] text-slate-400 font-semibold truncate mt-0.5">Total tickets created</p>
                                   </div>
                                 </div>
                               </div>
 
-                              {/* Expanded Row Action Buttons */}
-                              <div className="pt-3 border-t border-slate-100 space-y-3">
-                                {/* Renew Access Row */}
-                                <div className="flex items-center gap-2">
-                                  <select
-                                    value={renewDuration[u.id] || '1m'}
-                                    onChange={(e) => setRenewDuration(prev => ({ ...prev, [u.id]: e.target.value as any }))}
-                                    className="h-8 border border-slate-200 bg-white text-slate-800 rounded-lg px-2 text-[10px] font-bold focus:outline-none focus:border-blue-500 uppercase cursor-pointer"
-                                  >
-                                    <option value="1m">+1 Month</option>
-                                    <option value="3m">+3 Months</option>
-                                    <option value="6m">+6 Months</option>
-                                    <option value="1y">+1 Year</option>
-                                  </select>
-                                  <button
-                                    onClick={() => handleRenewUser(u.id, u.email)}
-                                    disabled={renewingUserId === u.id}
-                                    className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 border border-emerald-200 rounded-full font-bold text-[10px] uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50 flex items-center gap-1.5"
-                                  >
-                                    {renewingUserId === u.id ? (
-                                      <RefreshCw className="h-3 w-3 animate-spin" />
-                                    ) : (
-                                      <RefreshCw className="h-3 w-3" />
-                                    )}
-                                    Renew Access
-                                  </button>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    {u.status === 'active' && (
-                                      <button
-                                        onClick={() => handleTerminate(u.id, u.email)}
-                                        className="px-4 py-2 bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-600 border border-rose-200 rounded-full font-bold text-[10px] uppercase tracking-wider cursor-pointer transition-all"
-                                      >
-                                        Terminate Session
-                                      </button>
-                                    )}
+                              {/* Conditional Balance / Slot Management */}
+                              {isTokenUser ? (
+                                /* Token Balance Management */
+                                <div className="bg-white border border-purple-200 rounded-xl p-3.5 shadow-sm text-left sm:col-span-2">
+                                  <span className="text-[9px] font-extrabold text-purple-700 uppercase tracking-widest block mb-1">
+                                    Token Balance (1 = Create, 2 = Transfer)
+                                  </span>
+                                  <div className="flex items-center gap-2 mt-1.5">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={editingTokens[u.id] !== undefined ? editingTokens[u.id] : parsedDev.tokensCount}
+                                      onChange={(e) => setEditingTokens(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                                      className="w-20 h-8 text-center border border-purple-300 rounded-lg bg-purple-50/30 text-purple-950 font-bold focus:outline-none focus:border-purple-500 text-xs"
+                                    />
+                                    <button
+                                      onClick={() => handleUpdateTokens(u.id, editingTokens[u.id] !== undefined ? editingTokens[u.id] : parsedDev.tokensCount)}
+                                      disabled={savingTokens[u.id] || (editingTokens[u.id] === undefined && parsedDev.tokensCount === (editingTokens[u.id] ?? parsedDev.tokensCount))}
+                                      className="px-3.5 h-8 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                                    >
+                                      {savingTokens[u.id] ? 'Saving' : 'Save Balance'}
+                                    </button>
                                   </div>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Transfers Management */}
+                                  <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
+                                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Transfers Allowance</span>
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        value={currentTransfers}
+                                        onChange={(e) => setEditingTransfers(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                                        className="w-14 h-8 text-center border border-slate-300 rounded-lg bg-white text-slate-800 font-bold focus:outline-none focus:border-blue-500 text-xs"
+                                      />
+                                      <button
+                                        onClick={() => handleUpdateTransfers(u.id, currentTransfers)}
+                                        disabled={isSaving || (editingTransfers[u.id] === undefined && parsedDev.transfersCount === currentTransfers)}
+                                        className="px-3 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                                      >
+                                        {isSaving ? 'Saving' : 'Save'}
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Ticket Slots Management */}
+                                  <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
+                                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Ticket Slots</span>
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        value={editingSlots[u.id] !== undefined ? editingSlots[u.id] : parsedDev.ticketSlots}
+                                        onChange={(e) => setEditingSlots(prev => ({ ...prev, [u.id]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                                        className="w-14 h-8 text-center border border-slate-300 rounded-lg bg-white text-slate-800 font-bold focus:outline-none focus:border-blue-500 text-xs"
+                                      />
+                                      <button
+                                        onClick={() => handleUpdateSlots(u.id, editingSlots[u.id] !== undefined ? editingSlots[u.id] : parsedDev.ticketSlots)}
+                                        disabled={savingSlots[u.id] || (editingSlots[u.id] === undefined && parsedDev.ticketSlots === (editingSlots[u.id] ?? parsedDev.ticketSlots))}
+                                        className="px-3 h-8 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                                      >
+                                        {savingSlots[u.id] ? 'Saving' : 'Save'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Expanded Row Action Buttons */}
+                            <div className="pt-3 border-t border-slate-100 space-y-3">
+                              {/* Renew Access Row */}
+                              <div className="flex items-center gap-2">
+                                <select
+                                  value={renewDuration[u.id] || '1m'}
+                                  onChange={(e) => setRenewDuration(prev => ({ ...prev, [u.id]: e.target.value as any }))}
+                                  className="h-8 border border-slate-200 bg-white text-slate-800 rounded-lg px-2 text-[10px] font-bold focus:outline-none focus:border-blue-500 uppercase cursor-pointer"
+                                >
+                                  <option value="1m">+1 Month</option>
+                                  <option value="3m">+3 Months</option>
+                                  <option value="6m">+6 Months</option>
+                                  <option value="1y">+1 Year</option>
+                                </select>
+                                <button
+                                  onClick={() => handleRenewUser(u.id, u.email)}
+                                  disabled={renewingUserId === u.id}
+                                  className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 border border-emerald-200 rounded-full font-bold text-[10px] uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                  {renewingUserId === u.id ? (
+                                    <RefreshCw className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <RefreshCw className="h-3 w-3" />
+                                  )}
+                                  Renew Access
+                                </button>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {u.status === 'active' && (
+                                    <button
+                                      onClick={() => handleTerminate(u.id, u.email)}
+                                      className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer transition-colors"
+                                    >
+                                      Terminate Session
+                                    </button>
+                                  )}
                                   <button
                                     onClick={() => handleDeleteUser(u.id, u.email)}
-                                    className="px-4 py-2 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 hover:border-rose-100 border border-slate-200 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
-                                    title="Delete Record"
+                                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-1"
                                   >
-                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <Trash2 className="h-3 w-3" />
                                     Delete Key
                                   </button>
                                 </div>
                               </div>
                             </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Login Logs Tab */}
-            {activeTab === 'attempts' && (
-              <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
-                <div className="p-5 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between">
-                  <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-800">
-                    Live Login Attempts History
+          {/* Attempts Tab */}
+          {activeTab === 'attempts' && (
+            <div className="bg-white border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden text-left">
+              <div className="p-5 border-b border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+                <div>
+                  <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-850">
+                    Real-Time Security & Sign-In Logs
                   </h2>
-                  <div className="relative w-full sm:w-64">
-                    <input
-                      type="text"
-                      placeholder="Search email or device..."
-                      value={attemptQuery}
-                      onChange={(e) => setAttemptQuery(e.target.value)}
-                      className="w-full h-10 border border-slate-200 bg-white text-slate-855 rounded-full pl-10 pr-4 text-xs focus:border-blue-500 outline-none transition-all"
-                    />
-                    <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
-                  </div>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Monitored live sign-in attempts across devices</p>
                 </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest">
-                        <th className="py-3 px-5">Date & Time</th>
-                        <th className="py-3 px-5">Target User</th>
-                        <th className="py-3 px-5">Password Tried</th>
-                        <th className="py-3 px-5">Outcome</th>
-                        <th className="py-3 px-5">Device</th>
-                        <th className="py-3 px-5">IP Address</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs">
-                      {filteredAttempts.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
-                            No sign-in attempts registered.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredAttempts.map((a) => (
-                          <tr key={a.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-3.5 px-5 text-slate-500 font-mono text-[10.5px]">
-                              {new Date(a.timestamp).toLocaleString()}
-                            </td>
-                            <td className="py-3.5 px-5 font-bold text-slate-900">
-                              {a.email}
-                            </td>
-                            <td className="py-3.5 px-5 font-mono text-slate-800 font-semibold bg-slate-50/40">
-                              {a.passwordAttempted}
-                            </td>
-                            <td className="py-3.5 px-5">
-                              {getAttemptStatusBadge(a.status)}
-                            </td>
-                            <td className="py-3.5 px-5 text-slate-600">
-                              <span className="inline-flex items-center gap-1.5">
-                                <span className="text-slate-400">{getDeviceIcon(a.deviceInfo)}</span>
-                                <span className="max-w-[140px] truncate" title={a.deviceInfo}>
-                                  {a.deviceInfo}
-                                </span>
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-5 text-slate-400 font-mono">
-                              {a.ip}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Creation Form Column */}
-          <div className="space-y-6">
-            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm relative overflow-hidden text-left">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600" />
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 mb-5 flex items-center gap-2">
-                <Plus className="h-4 w-4 text-blue-600" />
-                Grant User Access
-              </h3>
-
-              <form onSubmit={handleCreateUser} className="space-y-5">
-                <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-2">
-                    User Email Address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="buyer@domain.com"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-4 text-xs placeholder-slate-400 focus:shadow-sm outline-none transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-2">
-                    Access Duration Limit
-                  </label>
-                  <select
-                    value={newDuration}
-                    onChange={(e) => setNewDuration(e.target.value as any)}
-                    className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-3.5 text-xs focus:shadow-sm outline-none transition-all font-semibold"
-                  >
-                    <option value="1m">1 Month Access</option>
-                    <option value="3m">3 Months Access</option>
-                    <option value="6m">6 Months Access</option>
-                    <option value="1y">1 Year Access</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-2">
-                    Login Permission Mode
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setNewLoginMode('single')}
-                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                        newLoginMode === 'single'
-                          ? 'bg-blue-50 border-blue-500 text-blue-750 shadow-sm'
-                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="font-extrabold uppercase tracking-wider text-[10px]">Single Sign-In</span>
-                      <span className="text-[9px] text-slate-450 font-semibold">Login Once Max</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewLoginMode('multiple')}
-                      className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                        newLoginMode === 'multiple'
-                          ? 'bg-blue-50 border-blue-500 text-blue-755 shadow-sm'
-                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="font-extrabold uppercase tracking-wider text-[10px]">Multiple</span>
-                      <span className="text-[9px] text-slate-450 font-semibold">Reusable session</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-extrabold text-slate-650 uppercase tracking-widest block mb-2">
-                    Passcode (Optional, auto-generated if blank)
-                  </label>
+                <div className="relative w-full sm:w-64">
                   <input
                     type="text"
-                    placeholder="e.g. secure1234"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-4 text-xs placeholder-slate-400 focus:shadow-sm outline-none transition-all font-mono"
+                    placeholder="Search logs..."
+                    value={attemptQuery}
+                    onChange={(e) => setAttemptQuery(e.target.value)}
+                    className="w-full h-10 border border-slate-200 bg-white text-slate-850 rounded-full pl-10 pr-4 text-xs focus:border-blue-500 focus:shadow-sm outline-none transition-all"
                   />
+                  <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
                 </div>
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={creatingUser}
-                  className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-xs tracking-wider rounded-full uppercase transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 mt-4"
-                >
-                  {creatingUser ? (
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4" />
-                      Generate Authorization
-                    </>
-                  )}
-                </button>
-              </form>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest">
+                      <th className="py-3 px-5">Date & Time</th>
+                      <th className="py-3 px-5">Target User</th>
+                      <th className="py-3 px-5">Password Tried</th>
+                      <th className="py-3 px-5">Outcome</th>
+                      <th className="py-3 px-5">Device</th>
+                      <th className="py-3 px-5">IP Address</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs">
+                    {filteredAttempts.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
+                          No sign-in attempts registered.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredAttempts.map((a) => (
+                        <tr key={a.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-3.5 px-5 text-slate-500 font-mono text-[10.5px]">
+                            {new Date(a.timestamp).toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-5 font-bold text-slate-900">
+                            {a.email}
+                          </td>
+                          <td className="py-3.5 px-5 font-mono text-slate-800 font-semibold bg-slate-50/40">
+                            {a.passwordAttempted}
+                          </td>
+                          <td className="py-3.5 px-5">
+                            {getAttemptStatusBadge(a.status)}
+                          </td>
+                          <td className="py-3.5 px-5 text-slate-600">
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="text-slate-400">{getDeviceIcon(a.deviceInfo)}</span>
+                              <span className="max-w-[140px] truncate" title={a.deviceInfo}>
+                                {a.deviceInfo}
+                              </span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-5 text-slate-400 font-mono">
+                            {a.ip}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
 
-              {/* Show password immediately upon generation */}
-              {lastCreatedUser && (
-                <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 h-10 w-10 bg-emerald-50 rounded-full blur-md" />
-                  <p className="text-[10px] font-black text-emerald-700 uppercase tracking-wider mb-2">
-                    Authorization Generated Successfully!
-                  </p>
-                  <div className="space-y-1.5 text-xs text-slate-800">
-                    <p>
-                      <strong className="text-slate-650 font-semibold">Email:</strong> {lastCreatedUser.email}
-                    </p>
-                    <p>
-                      <strong className="text-slate-650 font-semibold">Passcode:</strong>{' '}
-                      <span className="font-mono bg-white text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200 font-bold">
-                        {lastCreatedUser.password}
-                      </span>
-                    </p>
-                    <p>
-                      <strong className="text-slate-650 font-semibold">Duration:</strong>{' '}
-                      {lastCreatedUser.duration === '1m' && '1 Month'}
-                      {lastCreatedUser.duration === '3m' && '3 Months'}
-                      {lastCreatedUser.duration === '6m' && '6 Months'}
-                      {lastCreatedUser.duration === '1y' && '1 Year'}
-                    </p>
+        {/* Floating Action Button for Grant Access */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            onClick={() => {
+              setLastCreatedUser(null);
+              setIsCreateModalOpen(true);
+            }}
+            className="group flex items-center gap-2.5 px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 active:scale-95 transition-all cursor-pointer font-bold text-xs uppercase tracking-wider"
+          >
+            <Plus className="h-5 w-5 transition-transform group-hover:rotate-90 duration-300" />
+            <span>Grant Access</span>
+          </button>
+        </div>
+
+        {/* Modal Overlay for Creating User Access */}
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div 
+              onClick={() => setIsCreateModalOpen(false)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            />
+
+            {/* Modal Container */}
+            <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden text-left z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600" />
+              
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                      <Key className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-base text-slate-900">Grant User Access</h3>
+                      <p className="text-xs text-slate-400 font-medium">Select account type and configure permissions</p>
+                    </div>
                   </div>
                   <button
-                    onClick={() => handleCopy(`${lastCreatedUser.email} | ${lastCreatedUser.password}`, 'last_gen')}
-                    className="w-full mt-4 h-9 border border-emerald-250 hover:border-emerald-350 bg-emerald-50 hover:bg-emerald-100 text-emerald-750 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all cursor-pointer"
                   >
-                    {copiedId === 'last_gen' ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-emerald-700" />
-                        Copied Credentials
-                      </>
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* User Type Selector */}
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedUserType('payment');
+                      setLastCreatedUser(null);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      selectedUserType === 'payment'
+                        ? 'bg-blue-50/70 border-blue-500 ring-2 ring-blue-500/20 text-blue-900 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-extrabold text-xs uppercase tracking-wider">1. One-Time Payment</span>
+                      {selectedUserType === 'payment' && <Check className="h-4 w-4 text-blue-600" />}
+                    </div>
+                    <span className="text-[11px] text-slate-500 leading-tight">Fixed duration with transfer & ticket slot limits</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedUserType('token');
+                      setLastCreatedUser(null);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      selectedUserType === 'token'
+                        ? 'bg-purple-50/70 border-purple-500 ring-2 ring-purple-500/20 text-purple-900 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-extrabold text-xs uppercase tracking-wider">2. Token User</span>
+                      {selectedUserType === 'token' && <Check className="h-4 w-4 text-purple-600" />}
+                    </div>
+                    <span className="text-[11px] text-slate-500 leading-tight">Pay-per-action (1 token create, 2 tokens transfer)</span>
+                  </button>
+                </div>
+
+                {/* Create Form */}
+                <form onSubmit={handleCreateUser} className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-1.5">
+                      User Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="user@example.com"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-4 text-xs placeholder-slate-400 focus:shadow-sm outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-1.5">
+                        Duration Limit
+                      </label>
+                      <select
+                        value={newDuration}
+                        onChange={(e) => setNewDuration(e.target.value as any)}
+                        className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-3.5 text-xs focus:shadow-sm outline-none transition-all font-semibold"
+                      >
+                        <option value="1m">1 Month Access</option>
+                        <option value="3m">3 Months Access</option>
+                        <option value="6m">6 Months Access</option>
+                        <option value="1y">1 Year Access</option>
+                      </select>
+                    </div>
+
+                    {selectedUserType === 'token' ? (
+                      <div>
+                        <label className="text-[10px] font-extrabold text-purple-700 uppercase tracking-widest block mb-1.5">
+                          Initial Tokens
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          placeholder="e.g. 10"
+                          value={newTokens}
+                          onChange={(e) => setNewTokens(Math.max(0, parseInt(e.target.value) || 0))}
+                          className="w-full h-11 border border-purple-200 focus:border-purple-500 bg-purple-50/30 text-purple-950 rounded-xl px-4 text-xs font-bold outline-none transition-all"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-1.5">
+                          Login Permission
+                        </label>
+                        <select
+                          value={newLoginMode}
+                          onChange={(e) => setNewLoginMode(e.target.value as any)}
+                          className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-3.5 text-xs focus:shadow-sm outline-none transition-all font-semibold"
+                        >
+                          <option value="single">Single Sign-In (Once)</option>
+                          <option value="multiple">Multiple (Reusable)</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest block mb-1.5">
+                      Passcode (Optional, auto-generated if blank)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. secure1234"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full h-11 border border-slate-200 focus:border-blue-500 bg-white text-slate-900 rounded-xl px-4 text-xs placeholder-slate-400 focus:shadow-sm outline-none transition-all font-mono"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={creatingUser}
+                    className={`w-full h-11 text-white font-bold text-xs tracking-wider rounded-xl uppercase transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 mt-2 ${
+                      selectedUserType === 'token'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-purple-500/20'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/20'
+                    }`}
+                  >
+                    {creatingUser ? (
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                     ) : (
                       <>
-                        <Copy className="h-3.5 w-3.5" />
-                        Copy Credentials
+                        <Plus className="h-4 w-4" />
+                        {selectedUserType === 'token' ? 'Generate Token Authorization' : 'Generate Payment Authorization'}
                       </>
                     )}
                   </button>
-                </div>
-              )}
+                </form>
+
+                {/* Credentials Box */}
+                {lastCreatedUser && (
+                  <div className="mt-5 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl relative overflow-hidden text-left animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider">
+                        Authorization Ready!
+                      </span>
+                      <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900">
+                        {lastCreatedUser.userType === 'token' ? 'Token User' : 'One-Time Payment'}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 text-xs text-slate-800">
+                      <p>
+                        <strong className="text-slate-600 font-semibold">Email:</strong> {lastCreatedUser.email}
+                      </p>
+                      <p>
+                        <strong className="text-slate-600 font-semibold">Passcode:</strong>{' '}
+                        <span className="font-mono bg-white text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200 font-bold">
+                          {lastCreatedUser.password}
+                        </span>
+                      </p>
+                      <p>
+                        <strong className="text-slate-600 font-semibold">Duration:</strong>{' '}
+                        {lastCreatedUser.duration === '1m' && '1 Month'}
+                        {lastCreatedUser.duration === '3m' && '3 Months'}
+                        {lastCreatedUser.duration === '6m' && '6 Months'}
+                        {lastCreatedUser.duration === '1y' && '1 Year'}
+                      </p>
+                      {lastCreatedUser.initialTokens !== undefined && (
+                        <p>
+                          <strong className="text-slate-600 font-semibold">Tokens:</strong>{' '}
+                          <span className="font-bold text-purple-700">{lastCreatedUser.initialTokens} Tokens</span>
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleCopy(`${lastCreatedUser.email} | ${lastCreatedUser.password}`, 'last_gen')}
+                      className="w-full mt-3 h-9 border border-emerald-300 hover:border-emerald-400 bg-white hover:bg-emerald-100/50 text-emerald-800 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      {copiedId === 'last_gen' ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-700" />
+                          Copied Credentials
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          Copy Credentials
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       <Toaster theme="light" position="bottom-right" closeButton />
     </main>

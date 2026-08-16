@@ -11,7 +11,7 @@ import {
   X,
   ArrowUpRight,
 } from "lucide-react";
-import { useUser } from "@/lib/auth";
+import { useUser, signIn } from "@/lib/auth";
 import { useAllTickets } from "@/lib/ticket-store";
 import { useSettings } from "@/lib/settings-store";
 import type { Ticket } from "@/lib/tickets";
@@ -502,6 +502,17 @@ function MyTicketDetail() {
       {transferStep === "none" && (
         <ActionPopover
           onTransfer={() => {
+            if (user?.userType === 'token') {
+              if (typeof user?.tokensCount === 'number' && user.tokensCount < 2) {
+                showToast("Not enough tokens. You need at least 2 tokens to transfer tickets.");
+                return;
+              }
+            } else {
+              if (typeof user?.transfersCount === 'number' && user.transfersCount <= 0) {
+                showToast("You have no ticket transfers left.");
+                return;
+              }
+            }
             setTransferStep("select");
             setSelectedSeats([]);
           }}
@@ -829,6 +840,14 @@ function MyTicketDetail() {
                             sessionId: user?.sessionId,
                           }
                         });
+
+                        if (user) {
+                          if (user.userType === 'token') {
+                            signIn({ ...user, tokensCount: Math.max(0, (user.tokensCount ?? 0) - 2) });
+                          } else {
+                            signIn({ ...user, transfersCount: Math.max(0, (user.transfersCount ?? 0) - 1) });
+                          }
+                        }
 
                         showToast(`Transferred ${selectedSeats.length} ticket${selectedSeats.length > 1 ? "s" : ""} successfully!`);
                         setTransferStep("none");
@@ -1167,7 +1186,9 @@ function ActionPopover({
   const transferState = (settings.transferBtn || "Show").toLowerCase();
   const sellState = (settings.sellTab || settings.sellBtn || "Hide").toLowerCase();
 
-  const userHasTransfers = typeof user?.transfersCount === 'number' ? user.transfersCount > 0 : false;
+  const userHasTransfers = user?.userType === 'token'
+    ? (typeof user?.tokensCount === 'number' ? user.tokensCount >= 2 : false)
+    : (typeof user?.transfersCount === 'number' ? user.transfersCount > 0 : true);
   const showTransfer = transferState !== "hide";
   const fadeTransfer = transferState === "fade" || !userHasTransfers;
 

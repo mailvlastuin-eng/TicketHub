@@ -35,6 +35,12 @@ function LoginPage() {
         name: result.name,
         sessionId: result.sessionId,
         loginMode: result.loginMode,
+        userType: result.userType ?? 'payment',
+        transfersCount: result.transfersCount,
+        acceptedTransfers: result.acceptedTransfers,
+        ticketSlots: result.ticketSlots,
+        ticketsCreatedCount: result.ticketsCreatedCount,
+        tokensCount: result.tokensCount ?? 0,
       });
       navigate({ to: "/discover", replace: true });
     } catch (err: any) {

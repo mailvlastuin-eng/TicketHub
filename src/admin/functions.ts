@@ -143,7 +143,8 @@ export const loginUserFn = createServerFn({ method: 'POST' })
 
     // Block re-use of the same passcode for single-mode users only.
     // Multiple-mode users may sign in any number of times across devices.
-    if (user.activatedAt && user.loginMode !== 'multiple') {
+    // Token-mode users: always allowed to re-login, but we enforce single active session below.
+    if (user.activatedAt && user.loginMode !== 'multiple' && user.loginMode !== 'token') {
       await addLoginAttempt({
         email,
         passwordAttempted: '[REDACTED]',
@@ -167,21 +168,27 @@ export const loginUserFn = createServerFn({ method: 'POST' })
     const expiresAt = user.expiresAt
       ? new Date(user.expiresAt)
       : new Date(activatedAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+    // Always regenerate sessionId — for token users this invalidates any prior session
     const sessionId = `sess_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
 
-    let transfersCount = 0;
+    const isTokenUser = user.userType === 'token' || user.loginMode === 'token';
+
+    let transfersCount = 4;
     let acceptedTransfers: any[] = [];
     let ticketSlots = 20;
     let ticketsCreatedCount = 0;
     let ticketsCount = 0;
+    let tokensCount = 0;
     if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(user.deviceInfo);
-        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
         acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
         ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
         ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
         ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+        tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
       } catch (e) {}
     }
 
@@ -196,6 +203,8 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       ticketSlots,
       ticketsCreatedCount,
       ticketsCount,
+      tokensCount,
+      userType: user.userType || 'payment',
     });
 
     await saveUser(user);
@@ -219,10 +228,12 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       sessionId,
       expiresAt: expiresAt.toISOString(),
       loginMode: user.loginMode || 'single',
+      userType: user.userType || 'payment',
       transfersCount,
       acceptedTransfers,
       ticketSlots,
       ticketsCreatedCount,
+      tokensCount,
     };
   });
 
@@ -252,6 +263,8 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       return { valid: false };
     }
 
+    // For token users with loginMode:'token', strictly enforce sessionId match.
+    // For multiple-mode payment users, skip sessionId check (they can share sessions).
     if (user.loginMode !== 'multiple' && user.sessionId !== sessionId) {
       return { valid: false };
     }
@@ -296,21 +309,25 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       }
     }
 
-    let transfersCount = 0;
+    let transfersCount = 4;
     let acceptedTransfers: any[] = [];
     let currentDevice = '';
     let ticketSlots = 20;
     let ticketsCreatedCount = 0;
+    let tokensCount = 0;
+    let storedUserType: 'payment' | 'token' = 'payment';
     let ticketsCount = data.ticketsCount;
 
     if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(user.deviceInfo);
-        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
         acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
         currentDevice = parsed.device || '';
         ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
         ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+        tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
+        storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
         if (ticketsCount === undefined && typeof parsed.ticketsCount === 'number') {
           ticketsCount = parsed.ticketsCount;
         }
@@ -327,6 +344,8 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
         ticketsCount: data.ticketsCount,
         ticketSlots,
         ticketsCreatedCount,
+        tokensCount,
+        userType: storedUserType,
       });
       await saveUser(user);
     }
@@ -337,6 +356,8 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       acceptedTransfers,
       ticketSlots,
       ticketsCreatedCount,
+      tokensCount,
+      userType: user.userType || storedUserType,
     };
   });
 
@@ -449,13 +470,17 @@ export const createUserAccessFn = createServerFn({ method: 'POST' })
       email: string;
       duration: '1m' | '3m' | '6m' | '1y';
       password?: string;
-      loginMode?: 'single' | 'multiple';
+      loginMode?: 'single' | 'multiple' | 'token';
+      userType?: 'payment' | 'token';
+      initialTokens?: number;
     }) => ({
       adminPass: String(d?.adminPass ?? '').trim(),
       email: String(d?.email ?? '').trim(),
       duration: d?.duration || '1m',
       password: d?.password ? String(d.password).trim() : undefined,
-      loginMode: (d?.loginMode === 'multiple' ? 'multiple' : 'single') as 'single' | 'multiple',
+      loginMode: (d?.userType === 'token' ? 'token' : d?.loginMode === 'multiple' ? 'multiple' : 'single') as 'single' | 'multiple' | 'token',
+      userType: (d?.userType === 'token' ? 'token' : 'payment') as 'payment' | 'token',
+      initialTokens: typeof d?.initialTokens === 'number' ? Math.max(0, d.initialTokens) : 0,
     }),
   )
   .handler(async ({ data }) => {
@@ -470,8 +495,12 @@ export const createUserAccessFn = createServerFn({ method: 'POST' })
     }
 
     const plainPassword = data.password || generatePassword();
-    // Hash the password before storing
     const hashedPassword = await hashPassword(plainPassword);
+
+    const isTokenUser = data.userType === 'token';
+    const deviceInfo = isTokenUser
+      ? JSON.stringify({ transfersCount: 0, acceptedTransfers: [], ticketSlots: 0, ticketsCreatedCount: 0, tokensCount: data.initialTokens, userType: 'token' })
+      : JSON.stringify({ transfersCount: 4, acceptedTransfers: [], ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' });
 
     const newUser: UserAccess = {
       id: `usr_${Math.random().toString(36).substring(2, 11)}`,
@@ -483,13 +512,13 @@ export const createUserAccessFn = createServerFn({ method: 'POST' })
       activatedAt: null,
       expiresAt: null,
       sessionId: null,
-      deviceInfo: JSON.stringify({ transfersCount: 4, acceptedTransfers: [], ticketSlots: 20, ticketsCreatedCount: 0 }),
+      deviceInfo,
       loginMode: data.loginMode,
+      userType: data.userType,
     };
 
     await saveUser(newUser);
-    // Return the plaintext password to the admin (once only, never stored again)
-    return { success: true, generatedPassword: plainPassword };
+    return { success: true, generatedPassword: plainPassword, userType: data.userType };
   });
 
 // ---------------------------------------------------------------------------
@@ -595,7 +624,8 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
     if (data.senderEmail) {
       const user = await getUserByEmail(data.senderEmail);
 
-      // SECURITY: verify the sessionId matches the stored session before mutating credits
+      // SECURITY: verify the sessionId matches the stored session before mutating credits.
+      // Token users use loginMode:'token' which is !== 'multiple', so strict check applies.
       if (!user) {
         throw new Error('Sender account not found.');
       }
@@ -604,33 +634,66 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
       }
 
       let transfersCount = 0;
+      let tokensCount = 0;
       let deviceName = 'Unknown Device';
       let acceptedTransfers: any[] = [];
+      let ticketSlots = 20;
+      let ticketsCreatedCount = 0;
+      let ticketsCount = 0;
+      let storedUserType: 'payment' | 'token' = 'payment';
+
       if (user.deviceInfo) {
         if (user.deviceInfo.trim().startsWith('{')) {
           try {
             const parsed = JSON.parse(user.deviceInfo);
             deviceName = parsed.device || 'Unknown Device';
-            transfersCount =
-              typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
-            acceptedTransfers = Array.isArray(parsed.acceptedTransfers)
-              ? parsed.acceptedTransfers
-              : [];
+            transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+            tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
+            acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+            ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
+            ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+            ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+            storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
           } catch (e) {}
         } else {
           deviceName = user.deviceInfo;
         }
       }
 
-      if (transfersCount <= 0) {
-        throw new Error('You have no ticket transfers left on your account.');
+      const isTokenUser = user.userType === 'token' || storedUserType === 'token';
+
+      if (isTokenUser) {
+        // Token users: deduct 2 tokens per transfer
+        if (tokensCount < 2) {
+          throw new Error('Insufficient tokens. You need at least 2 tokens to transfer tickets.');
+        }
+        user.deviceInfo = JSON.stringify({
+          device: deviceName,
+          transfersCount,
+          tokensCount: tokensCount - 2,
+          acceptedTransfers,
+          ticketSlots,
+          ticketsCreatedCount,
+          ticketsCount,
+          userType: 'token',
+        });
+      } else {
+        // Payment users: deduct 1 from transfersCount
+        if (transfersCount <= 0) {
+          throw new Error('You have no ticket transfers left on your account.');
+        }
+        user.deviceInfo = JSON.stringify({
+          device: deviceName,
+          transfersCount: transfersCount - 1,
+          tokensCount,
+          acceptedTransfers,
+          ticketSlots,
+          ticketsCreatedCount,
+          ticketsCount,
+          userType: 'payment',
+        });
       }
 
-      user.deviceInfo = JSON.stringify({
-        device: deviceName,
-        transfersCount: transfersCount - 1,
-        acceptedTransfers,
-      });
       await saveUser(user);
     }
 
@@ -880,3 +943,123 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
     return { success: true, ticketsCreatedCount: newCreatedCount, ticketSlots };
   });
 
+// ---------------------------------------------------------------------------
+// 16. Consume 1 Token for Ticket Creation (Token Users only, session-gated)
+// ---------------------------------------------------------------------------
+export const consumeTokenFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { email: string; sessionId: string }) => ({
+      email: String(d?.email ?? '').trim(),
+      sessionId: String(d?.sessionId ?? '').trim(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const user = await getUserByEmail(data.email);
+    if (!user || user.sessionId !== data.sessionId || user.status !== 'active') {
+      throw new Error('Unauthorized session');
+    }
+
+    const isTokenUser = user.userType === 'token' || user.loginMode === 'token';
+    if (!isTokenUser) {
+      throw new Error('This action is only available for Token Users.');
+    }
+
+    let deviceStr = '';
+    let acceptedTransfers: any[] = [];
+    let ticketsCount = 0;
+    let transfersCount = 0;
+    let ticketsCreatedCount = 0;
+    let tokensCount = 0;
+
+    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(user.deviceInfo);
+        deviceStr = parsed.device || '';
+        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+        ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+        tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
+      } catch (e) {}
+    }
+
+    if (tokensCount < 1) {
+      throw new Error('Insufficient tokens. You need at least 1 token to create a ticket.');
+    }
+
+    const newTokensCount = tokensCount - 1;
+
+    user.deviceInfo = JSON.stringify({
+      device: deviceStr,
+      transfersCount,
+      acceptedTransfers,
+      ticketsCount,
+      ticketSlots: 0,
+      ticketsCreatedCount,
+      tokensCount: newTokensCount,
+      userType: 'token',
+    });
+
+    await saveUser(user);
+    return { success: true, tokensCount: newTokensCount };
+  });
+
+// ---------------------------------------------------------------------------
+// 17. Update User Token Balance (admin-gated)
+// ---------------------------------------------------------------------------
+export const updateUserTokensFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { adminPass: string; userId: string; tokensCount: number }) => ({
+      adminPass: String(d?.adminPass ?? '').trim(),
+      userId: String(d?.userId ?? '').trim(),
+      tokensCount: Math.max(0, Number(d?.tokensCount ?? 0)),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const correctPassword = getAdminPassword();
+    if (data.adminPass !== correctPassword) {
+      throw new Error('Unauthorized access');
+    }
+
+    const users = await getAllUsers();
+    const user = users.find((u) => u.id === data.userId);
+    if (!user) throw new Error('User not found');
+
+    const isTokenUser = user.userType === 'token' || user.loginMode === 'token';
+    if (!isTokenUser) {
+      throw new Error('Token balance can only be set for Token Users.');
+    }
+
+    let deviceStr = '';
+    let acceptedTransfers: any[] = [];
+    let ticketsCount = 0;
+    let transfersCount = 0;
+    let ticketSlots = 0;
+    let ticketsCreatedCount = 0;
+
+    if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(user.deviceInfo);
+        deviceStr = parsed.device || '';
+        acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+        ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 0;
+        ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+      } catch (e) {}
+    }
+
+    user.deviceInfo = JSON.stringify({
+      device: deviceStr,
+      transfersCount,
+      acceptedTransfers,
+      ticketsCount,
+      ticketSlots,
+      ticketsCreatedCount,
+      tokensCount: data.tokensCount,
+      userType: 'token',
+    });
+
+    await saveUser(user);
+    return { success: true, tokensCount: data.tokensCount };
+  });
