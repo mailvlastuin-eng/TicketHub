@@ -606,6 +606,17 @@
         const decodedString = decodeURIComponent(escape(atob(token)));
         const parsedData = JSON.parse(decodedString);
         if (parsedData && parsedData.title) {
+          let sec = parsedData.section || "";
+          let r = parsedData.row || "";
+          
+          // If section or row wasn't directly supplied, extract from seatDetails if available
+          if ((!sec || !r) && parsedData.seatDetails) {
+            const secMatch = parsedData.seatDetails.match(/Section\s+([^,]+)/i);
+            if (secMatch && !sec) sec = secMatch[1].trim();
+            const rowMatch = parsedData.seatDetails.match(/Row\s+([^,]+)/i);
+            if (rowMatch && !r) r = rowMatch[1].trim();
+          }
+
           return {
             id: token,
             ticketId: parsedData.ticketId || "",
@@ -616,8 +627,9 @@
             date: parsedData.date || "TBA",
             image: parsedData.image || "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
             seats: parsedData.seats || ["1"],
-            section: parsedData.section || "B23",
-            row: parsedData.row || "14",
+            section: sec || "GA",
+            row: r || "",
+            seatDetails: parsedData.seatDetails || "",
             buyerEmail: parsedData.buyerEmail || "",
             buyerName: parsedData.buyerName || "",
             senderEmail: parsedData.senderEmail || "",
@@ -711,6 +723,14 @@
       // Check localStorage first
       const storedTicket = getTicketFromStorage(id);
       if (storedTicket) {
+        let sec = storedTicket.section || "";
+        let r = storedTicket.row || "";
+        if ((!sec || !r) && storedTicket.description) {
+          const secMatch = storedTicket.description.match(/Sec\s+([^\s·]+)/i);
+          if (secMatch && !sec) sec = secMatch[1].trim();
+          const rowMatch = storedTicket.description.match(/Row\s+([^\s·]+)/i);
+          if (rowMatch && !r) r = rowMatch[1].trim();
+        }
         activeTicket = {
           id: storedTicket.id,
           title: storedTicket.title || "Ticket Transfer Event",
@@ -719,9 +739,9 @@
           city: storedTicket.city || "",
           date: storedTicket.date || "Mon, Jun 22 @ 12:00 PM",
           image: storedTicket.image || "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop",
-          seats: storedTicket.seats || ["5", "6", "7", "8"],
-          section: storedTicket.section || "B23",
-          row: storedTicket.row || "14",
+          seats: storedTicket.seats || ["1"],
+          section: sec || "GA",
+          row: r || "",
           buyerEmail: ""
         };
         return;
@@ -1398,6 +1418,19 @@
     function triggerAcceptanceEmail(ticket) {
       if (!ticket || !ticket.senderEmail) return;
       
+      const seatsFormatted = ticket.seats && ticket.seats.length > 1
+        ? `Seats: ${ticket.seats.slice(0, -1).join(', ')} and ${ticket.seats[ticket.seats.length - 1]}`
+        : `Seat: ${ticket.seats?.[0] || "1"}`;
+
+      let computedSeatDetails = ticket.seatDetails;
+      if (!computedSeatDetails) {
+        if (ticket.row) {
+          computedSeatDetails = `Section ${ticket.section || "GA"}, Row ${ticket.row}, ${seatsFormatted}`;
+        } else {
+          computedSeatDetails = `Section ${ticket.section || "GA"}, ${seatsFormatted}`;
+        }
+      }
+
       const payload = {
         ticketId: ticket.ticketId || "",
         seats: ticket.seats || [],
@@ -1407,7 +1440,9 @@
         ticketDate: ticket.date,
         ticketVenue: ticket.venue,
         ticketImage: ticket.image,
-        seatDetails: `Section ${ticket.section || "B23"}, Row ${ticket.row || "14"}, Seat ${ticket.seats?.join(', ') || "1"}`,
+        section: ticket.section || "",
+        row: ticket.row || "",
+        seatDetails: computedSeatDetails,
         senderName: ticket.senderName || "JACQUELINE",
         senderEmail: ticket.senderEmail,
         backendUrl: ticket.backendUrl

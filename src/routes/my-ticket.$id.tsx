@@ -793,7 +793,11 @@ function MyTicketDetail() {
                         const seatsText = selectedSeats.length > 1
                           ? `Seats: ${selectedSeats.slice(0, -1).sort((a,b)=>Number(a)-Number(b)).join(', ')} and ${selectedSeats[selectedSeats.length - 1]}`
                           : `Seat: ${selectedSeats[0]}`;
-                        const seatDetails = `Section ${seatRows[0]?.section || "B23"}, Row ${seatRows[0]?.row || "14"}, ${seatsText}`;
+                        const effectiveSection = seatRows[0]?.section || ticket.section || "GA";
+                        const effectiveRow = seatRows[0]?.row || ticket.row || "";
+                        const seatDetails = effectiveRow
+                          ? `Section ${effectiveSection}, Row ${effectiveRow}, ${seatsText}`
+                          : `Section ${effectiveSection}, ${seatsText}`;
 
                         let absoluteImage = ticket.image || "";
                         if (typeof window !== "undefined" && absoluteImage && !absoluteImage.startsWith("http")) {
@@ -812,6 +816,8 @@ function MyTicketDetail() {
                           date: formatDateBar(ticket),
                           time: ticket.time || "",
                           quantity: selectedSeats.length,
+                          section: effectiveSection,
+                          row: effectiveRow,
                           seatDetails: seatDetails,
                           orderId: orderId,
                           buyerName: buyerName,
