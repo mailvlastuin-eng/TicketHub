@@ -144,7 +144,7 @@ function CreateTicketPage() {
       try {
         if (isTokenUser) {
           const res = await consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId, amount: 2, action: 'create a ticket' } });
-          signIn({ ...user, tokensCount: res.tokensCount });
+          signIn({ ...user, tokensCount: res.tokensCount, ticketsCreatedCount: res.ticketsCreatedCount });
         } else {
           const res = await incrementTicketsCreatedFn({ data: { email: user.email, sessionId: user.sessionId } });
           signIn({ ...user, ticketsCreatedCount: res.ticketsCreatedCount, ticketSlots: res.ticketSlots });
