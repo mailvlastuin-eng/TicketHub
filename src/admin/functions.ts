@@ -963,13 +963,15 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
   });
 
 // ---------------------------------------------------------------------------
-// 16. Consume 1 Token for Ticket Creation (Token Users only, session-gated)
+// 16. Consume Tokens for Ticket Creation / Editing (Token Users only, session-gated)
 // ---------------------------------------------------------------------------
 export const consumeTokenFn = createServerFn({ method: 'POST' })
   .inputValidator(
-    (d: { email: string; sessionId: string }) => ({
+    (d: { email: string; sessionId: string; amount?: number; action?: string }) => ({
       email: String(d?.email ?? '').trim(),
       sessionId: String(d?.sessionId ?? '').trim(),
+      amount: Math.max(1, Number(d?.amount ?? 2)),
+      action: String(d?.action ?? 'perform this action').trim(),
     }),
   )
   .handler(async ({ data }) => {
@@ -1002,11 +1004,12 @@ export const consumeTokenFn = createServerFn({ method: 'POST' })
       } catch (e) {}
     }
 
-    if (tokensCount < 1) {
-      throw new Error('Insufficient tokens. You need at least 1 token to create a ticket.');
+    const amountNeeded = data.amount;
+    if (tokensCount < amountNeeded) {
+      throw new Error(`Insufficient tokens. You need at least ${amountNeeded} ${amountNeeded === 1 ? 'token' : 'tokens'} to ${data.action}.`);
     }
 
-    const newTokensCount = tokensCount - 1;
+    const newTokensCount = tokensCount - amountNeeded;
 
     user.deviceInfo = JSON.stringify({
       device: deviceStr,

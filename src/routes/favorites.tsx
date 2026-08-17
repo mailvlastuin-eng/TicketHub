@@ -281,9 +281,9 @@ function FavoritesPage() {
     const isTokenUser = user?.userType === 'token';
 
     if (isTokenUser) {
-      if ((user?.tokensCount ?? 0) < 1) {
-        setMsg("Insufficient tokens. Please contact the admin.");
-        toast.error("You need at least 1 token to create a ticket.");
+      if ((user?.tokensCount ?? 0) < 2) {
+        setMsg("Insufficient tokens (2 tokens required)");
+        toast.error("You need at least 2 tokens to create a ticket.");
         window.setTimeout(() => setMsg(null), 1500);
         return;
       }
@@ -322,7 +322,7 @@ function FavoritesPage() {
 
     if (user && user.sessionId) {
       const fn = isTokenUser
-        ? consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId } }).then((res) => {
+        ? consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId, amount: 2, action: 'create a ticket' } }).then((res) => {
             signIn({ ...user, tokensCount: res.tokensCount });
           })
         : incrementTicketsCreatedFn({ data: { email: user.email, sessionId: user.sessionId } }).then((res) => {

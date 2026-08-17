@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { useUser } from "@/lib/auth";
+import { signIn, useUser } from "@/lib/auth";
 import { updateCustomTicket, useAllTickets } from "@/lib/ticket-store";
+import { consumeTokenFn } from "@/admin/functions";
+import { toast } from "sonner";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/edit-ticket/$id")({
@@ -124,10 +126,19 @@ function EditTicketPage() {
   };
 
   // Save changes
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title.trim()) {
       setError("Please specify an event title");
       return;
+    }
+
+    const isTokenUser = user?.userType === 'token';
+    if (isTokenUser) {
+      if ((user?.tokensCount ?? 0) < 1) {
+        toast.error("Insufficient tokens. You need at least 1 token to edit a ticket.");
+        setError("Insufficient tokens (1 token required to edit). Please contact the administrator.");
+        return;
+      }
     }
 
     const updated: Ticket = {
@@ -148,8 +159,27 @@ function EditTicketPage() {
       seats: seats.map((s) => s.trim()).filter(Boolean),
     };
 
+    if (user && user.sessionId && isTokenUser) {
+      try {
+        const res = await consumeTokenFn({
+          data: {
+            email: user.email,
+            sessionId: user.sessionId,
+            amount: 1,
+            action: 'edit a ticket',
+          }
+        });
+        signIn({ ...user, tokensCount: res.tokensCount });
+      } catch (err: any) {
+        toast.error(err.message || "Failed to deduct token for editing.");
+        setError(err.message || "Failed to update token balance.");
+        return;
+      }
+    }
+
     updateCustomTicket(updated);
     setSaved(true);
+    toast.success(isTokenUser ? "Changes saved! (1 token consumed)" : "Changes saved!");
     setMessage("Changes saved! Redirecting...");
     setTimeout(() => {
       navigate({ to: "/my-tickets" });
@@ -169,6 +199,24 @@ function EditTicketPage() {
           </Link>
           <h1 className="text-base font-semibold">Edit Event</h1>
         </div>
+
+        {/* Token Balance Banner (For Token Users) */}
+        {user?.userType === 'token' && (
+          <div className="mx-5 mt-4 p-3.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-950">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Tokens Remaining</p>
+                <p className="text-sm font-black text-slate-900 mt-0.5">{user?.tokensCount ?? 0} tokens</p>
+              </div>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2.5 py-1 rounded-full">
+                1 Token / Edit
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500 font-medium mt-1.5 leading-tight">
+              Note: Saving edits to this ticket consumes 1 token from your balance.
+            </p>
+          </div>
+        )}
 
         <div className="p-5 space-y-5">
           {error && <p className="text-xs text-red-500 font-semibold">{error}</p>}
@@ -378,9 +426,15 @@ function EditTicketPage() {
             </div>
           </div>
 
+          {user?.userType === 'token' && (user?.tokensCount ?? 0) < 1 && (
+            <p className="text-xs text-destructive font-semibold text-center mb-2">
+              Insufficient tokens. You need at least 1 token to edit a ticket (Current balance: {user?.tokensCount ?? 0}).
+            </p>
+          )}
+
           <button
             onClick={handleSave}
-            disabled={saved}
+            disabled={saved || (user?.userType === 'token' && (user?.tokensCount ?? 0) < 1)}
             className="w-full rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold py-3.5 hover:bg-primary/95 disabled:opacity-60 transition-colors"
           >
             {saved ? "Saving changes..." : "Save Changes"}
