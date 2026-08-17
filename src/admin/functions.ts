@@ -755,6 +755,9 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
     let ticketsCount = 0;
     let ticketSlots = 20;
     let ticketsCreatedCount = 0;
+    let tokensCount = 0;
+    let storedUserType: 'payment' | 'token' = 'payment';
+
     if (user.deviceInfo) {
       if (user.deviceInfo.trim().startsWith('{')) {
         try {
@@ -766,6 +769,8 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
           ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
           ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
           ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+          tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
+          storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
         } catch (e) {}
       } else {
         deviceName = user.deviceInfo;
@@ -779,6 +784,8 @@ export const updateUserTransfersFn = createServerFn({ method: 'POST' })
       ticketsCount,
       ticketSlots,
       ticketsCreatedCount,
+      tokensCount,
+      userType: user.userType || storedUserType,
     });
 
     await saveUser(user);
@@ -860,6 +867,8 @@ export const updateUserSlotsFn = createServerFn({ method: 'POST' })
     let ticketsCount = 0;
     let transfersCount = 0;
     let ticketsCreatedCount = 0;
+    let tokensCount = 0;
+    let storedUserType: 'payment' | 'token' = 'payment';
 
     if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
       try {
@@ -869,6 +878,8 @@ export const updateUserSlotsFn = createServerFn({ method: 'POST' })
         ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
         transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
         ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+        tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
+        storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
       } catch (e) {}
     } else if (user.deviceInfo) {
       deviceStr = user.deviceInfo;
@@ -881,6 +892,8 @@ export const updateUserSlotsFn = createServerFn({ method: 'POST' })
       ticketsCount,
       ticketSlots: data.ticketSlots,
       ticketsCreatedCount,
+      tokensCount,
+      userType: user.userType || storedUserType,
     });
 
     await saveUser(user);
@@ -909,6 +922,8 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
     let transfersCount = 0;
     let ticketSlots = 20;
     let ticketsCreatedCount = 0;
+    let tokensCount = 0;
+    let storedUserType: 'payment' | 'token' = 'payment';
 
     if (user.deviceInfo && user.deviceInfo.trim().startsWith('{')) {
       try {
@@ -919,6 +934,8 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
         transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
         ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
         ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+        tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
+        storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
       } catch (e) {}
     } else if (user.deviceInfo) {
       deviceStr = user.deviceInfo;
@@ -937,6 +954,8 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
       ticketsCount,
       ticketSlots,
       ticketsCreatedCount: newCreatedCount,
+      tokensCount,
+      userType: user.userType || storedUserType,
     });
 
     await saveUser(user);

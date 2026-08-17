@@ -372,8 +372,8 @@ function FavoritesPage() {
                   <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Ticket Slots</p>
                   <p className="text-xs font-bold mt-0.5">
                     {user?.ticketsCreatedCount !== undefined && user?.ticketSlots !== undefined 
-                      ? Math.max(0, user.ticketSlots - user.ticketsCreatedCount) 
-                      : 20} left
+                      ? `${Math.max(0, user.ticketSlots - user.ticketsCreatedCount)} left of ${user.ticketSlots}` 
+                      : `${user?.ticketSlots ?? 20} left`}
                   </p>
                 </div>
               </div>
@@ -456,12 +456,21 @@ function FavoritesPage() {
           {/* Existing custom events */}
           {custom.length > 0 && (
             <div className="space-y-3 pt-4">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Created Events</span>
+                <span className="text-[10px] text-slate-400 font-medium">Slots are not restored upon deletion</span>
+              </div>
               {custom.map((t) => (
                 <EventRow
                   key={t.id}
                   ticket={t}
                   onEdit={() => navigate({ to: "/edit-ticket/$id", params: { id: t.id } })}
-                  onDelete={() => deleteCustomTicket(t.id)}
+                  onDelete={() => {
+                    if (confirm(`Delete event "${t.title}"? (Note: Used ticket slots are not restored)`)) {
+                      deleteCustomTicket(t.id);
+                      toast.success("Event deleted");
+                    }
+                  }}
                 />
               ))}
             </div>

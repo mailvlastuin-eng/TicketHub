@@ -174,6 +174,28 @@ function CreateTicketPage() {
           <h1 className="text-base font-medium">Create Ticket</h1>
         </div>
 
+        {/* Slot / Token Balance Banner */}
+        <div className="mx-5 mt-4 p-3.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-950">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
+                {user?.userType === 'token' ? 'Tokens Remaining' : 'Ticket Slots Remaining'}
+              </p>
+              <p className="text-sm font-black text-slate-900 mt-0.5">
+                {user?.userType === 'token'
+                  ? `${user?.tokensCount ?? 0} tokens`
+                  : `${Math.max(0, (user?.ticketSlots ?? 20) - (user?.ticketsCreatedCount ?? 0))} of ${user?.ticketSlots ?? 20} slots left`}
+              </p>
+            </div>
+            <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2.5 py-1 rounded-full">
+              {user?.userType === 'token' ? '1 Token / Ticket' : '1 Slot / Ticket'}
+            </span>
+          </div>
+          <p className="text-[10px] text-slate-500 font-medium mt-1.5 leading-tight">
+            Note: Once a ticket is created, 1 ticket slot is permanently consumed (deleting tickets does not restore slots).
+          </p>
+        </div>
+
         {loading && (
           <p className="p-6 text-sm text-muted-foreground">Loading event…</p>
         )}
@@ -226,15 +248,26 @@ function CreateTicketPage() {
               />
             </div>
 
-            {(user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20) && (
+            {user?.userType !== 'token' && (user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20) && (
               <p className="text-xs text-destructive font-semibold text-center mb-2">
-                You have run out of ticket slots. Please contact the administrator.
+                You have run out of ticket slots ({user?.ticketSlots ?? 20} slots used). Please contact the administrator.
+              </p>
+            )}
+
+            {user?.userType === 'token' && (user?.tokensCount ?? 0) < 1 && (
+              <p className="text-xs text-destructive font-semibold text-center mb-2">
+                Insufficient tokens. You need at least 1 token to create a ticket.
               </p>
             )}
 
             <button
               onClick={handleSave}
-              disabled={saved || (user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20)}
+              disabled={
+                saved ||
+                (user?.userType === 'token'
+                  ? (user?.tokensCount ?? 0) < 1
+                  : (user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20))
+              }
               className="w-full rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold py-3 disabled:opacity-60"
             >
               {saved ? "Saved! Redirecting…" : "Save to My Tickets"}
