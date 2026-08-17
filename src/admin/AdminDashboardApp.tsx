@@ -875,7 +875,7 @@ export function AdminDashboardApp() {
                                 /* Token Balance Management */
                                 <div className="bg-white border border-purple-200 rounded-xl p-3.5 shadow-sm text-left sm:col-span-2">
                                   <span className="text-[9px] font-extrabold text-purple-700 uppercase tracking-widest block mb-1">
-                                    Token Balance (1 = Create, 2 = Transfer)
+                                    Token Balance (2 = Create, 2 = Transfer, 1 = Edit)
                                   </span>
                                   <div className="flex items-center gap-2 mt-1.5">
                                     <input

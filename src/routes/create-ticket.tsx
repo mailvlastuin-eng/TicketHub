@@ -234,10 +234,10 @@ function CreateTicketSearchPage() {
     const isTokenUser = user?.userType === 'token';
 
     if (isTokenUser) {
-      // Token user: need at least 1 token
-      if ((user?.tokensCount ?? 0) < 1) {
-        toast.error("Insufficient tokens. You need at least 1 token to create a ticket.");
-        setError("Insufficient tokens. Please contact the administrator.");
+      // Token user: need at least 2 tokens
+      if ((user?.tokensCount ?? 0) < 2) {
+        toast.error("Insufficient tokens. You need at least 2 tokens to create a ticket.");
+        setError("Insufficient tokens (2 tokens required). Please contact the administrator.");
         return;
       }
     } else {
@@ -272,7 +272,7 @@ function CreateTicketSearchPage() {
     if (user && user.sessionId) {
       try {
         if (isTokenUser) {
-          const res = await consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId } });
+          const res = await consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId, amount: 2, action: 'create a ticket' } });
           signIn({ ...user, tokensCount: res.tokensCount });
         } else {
           const res = await incrementTicketsCreatedFn({ data: { email: user.email, sessionId: user.sessionId } });
@@ -321,11 +321,13 @@ function CreateTicketSearchPage() {
               </p>
             </div>
             <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2.5 py-1 rounded-full">
-              {user?.userType === 'token' ? '1 Token / Ticket' : '1 Slot / Ticket'}
+              {user?.userType === 'token' ? '2 Tokens / Ticket' : '1 Slot / Ticket'}
             </span>
           </div>
           <p className="text-[10px] text-slate-500 font-medium mt-1.5 leading-tight">
-            Note: Once a ticket is created, 1 ticket slot is permanently consumed (deleting tickets does not restore slots).
+            {user?.userType === 'token'
+              ? 'Note: Creating a ticket consumes 2 tokens from your balance.'
+              : 'Note: Once a ticket is created, 1 ticket slot is permanently consumed (deleting tickets does not restore slots).'}
           </p>
         </div>
 
@@ -358,6 +360,7 @@ function CreateTicketSearchPage() {
                       .finally(() => setLoading(false));
                   }
                 }}
+                disabled={loading || !query.trim()}
                 className="h-[46px] px-5 bg-primary hover:opacity-90 text-white font-bold rounded-[4px] flex items-center justify-center uppercase tracking-wide text-xs shrink-0 cursor-pointer shadow-sm transition-opacity"
               >
                 Search
@@ -602,9 +605,9 @@ function CreateTicketSearchPage() {
             </p>
           )}
 
-          {user?.userType === 'token' && (user?.tokensCount ?? 0) < 1 && (
+          {user?.userType === 'token' && (user?.tokensCount ?? 0) < 2 && (
             <p className="text-xs text-destructive font-semibold text-center mb-2">
-              Insufficient tokens. You need at least 1 token to create a ticket.
+              Insufficient tokens. You need at least 2 tokens to create a ticket (Current balance: {user?.tokensCount ?? 0}).
             </p>
           )}
 
@@ -613,7 +616,7 @@ function CreateTicketSearchPage() {
             disabled={
               saved || 
               (user?.userType === 'token' 
-                ? (user?.tokensCount ?? 0) < 1 
+                ? (user?.tokensCount ?? 0) < 2 
                 : (user?.ticketsCreatedCount ?? 0) >= (user?.ticketSlots ?? 20))
             }
             className="w-full rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold py-3.5 hover:bg-primary/95 disabled:opacity-60 transition-colors"
