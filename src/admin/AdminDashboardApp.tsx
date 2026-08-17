@@ -333,18 +333,30 @@ export function AdminDashboardApp() {
     if (deviceInfoStr.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(deviceInfoStr);
+        const tCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+        const tCreated = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
         return {
           device: parsed.device || 'Unknown Device',
           transfersCount: typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0,
-          ticketsCount: typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0,
+          ticketsCount: tCount,
           ticketSlots: typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20,
-          ticketsCreatedCount: typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0,
+          ticketsCreatedCount: Math.max(tCreated, tCount),
           tokensCount: typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0,
           userType: (parsed.userType === 'token' ? 'token' : 'payment') as 'payment' | 'token',
         };
       } catch (e) {}
     }
     return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token' };
+  };
+
+  // Hard refresh handler (reloads page while keeping admin authenticated)
+  const handleHardRefresh = () => {
+    if (adminPass) {
+      localStorage.setItem('tm_admin_token', adminPass);
+      sessionStorage.setItem('tm_admin_token', adminPass);
+    }
+    toast.info('Reloading dashboard...');
+    window.location.reload();
   };
 
   const handleUpdateTransfers = async (userId: string, count: number) => {
@@ -605,10 +617,9 @@ export function AdminDashboardApp() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => fetchDashboardData(false)}
-              disabled={loadingData}
-              className="p-2 border border-slate-200 bg-white rounded-full text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:shadow-sm active:scale-95 transition-all cursor-pointer"
-              title="Refresh Data"
+              onClick={handleHardRefresh}
+              className="p-2 border border-slate-200 bg-white rounded-full text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:shadow-sm active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+              title="Hard Refresh Dashboard"
             >
               <RefreshCw className={`h-4 w-4 ${loadingData ? 'animate-spin' : ''}`} />
             </button>

@@ -337,17 +337,19 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
     }
 
     if (data.ticketsCount !== undefined) {
+      const updatedCreatedCount = Math.max(ticketsCreatedCount, data.ticketsCount);
       user.deviceInfo = JSON.stringify({
         device: currentDevice,
         transfersCount,
         acceptedTransfers,
         ticketsCount: data.ticketsCount,
         ticketSlots,
-        ticketsCreatedCount,
+        ticketsCreatedCount: updatedCreatedCount,
         tokensCount,
         userType: storedUserType,
       });
       await saveUser(user);
+      ticketsCreatedCount = updatedCreatedCount;
     }
 
     return {
@@ -402,6 +404,19 @@ export const getAdminDashboardDataFn = createServerFn({ method: 'POST' })
     const attempts = await getAllAttempts();
 
     for (const u of users) {
+      if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(u.deviceInfo);
+          const tCreated = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+          const tActive = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+          if (tActive > tCreated) {
+            parsed.ticketsCreatedCount = tActive;
+            u.deviceInfo = JSON.stringify(parsed);
+            await saveUser(u);
+          }
+        } catch (e) {}
+      }
+
       if (u.status === 'active' && u.activatedAt) {
         let durationDays = 30;
         if (u.duration === '3m') durationDays = 90;
@@ -1010,20 +1025,22 @@ export const consumeTokenFn = createServerFn({ method: 'POST' })
     }
 
     const newTokensCount = tokensCount - amountNeeded;
+    const isCreation = data.action.toLowerCase().includes('create');
+    const newCreatedCount = isCreation ? ticketsCreatedCount + 1 : ticketsCreatedCount;
 
     user.deviceInfo = JSON.stringify({
       device: deviceStr,
       transfersCount,
       acceptedTransfers,
-      ticketsCount,
+      ticketsCount: isCreation ? ticketsCount + 1 : ticketsCount,
       ticketSlots: 0,
-      ticketsCreatedCount,
+      ticketsCreatedCount: newCreatedCount,
       tokensCount: newTokensCount,
       userType: 'token',
     });
 
     await saveUser(user);
-    return { success: true, tokensCount: newTokensCount };
+    return { success: true, tokensCount: newTokensCount, ticketsCreatedCount: newCreatedCount };
   });
 
 // ---------------------------------------------------------------------------

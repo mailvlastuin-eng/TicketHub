@@ -323,7 +323,7 @@ function FavoritesPage() {
     if (user && user.sessionId) {
       const fn = isTokenUser
         ? consumeTokenFn({ data: { email: user.email, sessionId: user.sessionId, amount: 2, action: 'create a ticket' } }).then((res) => {
-            signIn({ ...user, tokensCount: res.tokensCount });
+            signIn({ ...user, tokensCount: res.tokensCount, ticketsCreatedCount: res.ticketsCreatedCount });
           })
         : incrementTicketsCreatedFn({ data: { email: user.email, sessionId: user.sessionId } }).then((res) => {
             signIn({ ...user, ticketsCreatedCount: res.ticketsCreatedCount, ticketSlots: res.ticketSlots });

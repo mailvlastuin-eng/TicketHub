@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { getAppVersionFn } from "../admin/functions";
 import { Toaster } from "../components/ui/sonner";
+import { Loader2 } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -267,7 +268,11 @@ function RootComponent() {
     }
   }, [hasUpdate]);
 
+  const [isReloading, setIsReloading] = useState(false);
+
   const handleReload = () => {
+    if (isReloading) return;
+    setIsReloading(true);
     playReloadSound();
     setTimeout(() => {
       window.location.reload();
@@ -280,22 +285,27 @@ function RootComponent() {
       <Toaster />
 
       {hasUpdate && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[340px] px-4 animate-bounce">
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[340px] px-4 ${isReloading ? '' : 'animate-bounce'}`}>
           <button
             onClick={handleReload}
-            className="w-full bg-slate-900/95 text-white py-3.5 px-5 rounded-xl border border-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.36)] flex items-center justify-between gap-3 text-xs cursor-pointer backdrop-blur-md"
+            disabled={isReloading}
+            className="w-full bg-slate-900/95 text-white py-3.5 px-5 rounded-xl border border-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.36)] flex items-center justify-between gap-3 text-xs cursor-pointer backdrop-blur-md transition-all active:scale-95 disabled:opacity-90 disabled:cursor-wait"
           >
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
+            <div className="flex items-center gap-2.5">
+              {isReloading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-blue-400 shrink-0" />
+              ) : (
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+              )}
               <span className="font-bold text-slate-100 uppercase tracking-wide text-left">
-                New Update Available
+                {isReloading ? 'Applying update...' : 'New Update Available'}
               </span>
             </div>
-            <span className="text-blue-400 font-bold uppercase tracking-wider text-[11px] hover:text-blue-300 transition-colors shrink-0">
-              Reload now
+            <span className="text-blue-400 font-bold uppercase tracking-wider text-[11px] hover:text-blue-300 transition-colors shrink-0 flex items-center gap-1.5">
+              {isReloading ? 'Reloading...' : 'Reload now'}
             </span>
           </button>
         </div>
