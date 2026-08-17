@@ -858,8 +858,14 @@ export function AdminDashboardApp() {
                                     <Ticket className="h-4 w-4" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="font-bold text-sm text-slate-900">{parsedDev.ticketsCreatedCount || parsedDev.ticketsCount || 0}</p>
-                                    <p className="text-[9px] text-slate-400 font-semibold truncate mt-0.5">Total tickets created</p>
+                                    <p className="font-bold text-sm text-slate-900">
+                                      {typeof parsedDev.ticketsCreatedCount === 'number' ? parsedDev.ticketsCreatedCount : (parsedDev.ticketsCount || 0)}
+                                    </p>
+                                    <p className="text-[9px] text-slate-400 font-semibold truncate mt-0.5">
+                                      {isTokenUser 
+                                        ? 'Total tickets created' 
+                                        : `${Math.max(0, (parsedDev.ticketSlots ?? 20) - (typeof parsedDev.ticketsCreatedCount === 'number' ? parsedDev.ticketsCreatedCount : (parsedDev.ticketsCount || 0)))} slots left of ${parsedDev.ticketSlots ?? 20}`}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
