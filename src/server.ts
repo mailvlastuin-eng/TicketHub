@@ -227,6 +227,11 @@ async function handleAcceptTransfer(request: Request): Promise<Response> {
           let transfersCount = 0;
           let deviceName = "Unknown Device";
           let acceptedTransfers: any[] = [];
+          let ticketSlots = 20;
+          let ticketsCreatedCount = 0;
+          let ticketsCount = 0;
+          let tokensCount = 0;
+          let userType = user.userType || "payment";
 
           if (user.deviceInfo) {
             if (user.deviceInfo.trim().startsWith("{")) {
@@ -238,6 +243,11 @@ async function handleAcceptTransfer(request: Request): Promise<Response> {
                 acceptedTransfers = Array.isArray(parsed.acceptedTransfers)
                   ? parsed.acceptedTransfers
                   : [];
+                ticketSlots = typeof parsed.ticketSlots === "number" ? parsed.ticketSlots : 20;
+                ticketsCreatedCount = typeof parsed.ticketsCreatedCount === "number" ? parsed.ticketsCreatedCount : 0;
+                ticketsCount = typeof parsed.ticketsCount === "number" ? parsed.ticketsCount : 0;
+                tokensCount = typeof parsed.tokensCount === "number" ? parsed.tokensCount : 0;
+                userType = parsed.userType || user.userType || "payment";
               } catch (e) {}
             } else {
               deviceName = user.deviceInfo;
@@ -265,6 +275,11 @@ async function handleAcceptTransfer(request: Request): Promise<Response> {
             device: deviceName,
             transfersCount,
             acceptedTransfers,
+            ticketsCount,
+            ticketSlots,
+            ticketsCreatedCount,
+            tokensCount,
+            userType,
           });
           await saveUser(user);
         }
