@@ -409,8 +409,10 @@ export const getAdminDashboardDataFn = createServerFn({ method: 'POST' })
           const parsed = JSON.parse(u.deviceInfo);
           const tCreated = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
           const tActive = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
-          if (tActive > tCreated) {
-            parsed.ticketsCreatedCount = tActive;
+          const acceptedList = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+          const minCreated = Math.max(tCreated, tActive, acceptedList.length);
+          if (minCreated > tCreated) {
+            parsed.ticketsCreatedCount = minCreated;
             u.deviceInfo = JSON.stringify(parsed);
             await saveUser(u);
           }
@@ -688,7 +690,7 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
           tokensCount: tokensCount - 2,
           acceptedTransfers,
           ticketSlots,
-          ticketsCreatedCount,
+          ticketsCreatedCount: Math.max(ticketsCreatedCount, 1),
           ticketsCount,
           userType: 'token',
         });
@@ -703,7 +705,7 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
           tokensCount,
           acceptedTransfers,
           ticketSlots,
-          ticketsCreatedCount,
+          ticketsCreatedCount: Math.max(ticketsCreatedCount, 1),
           ticketsCount,
           userType: 'payment',
         });
