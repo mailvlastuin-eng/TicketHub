@@ -16,5 +16,9 @@ export default defineConfig({
   // SECURITY: never emit source maps in production — they expose minified source.
   vite: {
     build: { sourcemap: false },
+    server: {
+      port: 8080,
+      strictPort: true,
+    },
   },
 });

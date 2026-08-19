@@ -261,7 +261,7 @@ function MyTicketDetail() {
         }
       `}</style>
 
-      <div className="max-w-md mx-auto h-[100dvh] relative bg-[#F3F4F6] select-none overflow-hidden">
+      <div className="max-w-md mx-auto h-[100dvh] relative bg-white select-none overflow-hidden">
         {/* Sticky Top Header (Back/Help buttons & title) */}
         <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 text-white overflow-hidden pointer-events-none">
           {/* Header background image slice that covers the scrolling text */}
@@ -319,7 +319,7 @@ function MyTicketDetail() {
         {/* Natural scrolling container wrapper */}
         <div 
           onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
-          className="w-full h-full overflow-y-auto scrollbar-none"
+          className="w-full h-full overflow-y-auto scrollbar-none bg-white"
         >
           {/* Hero image container */}
           <div className="w-full aspect-[4/3] overflow-hidden relative bg-primary pointer-events-none">
@@ -344,7 +344,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Title and details block */}
-          <div className="flex flex-col w-full bg-[#F3F4F6] shrink-0">
+          <div className="flex flex-col w-full bg-[#111] shrink-0">
             {/* Title block */}
             <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative h-[100px] box-border">
               <div className="flex-1 min-w-0">
@@ -379,7 +379,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10">
+          <div className="bg-white w-full rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10 min-h-[calc(100dvh-48px)]">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
@@ -396,7 +396,7 @@ function MyTicketDetail() {
 
             {/* Tab content inside the sheet */}
             {tab === "tickets" ? (
-              <div className="px-4 pt-5 bg-white">
+              <div className="px-4 pt-5 bg-white flex-1">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-base font-bold">Order #{orderId}</p>
@@ -492,7 +492,7 @@ function MyTicketDetail() {
                 )}
               </div>
             ) : (
-              <div className="px-4 py-10 text-center text-sm text-muted-foreground bg-white">
+              <div className="px-4 py-10 text-center text-sm text-muted-foreground bg-white flex-1">
                 No extras available.
               </div>
             )}
