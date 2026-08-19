@@ -81,11 +81,21 @@ function MyTicketDetail() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [mapLoadError, setMapLoadError] = useState(false);
   const [scrollOffset, setScrollOffset] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const [showBarcodeModal, setShowBarcodeModal] = useState(false);
   const [showResaleModal, setShowResaleModal] = useState(false);
   const [activeBarcodeIdx, setActiveBarcodeIdx] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (transferStep === "none") {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [transferStep]);
 
   const handleCarouselScroll = () => {
     if (!carouselRef.current) return;
@@ -318,8 +328,9 @@ function MyTicketDetail() {
 
         {/* Natural scrolling container wrapper */}
         <div 
+          ref={scrollContainerRef}
           onScroll={(e) => setScrollOffset(e.currentTarget.scrollTop)}
-          className="w-full h-full overflow-y-auto scrollbar-none bg-white"
+          className="w-full h-full overflow-y-auto scrollbar-none bg-white min-h-[100dvh]"
         >
           {/* Hero image container */}
           <div className="w-full aspect-[4/3] overflow-hidden relative bg-primary pointer-events-none">
@@ -379,7 +390,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Solid White Sheet Container */}
-          <div className="bg-white w-full rounded-t-[16px] shadow-2xl flex flex-col pb-40 relative z-10 min-h-[calc(100dvh-48px)]">
+          <div className="bg-white w-full rounded-t-[16px] shadow-2xl flex flex-col pb-[100dvh] relative z-10 min-h-[calc(100dvh-48px)]">
             {/* Sticky Tabs */}
             <div className="grid grid-cols-2 sticky top-[calc(48px+env(safe-area-inset-top,48px))] z-20 bg-white border-b border-zinc-200">
               <TabHeader
