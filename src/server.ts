@@ -56,6 +56,7 @@ const PRODUCTION_DOMAIN = "ticketmastersecured.app";
  */
 const ALLOWED_CORS_ORIGINS = [
   `https://${PRODUCTION_DOMAIN}`,
+  `https://www.${PRODUCTION_DOMAIN}`,
   `https://claim.${PRODUCTION_DOMAIN}`,
   // Allow local dev origins
   "http://localhost:8080",
@@ -95,8 +96,8 @@ const SECURITY_HEADERS: Record<string, string> = {
   // Content Security Policy
   "Content-Security-Policy": [
     "default-src 'self'",
-    // 'unsafe-inline' and 'unsafe-eval' required for TanStack Start and Google Maps Embed scripts
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com https://*.google.com",
+    // 'unsafe-inline' and 'unsafe-eval' required for TanStack Start, Tailwind CDN, Lucide, and Google Maps Embed scripts
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com https://*.google.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.google.com https://*.gstatic.com",
     "img-src 'self' data: https: blob: https://*.google.com https://*.gstatic.com https://*.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
@@ -326,6 +327,15 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const url = new URL(request.url);
+
+      // Subdomain redirect: If someone lands on claim.ticketmastersecured.app (from older emails)
+      if (url.hostname.startsWith("claim.")) {
+        const targetHost = `www.${PRODUCTION_DOMAIN}`;
+        const targetUrl = new URL(request.url);
+        targetUrl.hostname = targetHost;
+        targetUrl.pathname = "/claim" + (targetUrl.pathname === "/" ? "" : targetUrl.pathname);
+        return Response.redirect(targetUrl.toString(), 308);
+      }
 
       // Route: Google Maps image proxy (key never leaves the server)
       if (url.pathname === "/api/maps-proxy") {
