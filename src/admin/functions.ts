@@ -650,7 +650,7 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
         throw new Error('Session mismatch. Please sign in again before transferring.');
       }
 
-      let transfersCount = 0;
+      let transfersCount = 4;
       let tokensCount = 0;
       let deviceName = 'Unknown Device';
       let acceptedTransfers: any[] = [];
@@ -664,7 +664,7 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
           try {
             const parsed = JSON.parse(user.deviceInfo);
             deviceName = parsed.device || 'Unknown Device';
-            transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+            transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
             tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
             acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
             ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
@@ -936,7 +936,7 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
     let deviceStr = 'Unknown Device';
     let acceptedTransfers: any[] = [];
     let ticketsCount = 0;
-    let transfersCount = 0;
+    let transfersCount = 4;
     let ticketSlots = 20;
     let ticketsCreatedCount = 0;
     let tokensCount = 0;
@@ -948,7 +948,7 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
         acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
         deviceStr = parsed.device || '';
         ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
-        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
         ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
         ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
         tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
