@@ -1092,29 +1092,34 @@
           }, 2000);
         }
       } else {
-        renderAcceptancePage();
-        showPage(routes.acceptance);
-
-        // Show initial loading overlay for 3 seconds on first mount of acceptance page
-        if (initialLoader) {
-          if (!hasLoadedInitial) {
-            initialLoader.classList.remove('hidden');
-            setTimeout(() => {
-              initialLoader.classList.add('hidden');
-              hasLoadedInitial = true;
-
-              // On first successful load, mark as claimed and trigger seller email
-              if (token) {
-                if (!claimedTokens.includes(token)) {
-                  claimedTokens.push(token);
-                  localStorage.setItem('tm_claimed_tokens', JSON.stringify(claimedTokens));
-                }
-                triggerAcceptanceEmail(activeTicket);
-              }
-            }, 3000);
-          } else {
+        // Show initial loading overlay on first mount of acceptance page
+        if (initialLoader && !hasLoadedInitial) {
+          initialLoader.classList.remove('hidden');
+          setTimeout(() => {
+            // 1. Hide loader
             initialLoader.classList.add('hidden');
-          }
+            hasLoadedInitial = true;
+
+            // 2. Render and reveal the acceptance success screen
+            renderAcceptancePage();
+            showPage(routes.acceptance);
+
+            // 3. Only after the success screen is confirmed visible, commit the claimed status
+            const acceptancePage = document.getElementById(routes.acceptance);
+            const isVisible = acceptancePage && !acceptancePage.classList.contains('hidden');
+
+            if (isVisible && token && activeTicket) {
+              if (!claimedTokens.includes(token)) {
+                claimedTokens.push(token);
+                localStorage.setItem('tm_claimed_tokens', JSON.stringify(claimedTokens));
+              }
+              triggerAcceptanceEmail(activeTicket);
+            }
+          }, 3000);
+        } else {
+          if (initialLoader) initialLoader.classList.add('hidden');
+          renderAcceptancePage();
+          showPage(routes.acceptance);
         }
       }
     }
