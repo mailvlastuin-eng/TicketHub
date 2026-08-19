@@ -780,6 +780,10 @@ export function AdminDashboardApp() {
                     const currentTransfers = editingTransfers[u.id] !== undefined ? editingTransfers[u.id] : parsedDev.transfersCount;
                     const isSaving = savingTransfers[u.id];
 
+                    const totalTransferredCount = parsedDev.acceptedTransfers && Array.isArray(parsedDev.acceptedTransfers)
+                      ? parsedDev.acceptedTransfers.reduce((acc: number, item: any) => acc + (Array.isArray(item?.seats) ? item.seats.length : 1), 0)
+                      : 0;
+
                     return (
                       <div 
                         key={u.id} 
@@ -808,7 +812,12 @@ export function AdminDashboardApp() {
                             </span>
                           </div>
                           <div className="flex items-center gap-3 shrink-0">
-                            {getStatusBadge(u.status)}
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              {getStatusBadge(u.status)}
+                              <span className={`text-[10px] font-bold uppercase tracking-wide ${isTokenUser ? 'text-purple-700 font-extrabold' : u.loginMode === 'multiple' ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                {isTokenUser ? 'Token User (Pay Per Use)' : u.loginMode === 'multiple' ? 'Multiple Sign-Ins' : 'Single Session Limit'}
+                              </span>
+                            </div>
                             <div className={`p-1 text-slate-400 hover:text-slate-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
@@ -821,25 +830,6 @@ export function AdminDashboardApp() {
                         {isExpanded && (
                           <div className="px-5 pb-5 pt-3 border-t border-slate-100 bg-slate-50/60 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
-                              {/* Passcode Detail */}
-                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
-                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Passcode</span>
-                                <div className="flex items-center justify-between">
-                                  <span className="font-mono font-black text-sm text-blue-600 bg-blue-50/30 px-2 py-0.5 rounded border border-blue-100">{u.password}</span>
-                                  <button
-                                    onClick={() => handleCopy(`${u.email} | ${u.password}`, u.id)}
-                                    className="p-1 text-slate-400 hover:text-blue-600 active:scale-95 transition-all cursor-pointer"
-                                    title="Copy Credentials"
-                                  >
-                                    {copiedId === u.id ? (
-                                      <Check className="h-4 w-4 text-emerald-600" />
-                                    ) : (
-                                      <Copy className="h-4 w-4" />
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-
                               {/* Login Mode / Type */}
                               <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
                                 <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Account Type</span>
@@ -885,9 +875,14 @@ export function AdminDashboardApp() {
                               {isTokenUser ? (
                                 /* Token Balance Management */
                                 <div className="bg-white border border-purple-200 rounded-xl p-3.5 shadow-sm text-left sm:col-span-2">
-                                  <span className="text-[9px] font-extrabold text-purple-700 uppercase tracking-widest block mb-1">
-                                    Token Balance (2 = Create, 2 = Transfer, 1 = Edit)
-                                  </span>
+                                  <div className="flex items-center justify-between gap-2 mb-1">
+                                    <span className="text-[9px] font-extrabold text-purple-700 uppercase tracking-widest block">
+                                      Token Balance (2 = Create, 2 = Transfer, 1 = Edit)
+                                    </span>
+                                    <span className="text-[9px] font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 shrink-0">
+                                      {totalTransferredCount} Transferred Total
+                                    </span>
+                                  </div>
                                   <div className="flex items-center gap-2 mt-1.5">
                                     <input
                                       type="number"
@@ -909,7 +904,12 @@ export function AdminDashboardApp() {
                                 <>
                                   {/* Transfers Management */}
                                   <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
-                                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Transfers Allowance</span>
+                                    <div className="flex items-center justify-between gap-1 mb-1">
+                                      <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Transfers Allowance</span>
+                                      <span className="text-[9px] font-extrabold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                        {totalTransferredCount} Transferred Total
+                                      </span>
+                                    </div>
                                     <div className="flex items-center gap-2 mt-1.5">
                                       <input
                                         type="number"
