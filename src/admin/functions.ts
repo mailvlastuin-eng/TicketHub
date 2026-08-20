@@ -170,10 +170,12 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       ? new Date(user.expiresAt)
       : new Date(activatedAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-    // Always regenerate sessionId — for token users this invalidates any prior session
-    const sessionId = `sess_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-
     const isTokenUser = user.userType === 'token' || user.loginMode === 'token';
+
+    // For token users and multiple-mode users, reuse existing sessionId if present so multiple devices stay signed in.
+    const sessionId = (isTokenUser || user.loginMode === 'multiple') && user.sessionId
+      ? user.sessionId
+      : `sess_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
 
     let transfersCount = 4;
     let acceptedTransfers: any[] = [];
@@ -264,9 +266,9 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       return { valid: false };
     }
 
-    // For token users with loginMode:'token', strictly enforce sessionId match.
-    // For multiple-mode payment users, skip sessionId check (they can share sessions).
-    if (user.loginMode !== 'multiple' && user.sessionId !== sessionId) {
+    const isTokenUser = user.userType === 'token' || user.loginMode === 'token';
+    // For token users and multiple-mode payment users, skip strict single-device sessionId rejection.
+    if (!isTokenUser && user.loginMode !== 'multiple' && user.sessionId !== sessionId) {
       return { valid: false };
     }
 
