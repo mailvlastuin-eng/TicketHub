@@ -240,7 +240,7 @@ async function handleAcceptTransfer(request: Request): Promise<Response> {
                 const parsed = JSON.parse(user.deviceInfo);
                 deviceName = parsed.device || "Unknown Device";
                 transfersCount =
-                  typeof parsed.transfersCount === "number" ? parsed.transfersCount : 0;
+                  typeof parsed.transfersCount === "number" ? parsed.transfersCount : 4;
                 acceptedTransfers = Array.isArray(parsed.acceptedTransfers)
                   ? parsed.acceptedTransfers
                   : [];
