@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { checkSessionFn } from "../admin/functions";
+import { checkSessionFn, logoutUserFn } from "../admin/functions";
 import { getCustomTickets } from "./ticket-store";
 
 const KEY = "tm_user";
@@ -36,17 +36,21 @@ export function signIn(user: SessionUser) {
 export function signOut() {
   window.localStorage.removeItem(KEY);
   window.dispatchEvent(new Event("tm-auth"));
+  // Invalidate HttpOnly cookie on server
+  logoutUserFn().catch(() => {});
 }
 
 export function useUser() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [ready, setReady] = useState(false);
+
   useEffect(() => {
     const initialUser = getUser();
     setUser(initialUser);
     setReady(true);
 
-    if (initialUser && initialUser.sessionId) {
+    // Validate session with server (via HttpOnly cookie or backward-compatible sessionId)
+    if (initialUser) {
       checkSessionFn({
         data: {
           email: initialUser.email,
@@ -55,24 +59,31 @@ export function useUser() {
         },
       })
         .then((res: any) => {
-          if (!res.valid) {
+          if (!res || !res.valid) {
             signOut();
           } else {
-            const countChanged = typeof res.transfersCount === 'number' && initialUser.transfersCount !== res.transfersCount;
-            const acceptedChanged = res.acceptedTransfers && JSON.stringify(initialUser.acceptedTransfers) !== JSON.stringify(res.acceptedTransfers);
-            const slotsChanged = typeof res.ticketSlots === 'number' && initialUser.ticketSlots !== res.ticketSlots;
-            const createdChanged = typeof res.ticketsCreatedCount === 'number' && initialUser.ticketsCreatedCount !== res.ticketsCreatedCount;
-            const tokensChanged = typeof res.tokensCount === 'number' && initialUser.tokensCount !== res.tokensCount;
-            
-            if (countChanged || acceptedChanged || slotsChanged || createdChanged || tokensChanged) {
-              const latestUser = {
-                ...initialUser,
-                transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : initialUser.transfersCount,
-                acceptedTransfers: res.acceptedTransfers || initialUser.acceptedTransfers || [],
-                ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : initialUser.ticketSlots,
-                ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : initialUser.ticketsCreatedCount,
-                tokensCount: typeof res.tokensCount === 'number' ? res.tokensCount : initialUser.tokensCount,
-              };
+            const latestUser: SessionUser = {
+              email: res.email || initialUser.email,
+              name: res.name || initialUser.name,
+              username: res.username || initialUser.username,
+              sessionId: res.sessionId || initialUser.sessionId,
+              loginMode: res.loginMode || initialUser.loginMode || 'single',
+              userType: res.userType || initialUser.userType || 'payment',
+              transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : initialUser.transfersCount,
+              acceptedTransfers: res.acceptedTransfers || initialUser.acceptedTransfers || [],
+              ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : initialUser.ticketSlots,
+              ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : initialUser.ticketsCreatedCount,
+              tokensCount: typeof res.tokensCount === 'number' ? res.tokensCount : initialUser.tokensCount,
+            };
+
+            const changed =
+              latestUser.transfersCount !== initialUser.transfersCount ||
+              latestUser.ticketSlots !== initialUser.ticketSlots ||
+              latestUser.ticketsCreatedCount !== initialUser.ticketsCreatedCount ||
+              latestUser.tokensCount !== initialUser.tokensCount ||
+              JSON.stringify(latestUser.acceptedTransfers) !== JSON.stringify(initialUser.acceptedTransfers);
+
+            if (changed) {
               window.localStorage.setItem(KEY, JSON.stringify(latestUser));
               setUser(latestUser);
               window.dispatchEvent(new Event("tm-auth"));
@@ -97,7 +108,7 @@ export function useUser() {
   useEffect(() => {
     const syncTicketsWithServer = () => {
       const currentUser = getUser();
-      if (currentUser && currentUser.sessionId) {
+      if (currentUser) {
         checkSessionFn({
           data: {
             email: currentUser.email,
@@ -106,8 +117,8 @@ export function useUser() {
           }
         })
           .then((res: any) => {
-            if (res.valid) {
-              const latestUser = {
+            if (res && res.valid) {
+              const latestUser: SessionUser = {
                 ...currentUser,
                 transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : currentUser.transfersCount,
                 acceptedTransfers: res.acceptedTransfers || currentUser.acceptedTransfers || [],
