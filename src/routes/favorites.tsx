@@ -132,7 +132,10 @@ function FavoritesPage() {
   const custom = useCustomTickets();
 
   const handleRefreshTransfers = async () => {
-    if (!user || !user.sessionId) return;
+    if (!user || !user.sessionId) {
+      window.location.reload();
+      return;
+    }
     setRefreshing(true);
     try {
       const res = await checkSessionFn({
@@ -151,18 +154,23 @@ function FavoritesPage() {
           transfersCount: typeof res.transfersCount === 'number' ? res.transfersCount : user.transfersCount,
           ticketSlots: typeof res.ticketSlots === 'number' ? res.ticketSlots : user.ticketSlots,
           ticketsCreatedCount: typeof res.ticketsCreatedCount === 'number' ? res.ticketsCreatedCount : user.ticketsCreatedCount,
+          tokensCount: typeof res.tokensCount === 'number' ? res.tokensCount : user.tokensCount,
+          acceptedTransfers: res.acceptedTransfers || user.acceptedTransfers || [],
+          userType: res.userType || user.userType,
         };
+        window.localStorage.setItem("tm_user", JSON.stringify(latestUser));
         signIn(latestUser);
         if (typeof res.transfersCount === 'number') {
           setLocalTransfers(res.transfersCount);
         }
-        setMsg("Refreshed successfully!");
-        window.setTimeout(() => setMsg(null), 1500);
+        setMsg("Refreshed! Reloading platform...");
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 300);
       }
     } catch (err) {
       console.error("Failed to refresh user details:", err);
-      setMsg("Failed to refresh");
-      window.setTimeout(() => setMsg(null), 1500);
+      window.location.reload();
     } finally {
       setRefreshing(false);
     }
