@@ -10,7 +10,7 @@ import {
 } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { useSettings, getSettings } from "@/lib/settings-store";
-import { updateUserProfileFn, checkSessionFn, incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
+import { updateUserProfileFn, checkSessionFn, incrementTicketsCreatedFn, consumeTokenFn, changePasswordUserFn } from "../admin/functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/favorites")({
@@ -129,7 +129,41 @@ function FavoritesPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [localTransfers, setLocalTransfers] = useState<number | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showPasswordCard, setShowPasswordCard] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
   const custom = useCustomTickets();
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !user.sessionId) return;
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      await changePasswordUserFn({
+        data: {
+          email: user.email,
+          sessionId: user.sessionId,
+          currentPassword,
+          newPassword,
+        },
+      });
+      toast.success("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswordCard(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to change password");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   const handleRefreshTransfers = async () => {
     if (!user || !user.sessionId) {
@@ -445,6 +479,69 @@ function FavoritesPage() {
                 "Update"
               )}
             </button>
+          </div>
+
+          {/* Change Password Collapsible Card */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowPasswordCard(!showPasswordCard)}
+              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center justify-between"
+            >
+              <span>Change Account Password</span>
+              <span className="text-slate-400 font-extrabold">{showPasswordCard ? "▲" : "▼"}</span>
+            </button>
+
+            {showPasswordCard && (
+              <form onSubmit={handleChangePassword} className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div>
+                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    className="w-full h-9 border border-slate-300 bg-white rounded px-3 text-xs text-slate-900 mt-1 outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min. 6 chars)"
+                    className="w-full h-9 border border-slate-300 bg-white rounded px-3 text-xs text-slate-900 mt-1 outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    className="w-full h-9 border border-slate-300 bg-white rounded px-3 text-xs text-slate-900 mt-1 outline-none focus:border-blue-600"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="w-full h-9 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs font-extrabold uppercase rounded transition-colors cursor-pointer"
+                >
+                  {changingPassword ? "Updating Password..." : "Save New Password"}
+                </button>
+              </form>
+            )}
           </div>
 
           <div className="pt-2">
