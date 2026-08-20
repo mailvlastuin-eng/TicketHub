@@ -799,6 +799,11 @@ export function AdminDashboardApp() {
                           <div className="flex flex-col text-left min-w-0 pr-4">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm text-slate-900 truncate tracking-tight">{u.email}</span>
+                              {(u.username || parsedDev.username) && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                                  @{u.username || parsedDev.username}
+                                </span>
+                              )}
                             </div>
                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1.5">
                               <Clock className="h-3 w-3" />

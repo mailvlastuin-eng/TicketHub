@@ -11,6 +11,7 @@ export interface UserAccess {
   deviceInfo: string | null;
   loginMode?: 'single' | 'multiple' | 'token';
   userType?: 'payment' | 'token';
+  username?: string;
 }
 
 export interface LoginAttempt {
@@ -79,16 +80,19 @@ export async function getAllUsers(): Promise<UserAccess[]> {
     const data = await res.json();
     return data.map((u: any) => {
       let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
+      let username: string | undefined = undefined;
       if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
         try {
           const parsed = JSON.parse(u.deviceInfo);
           if (parsed.userType === 'token') userType = 'token';
+          if (parsed.username) username = parsed.username;
         } catch (e) {}
       }
       return {
         ...u,
         loginMode: u.loginMode || 'single',
         userType,
+        username,
       };
     });
   } catch (err) {
@@ -105,16 +109,19 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
     if (data.length > 0) {
       const u = data[0];
       let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
+      let username: string | undefined = undefined;
       if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
         try {
           const parsed = JSON.parse(u.deviceInfo);
           if (parsed.userType === 'token') userType = 'token';
+          if (parsed.username) username = parsed.username;
         } catch (e) {}
       }
       return {
         ...u,
         loginMode: u.loginMode || 'single',
         userType,
+        username,
       };
     }
   } catch (err) {
@@ -122,6 +129,18 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
     throw err;
   }
   return undefined;
+}
+
+export async function getUserByIdentifier(identifier: string): Promise<UserAccess | undefined> {
+  const clean = identifier.trim().toLowerCase();
+  const byEmail = await getUserByEmail(clean);
+  if (byEmail) return byEmail;
+
+  // Search by username if email lookup yielded no result
+  const allUsers = await getAllUsers();
+  return allUsers.find(
+    (u) => u.username && u.username.trim().toLowerCase() === clean
+  );
 }
 
 // getUserByPassword removed — querying the database by a raw password value

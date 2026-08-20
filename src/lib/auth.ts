@@ -7,6 +7,7 @@ const KEY = "tm_user";
 export type SessionUser = { 
   email: string; 
   name: string; 
+  username?: string;
   sessionId?: string; 
   loginMode?: 'single' | 'multiple' | 'token';
   userType?: 'payment' | 'token';

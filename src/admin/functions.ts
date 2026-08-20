@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
 import {
   getUserByEmail,
+  getUserByIdentifier,
   saveUser,
   addLoginAttempt,
   getAllUsers,
@@ -76,7 +77,7 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       );
     }
 
-    const user = await getUserByEmail(email);
+    const user = await getUserByIdentifier(email);
 
     // Verify password (handles both legacy plaintext and PBKDF2 hashed)
     const passwordMatch = user
@@ -1103,4 +1104,120 @@ export const updateUserTokensFn = createServerFn({ method: 'POST' })
 
     await saveUser(user);
     return { success: true, tokensCount: data.tokensCount };
+  });
+
+// ---------------------------------------------------------------------------
+// 18. Self-Service User Sign-Up (Self-Registered Token User)
+// ---------------------------------------------------------------------------
+export const registerUserFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { username: string; email: string; password: string }) => ({
+      username: String(d?.username ?? '').trim(),
+      email: String(d?.email ?? '').trim().toLowerCase(),
+      password: String(d?.password ?? '').trim(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    if (!data.email || !data.email.includes('@')) {
+      throw new Error('Please enter a valid email address.');
+    }
+    if (!data.username || data.username.length < 3) {
+      throw new Error('Username must be at least 3 characters long.');
+    }
+    if (!data.password || data.password.length < 6) {
+      throw new Error('Password must be at least 6 characters long.');
+    }
+
+    const existingByEmail = await getUserByEmail(data.email);
+    if (existingByEmail) {
+      throw new Error('An account with this email address already exists.');
+    }
+
+    const existingByIdentifier = await getUserByIdentifier(data.username);
+    if (existingByIdentifier) {
+      throw new Error('This username is already taken. Please choose another username.');
+    }
+
+    const hashedPassword = await hashPassword(data.password);
+    const sessionId = `sess_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+
+    const deviceInfo = JSON.stringify({
+      device: 'Web Client',
+      transfersCount: 0,
+      acceptedTransfers: [],
+      ticketsCount: 0,
+      ticketSlots: 0,
+      ticketsCreatedCount: 0,
+      tokensCount: 0,
+      userType: 'token',
+      username: data.username,
+    });
+
+    const newUser: UserAccess = {
+      id: `usr_${Math.random().toString(36).substring(2, 11)}`,
+      email: data.email,
+      password: hashedPassword,
+      duration: '1y',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      activatedAt: new Date().toISOString(),
+      expiresAt: null,
+      sessionId,
+      deviceInfo,
+      loginMode: 'token',
+      userType: 'token',
+      username: data.username,
+    };
+
+    await saveUser(newUser);
+
+    const name = data.username || data.email.split('@')[0] || 'User';
+
+    return {
+      email: newUser.email,
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      username: data.username,
+      sessionId,
+      expiresAt: null,
+      loginMode: 'token',
+      userType: 'token',
+      transfersCount: 0,
+      acceptedTransfers: [],
+      ticketSlots: 0,
+      ticketsCreatedCount: 0,
+      tokensCount: 0,
+    };
+  });
+
+// ---------------------------------------------------------------------------
+// 19. Change User Password (User Account Settings)
+// ---------------------------------------------------------------------------
+export const changePasswordUserFn = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { email: string; sessionId: string; currentPassword: string; newPassword: string }) => ({
+      email: String(d?.email ?? '').trim().toLowerCase(),
+      sessionId: String(d?.sessionId ?? '').trim(),
+      currentPassword: String(d?.currentPassword ?? '').trim(),
+      newPassword: String(d?.newPassword ?? '').trim(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const user = await getUserByEmail(data.email);
+    if (!user || user.sessionId !== data.sessionId) {
+      throw new Error('Unauthorized session. Please sign in again.');
+    }
+
+    if (!data.newPassword || data.newPassword.length < 6) {
+      throw new Error('New password must be at least 6 characters long.');
+    }
+
+    const passwordMatch = await verifyPassword(data.currentPassword, user.password);
+    if (!passwordMatch.match) {
+      throw new Error('Current password is incorrect.');
+    }
+
+    user.password = await hashPassword(data.newPassword);
+    await saveUser(user);
+
+    return { success: true };
   });
