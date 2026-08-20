@@ -799,12 +799,6 @@ export function AdminDashboardApp() {
                           <div className="flex flex-col text-left min-w-0 pr-4">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm text-slate-900 truncate tracking-tight">{u.email}</span>
-                              {isTokenUser && (
-                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 flex items-center gap-1">
-                                  <Coins className="h-2.5 w-2.5" />
-                                  Token User
-                                </span>
-                              )}
                             </div>
                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1.5">
                               <Clock className="h-3 w-3" />
@@ -830,13 +824,15 @@ export function AdminDashboardApp() {
                         {isExpanded && (
                           <div className="px-5 pb-5 pt-3 border-t border-slate-100 bg-slate-50/60 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
-                              {/* Login Mode / Type */}
-                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
-                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Account Type</span>
-                                <span className={`text-xs font-bold inline-block mt-0.5 uppercase tracking-wide ${isTokenUser ? 'text-purple-700 font-extrabold' : u.loginMode === 'multiple' ? 'text-emerald-600' : 'text-blue-600'}`}>
-                                  {isTokenUser ? 'Token User (Pay Per Use)' : u.loginMode === 'multiple' ? 'Multiple Sign-Ins' : 'Single Session Limit'}
-                                </span>
-                              </div>
+                              {/* Login Mode / Type (Non-Token Users only) */}
+                              {!isTokenUser && (
+                                <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Account Type</span>
+                                  <span className={`text-xs font-bold inline-block mt-0.5 uppercase tracking-wide ${u.loginMode === 'multiple' ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                    {u.loginMode === 'multiple' ? 'Multiple Sign-Ins' : 'Single Session Limit'}
+                                  </span>
+                                </div>
+                              )}
 
                               {/* Activation Dates */}
                               <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2 lg:col-span-1">
@@ -851,17 +847,27 @@ export function AdminDashboardApp() {
                                 )}
                               </div>
 
-                              {/* Tickets Created */}
+                              {/* Tickets Created & Transferred */}
                               <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
-                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Tickets Created</span>
+                                <div className="flex items-center justify-between gap-1 mb-1">
+                                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Tickets Created</span>
+                                  <span className="text-[9px] font-extrabold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                    {totalTransferredCount} Transferred Total
+                                  </span>
+                                </div>
                                 <div className="flex items-center gap-2.5 mt-1.5 text-xs text-slate-700 min-w-0">
                                   <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
                                     <Ticket className="h-4 w-4" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="font-bold text-sm text-slate-900">
-                                      {typeof parsedDev.ticketsCreatedCount === 'number' ? parsedDev.ticketsCreatedCount : (parsedDev.ticketsCount || 0)}
-                                    </p>
+                                    <div className="flex items-baseline gap-2 flex-wrap">
+                                      <p className="font-bold text-sm text-slate-900">
+                                        {typeof parsedDev.ticketsCreatedCount === 'number' ? parsedDev.ticketsCreatedCount : (parsedDev.ticketsCount || 0)}
+                                      </p>
+                                      <span className="text-xs font-bold text-slate-500">
+                                        • {totalTransferredCount} Transferred
+                                      </span>
+                                    </div>
                                     <p className="text-[9px] text-slate-400 font-semibold truncate mt-0.5">
                                       {isTokenUser 
                                         ? 'Total tickets created' 
