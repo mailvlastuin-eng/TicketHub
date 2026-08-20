@@ -380,8 +380,8 @@ function FavoritesPage() {
                   <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Ticket Slots</p>
                   <p className="text-xs font-bold mt-0.5">
                     {user?.ticketsCreatedCount !== undefined && user?.ticketSlots !== undefined 
-                      ? `${Math.max(0, user.ticketSlots - user.ticketsCreatedCount)} left of ${user.ticketSlots}` 
-                      : `${user?.ticketSlots ?? 20} left`}
+                      ? `${Math.max(0, user.ticketSlots - user.ticketsCreatedCount)} remaining` 
+                      : `${user?.ticketSlots ?? 20} remaining`}
                   </p>
                 </div>
               </div>
