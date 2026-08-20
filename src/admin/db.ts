@@ -143,6 +143,37 @@ export async function getUserByIdentifier(identifier: string): Promise<UserAcces
   );
 }
 
+export async function getUserBySessionId(sessionId: string): Promise<UserAccess | undefined> {
+  const clean = sessionId.trim();
+  if (!clean) return undefined;
+  try {
+    const res = await supabaseFetch(`users?sessionId=eq.${clean}`);
+    const data = await res.json();
+    if (data.length > 0) {
+      const u = data[0];
+      let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
+      let username: string | undefined = undefined;
+      if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(u.deviceInfo);
+          if (parsed.userType === 'token') userType = 'token';
+          if (parsed.username) username = parsed.username;
+        } catch (e) {}
+      }
+      return {
+        ...u,
+        loginMode: u.loginMode || 'single',
+        userType,
+        username,
+      };
+    }
+  } catch (err) {
+    console.error('Failed to get user by sessionId from Supabase:', err);
+  }
+  return undefined;
+}
+
+
 // getUserByPassword removed — querying the database by a raw password value
 // is a security antipattern and was not used by any handler.
 

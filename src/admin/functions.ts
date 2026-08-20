@@ -1,8 +1,9 @@
 import { createServerFn } from '@tanstack/react-start';
-import { getRequestHeaders } from '@tanstack/react-start/server';
+import { getRequestHeaders, getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server';
 import {
   getUserByEmail,
   getUserByIdentifier,
+  getUserBySessionId,
   saveUser,
   addLoginAttempt,
   getAllUsers,
@@ -225,6 +226,19 @@ export const loginUserFn = createServerFn({ method: 'POST' })
 
     const name = email.split('@')[0] || 'User';
 
+    // Set secure HttpOnly session cookie
+    try {
+      setCookie('tm_session', sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      });
+    } catch (cookieErr) {
+      console.warn('Unable to set session cookie:', cookieErr);
+    }
+
     return {
       email: user.email,
       name: name.charAt(0).toUpperCase() + name.slice(1),
@@ -244,7 +258,7 @@ export const loginUserFn = createServerFn({ method: 'POST' })
 // 2. Validate session on client page loads
 // ---------------------------------------------------------------------------
 export const checkSessionFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { email: string; sessionId: string; ticketsCount?: number }) => ({
+  .inputValidator((d: { email?: string; sessionId?: string; ticketsCount?: number }) => ({
     email: String(d?.email ?? '').trim(),
     sessionId: String(d?.sessionId ?? '').trim(),
     ticketsCount: typeof d?.ticketsCount === 'number' ? d.ticketsCount : undefined,
@@ -259,8 +273,19 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       return { valid: false };
     }
 
-    const { email, sessionId } = data;
-    const user = await getUserByEmail(email);
+    let cookieSession: string | undefined;
+    try {
+      cookieSession = getCookie('tm_session');
+    } catch (e) {}
+
+    const effectiveSessionId = cookieSession || data.sessionId;
+
+    let user: UserAccess | undefined;
+    if (data.email) {
+      user = await getUserByEmail(data.email);
+    } else if (effectiveSessionId) {
+      user = await getUserBySessionId(effectiveSessionId);
+    }
 
     if (!user || user.status !== 'active') {
       return { valid: false };
@@ -268,8 +293,24 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
 
     const isTokenUser = user.userType === 'token' || user.loginMode === 'token';
     // For token users and multiple-mode payment users, skip strict single-device sessionId rejection.
-    if (!isTokenUser && user.loginMode !== 'multiple' && user.sessionId !== sessionId) {
+    if (!isTokenUser && user.loginMode !== 'multiple' && effectiveSessionId && user.sessionId && user.sessionId !== effectiveSessionId) {
       return { valid: false };
+    }
+
+    // Refresh or upgrade to HttpOnly cookie on valid active session
+    const sessionTokenToSet = effectiveSessionId || user.sessionId;
+    if (sessionTokenToSet) {
+      try {
+        setCookie('tm_session', sessionTokenToSet, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+        });
+      } catch (cookieErr) {
+        // Non-blocking in environments where headers are already sealed
+      }
     }
 
     if (user.status === 'active' && user.activatedAt) {
@@ -355,8 +396,15 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       ticketsCreatedCount = updatedCreatedCount;
     }
 
+    const name = user.username || user.email.split('@')[0] || 'User';
+
     return {
       valid: true,
+      email: user.email,
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      username: user.username,
+      sessionId: effectiveSessionId || user.sessionId || undefined,
+      loginMode: user.loginMode || 'single',
       transfersCount,
       acceptedTransfers,
       ticketSlots,
@@ -364,6 +412,19 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
       tokensCount,
       userType: user.userType || storedUserType,
     };
+  });
+
+// ---------------------------------------------------------------------------
+// 2b. Logout User (Clears HttpOnly Cookie)
+// ---------------------------------------------------------------------------
+export const logoutUserFn = createServerFn({ method: 'POST' })
+  .handler(async () => {
+    try {
+      deleteCookie('tm_session', { path: '/' });
+    } catch (e) {
+      // Ignore if headers already sent
+    }
+    return { success: true };
   });
 
 // ---------------------------------------------------------------------------
@@ -1174,6 +1235,19 @@ export const registerUserFn = createServerFn({ method: 'POST' })
     await saveUser(newUser);
 
     const name = data.username || data.email.split('@')[0] || 'User';
+
+    // Set secure HttpOnly session cookie for newly registered user
+    try {
+      setCookie('tm_session', sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      });
+    } catch (cookieErr) {
+      console.warn('Unable to set session cookie:', cookieErr);
+    }
 
     return {
       email: newUser.email,
