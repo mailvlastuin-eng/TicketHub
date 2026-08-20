@@ -893,7 +893,7 @@ export const updateUserSlotsFn = createServerFn({ method: 'POST' })
         acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
         deviceStr = parsed.device || '';
         ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
-        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
         ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
         tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
         storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
@@ -1015,7 +1015,7 @@ export const consumeTokenFn = createServerFn({ method: 'POST' })
         deviceStr = parsed.device || '';
         acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
         ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
-        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 0;
+        transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
         ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
         tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
       } catch (e) {}
