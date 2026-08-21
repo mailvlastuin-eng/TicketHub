@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Shield,
   Key,
@@ -23,6 +23,13 @@ import {
   Ticket,
   X,
   Coins,
+  SlidersHorizontal,
+  ChevronDown,
+  ArrowUpDown,
+  Calendar,
+  Filter,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import {
@@ -120,6 +127,24 @@ export function AdminDashboardApp() {
   // Search & Filter State
   const [userQuery, setUserQuery] = useState('');
   const [attemptQuery, setAttemptQuery] = useState('');
+  const [userSortOption, setUserSortOption] = useState<'date-desc' | 'date-asc' | 'alpha-asc' | 'alpha-desc'>('date-desc');
+  const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'pending' | 'expired' | 'terminated'>('all');
+  const [userTypeFilter, setUserTypeFilter] = useState<'all' | 'payment-single' | 'payment-multiple' | 'token'>('all');
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close filter dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
+        setIsFilterMenuOpen(false);
+      }
+    }
+    if (isFilterMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isFilterMenuOpen]);
 
   // Create User Form & Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -316,20 +341,8 @@ export function AdminDashboardApp() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Filters
-  const filteredUsers = users.filter((u) =>
-    u.email.toLowerCase().includes(userQuery.toLowerCase())
-  );
-
-  const filteredAttempts = attempts.filter(
-    (a) =>
-      a.email.toLowerCase().includes(attemptQuery.toLowerCase()) ||
-      a.deviceInfo.toLowerCase().includes(attemptQuery.toLowerCase()) ||
-      a.status.toLowerCase().includes(attemptQuery.toLowerCase())
-  );
-
   const parseDeviceInfo = (deviceInfoStr: string | null) => {
-    if (!deviceInfoStr) return { device: '', transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token' };
+    if (!deviceInfoStr) return { device: '', transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token', username: '' };
     if (deviceInfoStr.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(deviceInfoStr);
@@ -343,11 +356,85 @@ export function AdminDashboardApp() {
           ticketsCreatedCount: Math.max(tCreated, tCount),
           tokensCount: typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0,
           userType: (parsed.userType === 'token' ? 'token' : 'payment') as 'payment' | 'token',
+          username: parsed.username || '',
         };
       } catch (e) {}
     }
-    return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token' };
+    return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token', username: '' };
   };
+
+  // Filters & Sorting for Access Keys
+  const filteredUsers = users
+    .filter((u) => {
+      // 1. Search Query Filter
+      const q = userQuery.toLowerCase().trim();
+      const parsedDev = parseDeviceInfo(u.deviceInfo);
+      const matchesQuery =
+        !q ||
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.username && u.username.toLowerCase().includes(q)) ||
+        (parsedDev.username && parsedDev.username.toLowerCase().includes(q));
+
+      if (!matchesQuery) return false;
+
+      // 2. Status Filter
+      if (userStatusFilter !== 'all' && u.status !== userStatusFilter) {
+        return false;
+      }
+
+      // 3. User Type / Mode Filter
+      const isTokenUser = u.userType === 'token' || parsedDev.userType === 'token' || u.loginMode === 'token';
+      if (userTypeFilter === 'token' && !isTokenUser) return false;
+      if (userTypeFilter === 'payment-single' && (isTokenUser || u.loginMode === 'multiple')) return false;
+      if (userTypeFilter === 'payment-multiple' && (isTokenUser || u.loginMode !== 'multiple')) return false;
+
+      return true;
+    })
+    .sort((a, b) => {
+      // 1. Date Created - Newest First (Default)
+      if (userSortOption === 'date-desc') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (timeB !== timeA) return timeB - timeA;
+        return (b.id || '').localeCompare(a.id || '');
+      }
+      // 2. Date Created - Oldest First
+      if (userSortOption === 'date-asc') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (timeA !== timeB) return timeA - timeB;
+        return (a.id || '').localeCompare(b.id || '');
+      }
+      // 3. Alphabetical Ascending (A -> Z)
+      if (userSortOption === 'alpha-asc') {
+        const nameA = (a.username || a.email || '').toLowerCase();
+        const nameB = (b.username || b.email || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      }
+      // 4. Alphabetical Descending (Z -> A)
+      if (userSortOption === 'alpha-desc') {
+        const nameA = (a.username || a.email || '').toLowerCase();
+        const nameB = (b.username || b.email || '').toLowerCase();
+        return nameB.localeCompare(nameA);
+      }
+      return 0;
+    });
+
+  const isFilterActive = userSortOption !== 'date-desc' || userStatusFilter !== 'all' || userTypeFilter !== 'all';
+
+  const handleResetFilters = () => {
+    setUserSortOption('date-desc');
+    setUserStatusFilter('all');
+    setUserTypeFilter('all');
+    setUserQuery('');
+  };
+
+  const filteredAttempts = attempts.filter(
+    (a) =>
+      a.email.toLowerCase().includes(attemptQuery.toLowerCase()) ||
+      a.deviceInfo.toLowerCase().includes(attemptQuery.toLowerCase()) ||
+      a.status.toLowerCase().includes(attemptQuery.toLowerCase())
+  );
 
   // Hard refresh handler (reloads page while keeping admin authenticated)
   const handleHardRefresh = () => {
@@ -746,31 +833,257 @@ export function AdminDashboardApp() {
           {/* Users Tab */}
           {activeTab === 'users' && (
             <div className="space-y-4">
-              {/* Search and Header Controls */}
-              <div className="bg-white border border-slate-200/65 rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
-                <div className="flex flex-col text-left">
-                  <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-850">
-                    Granted Access Keys
-                  </h2>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Click any account to expand settings and detail info</p>
+              {/* Search, Filter & Sort Controls Header */}
+              <div className="bg-white border border-slate-200/65 rounded-2xl p-5 shadow-sm space-y-3">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex flex-col text-left">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-850">
+                        Granted Access Keys
+                      </h2>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200/60">
+                        {filteredUsers.length}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                      Newest keys appear first • Click any account to expand settings
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                    {/* Search Bar */}
+                    <div className="relative flex-1 sm:w-60">
+                      <input
+                        type="text"
+                        placeholder="Search key or username..."
+                        value={userQuery}
+                        onChange={(e) => setUserQuery(e.target.value)}
+                        className="w-full h-10 border border-slate-200 bg-white text-slate-850 rounded-full pl-10 pr-8 text-xs focus:border-blue-500 focus:shadow-sm outline-none transition-all placeholder:text-slate-400"
+                      />
+                      <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
+                      {userQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setUserQuery('')}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* All-in-One Filter & Sort Button with Dropdown */}
+                    <div className="relative" ref={filterMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+                        className={`h-10 px-3.5 rounded-full border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer select-none shrink-0 ${
+                          isFilterActive
+                            ? 'bg-blue-50 text-blue-700 border-blue-300 shadow-sm ring-2 ring-blue-100'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                        }`}
+                      >
+                        <SlidersHorizontal className="h-3.5 w-3.5" />
+                        <span>Filter & Sort</span>
+                        {isFilterActive && (
+                          <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                          </span>
+                        )}
+                        <ChevronDown
+                          className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${
+                            isFilterMenuOpen ? 'rotate-180 text-blue-600' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {isFilterMenuOpen && (
+                        <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-4 space-y-4 text-left animate-in fade-in zoom-in-95 duration-150">
+                          {/* Menu Header */}
+                          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div className="flex items-center gap-2">
+                              <Filter className="h-4 w-4 text-blue-600" />
+                              <span className="font-extrabold text-xs uppercase tracking-wider text-slate-800">
+                                Filters & Sorting
+                              </span>
+                            </div>
+                            {isFilterActive && (
+                              <button
+                                type="button"
+                                onClick={handleResetFilters}
+                                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                              >
+                                Reset All
+                              </button>
+                            )}
+                          </div>
+
+                          {/* 1. Sort Options */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                              <ArrowUpDown className="h-3 w-3 text-blue-500" />
+                              Sort Order
+                            </label>
+                            <div className="grid grid-cols-1 gap-1">
+                              {[
+                                { id: 'date-desc', label: 'Newest First (Date Created ↓)', tag: 'Default' },
+                                { id: 'date-asc', label: 'Oldest First (Date Created ↑)', tag: '' },
+                                { id: 'alpha-asc', label: 'Alphabetical (A → Z)', tag: 'Ascending' },
+                                { id: 'alpha-desc', label: 'Alphabetical (Z → A)', tag: 'Descending' },
+                              ].map((opt) => (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => setUserSortOption(opt.id as any)}
+                                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                    userSortOption === opt.id
+                                      ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200/80'
+                                      : 'hover:bg-slate-50 text-slate-700 border border-transparent'
+                                  }`}
+                                >
+                                  <span>{opt.label}</span>
+                                  {userSortOption === opt.id && <Check className="h-3.5 w-3.5 text-blue-600 shrink-0" />}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 2. Status Filter */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                              <Activity className="h-3 w-3 text-emerald-500" />
+                              Account Status
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {[
+                                { id: 'all', label: 'All' },
+                                { id: 'active', label: 'Active' },
+                                { id: 'pending', label: 'Pending' },
+                                { id: 'expired', label: 'Expired' },
+                                { id: 'terminated', label: 'Terminated' },
+                              ].map((st) => (
+                                <button
+                                  key={st.id}
+                                  type="button"
+                                  onClick={() => setUserStatusFilter(st.id as any)}
+                                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    userStatusFilter === st.id
+                                      ? 'bg-slate-900 text-white shadow-sm'
+                                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  {st.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 3. Account Type Filter */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                              <Key className="h-3 w-3 text-purple-500" />
+                              Account Type
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {[
+                                { id: 'all', label: 'All Types' },
+                                { id: 'payment-single', label: 'Single Session' },
+                                { id: 'payment-multiple', label: 'Multiple Sign-Ins' },
+                                { id: 'token', label: 'Token Users' },
+                              ].map((tp) => (
+                                <button
+                                  key={tp.id}
+                                  type="button"
+                                  onClick={() => setUserTypeFilter(tp.id as any)}
+                                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    userTypeFilter === tp.id
+                                      ? 'bg-purple-600 text-white shadow-sm'
+                                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  {tp.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Footer */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-[11px] text-slate-400 font-medium">
+                              Showing <strong className="text-slate-700">{filteredUsers.length}</strong> of {users.length} keys
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setIsFilterMenuOpen(false)}
+                              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="relative w-full sm:w-64">
-                  <input
-                    type="text"
-                    placeholder="Search key email..."
-                    value={userQuery}
-                    onChange={(e) => setUserQuery(e.target.value)}
-                    className="w-full h-10 border border-slate-200 bg-white text-slate-850 rounded-full pl-10 pr-4 text-xs focus:border-blue-500 focus:shadow-sm outline-none transition-all"
-                  />
-                  <Search className="absolute left-3.5 top-3.5 h-3.5 w-3.5 text-slate-400" />
-                </div>
+
+                {/* Active Filter Chips Bar */}
+                {isFilterActive && (
+                  <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-slate-100 text-xs">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Filters:</span>
+                    {userSortOption !== 'date-desc' && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        Sort: {userSortOption === 'date-asc' ? 'Oldest First' : userSortOption === 'alpha-asc' ? 'Alphabetical (A → Z)' : 'Alphabetical (Z → A)'}
+                        <button
+                          type="button"
+                          onClick={() => setUserSortOption('date-desc')}
+                          className="hover:text-blue-900 cursor-pointer p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    )}
+                    {userStatusFilter !== 'all' && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 capitalize">
+                        Status: {userStatusFilter}
+                        <button
+                          type="button"
+                          onClick={() => setUserStatusFilter('all')}
+                          className="hover:text-emerald-900 cursor-pointer p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    )}
+                    {userTypeFilter !== 'all' && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                        Type: {userTypeFilter === 'token' ? 'Token Users' : userTypeFilter === 'payment-single' ? 'Single Session' : 'Multiple Sign-Ins'}
+                        <button
+                          type="button"
+                          onClick={() => setUserTypeFilter('all')}
+                          className="hover:text-purple-900 cursor-pointer p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleResetFilters}
+                      className="text-[11px] text-slate-400 hover:text-slate-700 font-bold underline ml-1 cursor-pointer"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Collapsible Card List */}
               <div className="space-y-3">
                 {filteredUsers.length === 0 ? (
                   <div className="bg-white border border-slate-200/60 rounded-2xl py-12 text-center text-slate-400 font-medium">
-                    No access keys registered.
+                    No access keys match the selected search or filter criteria.
                   </div>
                 ) : (
                   filteredUsers.map((u) => {
@@ -805,10 +1118,21 @@ export function AdminDashboardApp() {
                                 </span>
                               )}
                             </div>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1.5">
-                              <Clock className="h-3 w-3" />
-                              {getDurationDisplay(u)}
-                            </span>
+                            <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400 font-bold uppercase tracking-wider flex-wrap">
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {getDurationDisplay(u)}
+                              </span>
+                              {u.createdAt && (
+                                <>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="text-slate-500 font-semibold lowercase tracking-normal flex items-center gap-1">
+                                    <Calendar className="h-3 w-3 text-slate-400" />
+                                    created {new Date(u.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-3 shrink-0">
                             <div className="flex flex-col items-end gap-1 shrink-0">
@@ -839,17 +1163,22 @@ export function AdminDashboardApp() {
                                 </div>
                               )}
 
-                              {/* Activation Dates */}
+                              {/* Authorization & Creation Dates */}
                               <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2 lg:col-span-1">
                                 <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Authorization Details</span>
-                                {u.activatedAt ? (
-                                  <div className="text-[11px] text-slate-600 space-y-0.5">
-                                    <p><strong className="text-slate-800">Started:</strong> {new Date(u.activatedAt).toLocaleString()}</p>
-                                    <p><strong className="text-slate-800">Expires:</strong> {new Date(u.expiresAt).toLocaleString()}</p>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs font-semibold text-slate-400 italic">Awaiting buyer login...</span>
-                                )}
+                                <div className="text-[11px] text-slate-600 space-y-0.5">
+                                  {u.createdAt && (
+                                    <p><strong className="text-slate-800">Created:</strong> {new Date(u.createdAt).toLocaleString()}</p>
+                                  )}
+                                  {u.activatedAt ? (
+                                    <>
+                                      <p><strong className="text-slate-800">Started:</strong> {new Date(u.activatedAt).toLocaleString()}</p>
+                                      <p><strong className="text-slate-800">Expires:</strong> {new Date(u.expiresAt).toLocaleString()}</p>
+                                    </>
+                                  ) : (
+                                    <p className="text-xs font-semibold text-slate-400 italic">Awaiting buyer login...</p>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Tickets Created & Transferred */}

@@ -55,6 +55,54 @@ function generatePassword(): string {
   return pass;
 }
 
+/**
+ * Resolves and verifies the authenticated user from the HttpOnly session cookie
+ * (with fallback to client-supplied sessionId/email for backwards compatibility).
+ *
+ * Throws an actionable error if the user is unauthenticated, inactive, or attempting
+ * cross-account tampering.
+ */
+async function requireAuthenticatedUser(data?: { email?: string; sessionId?: string }): Promise<UserAccess> {
+  let cookieSession: string | undefined;
+  try {
+    cookieSession = getCookie('tm_session');
+  } catch (e) {}
+
+  const effectiveSessionId = cookieSession || (data?.sessionId ? String(data.sessionId).trim() : undefined);
+  let user: UserAccess | undefined;
+
+  // 1. Look up by verified session token
+  if (effectiveSessionId) {
+    user = await getUserBySessionId(effectiveSessionId);
+  }
+
+  // 2. Fallback lookup by email for legacy sessions
+  if (!user && data?.email) {
+    const candidate = await getUserByEmail(data.email);
+    if (candidate) {
+      if (!effectiveSessionId || candidate.sessionId === effectiveSessionId || candidate.loginMode === 'multiple') {
+        user = candidate;
+      }
+    }
+  }
+
+  // 3. Reject if unauthenticated or inactive
+  if (!user || user.status !== 'active') {
+    throw new Error('Unauthorized. Active user session required.');
+  }
+
+  // 4. Strict cross-account protection: if caller supplied an email, it MUST match the authenticated user
+  if (data?.email) {
+    const cleanSupplied = data.email.trim().toLowerCase();
+    const cleanUserEmail = user.email.trim().toLowerCase();
+    if (cleanSupplied && cleanUserEmail !== cleanSupplied) {
+      throw new Error('Forbidden. You cannot perform operations on another user account.');
+    }
+  }
+
+  return user;
+}
+
 // ---------------------------------------------------------------------------
 // 1. User Login
 // ---------------------------------------------------------------------------
@@ -702,81 +750,67 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
       throw new Error(`Transfer limit reached. Please wait ${Math.ceil(rl.retryAfter! / 60)} minutes.`);
     }
 
-    if (data.senderEmail) {
-      const user = await getUserByEmail(data.senderEmail);
+    // SECURITY: Authenticate and verify sender ownership
+    const user = await requireAuthenticatedUser({
+      email: data.senderEmail,
+      sessionId: data.sessionId,
+    });
 
-      // SECURITY: verify the sessionId matches the stored session before mutating credits.
-      // Token users use loginMode:'token' which is !== 'multiple', so strict check applies.
-      if (!user) {
-        throw new Error('Sender account not found.');
-      }
-      if (data.sessionId && user.loginMode !== 'multiple' && user.sessionId !== data.sessionId) {
-        throw new Error('Session mismatch. Please sign in again before transferring.');
-      }
+    let transfersCount = 4;
+    let tokensCount = 0;
+    let deviceName = 'Unknown Device';
+    let acceptedTransfers: any[] = [];
+    let ticketSlots = 20;
+    let ticketsCreatedCount = 0;
+    let ticketsCount = 0;
+    let storedUserType: 'payment' | 'token' = 'payment';
 
-      let transfersCount = 4;
-      let tokensCount = 0;
-      let deviceName = 'Unknown Device';
-      let acceptedTransfers: any[] = [];
-      let ticketSlots = 20;
-      let ticketsCreatedCount = 0;
-      let ticketsCount = 0;
-      let storedUserType: 'payment' | 'token' = 'payment';
-
-      if (user.deviceInfo) {
-        if (user.deviceInfo.trim().startsWith('{')) {
-          try {
-            const parsed = JSON.parse(user.deviceInfo);
-            deviceName = parsed.device || 'Unknown Device';
-            transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
-            tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
-            acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
-            ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
-            ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
-            ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
-            storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
-          } catch (e) {}
-        } else {
-          deviceName = user.deviceInfo;
-        }
-      }
-
-      const isTokenUser = user.userType === 'token' || storedUserType === 'token';
-
-      if (isTokenUser) {
-        // Token users: deduct 2 tokens per transfer
-        if (tokensCount < 2) {
-          throw new Error('Insufficient tokens. You need at least 2 tokens to transfer tickets.');
-        }
-        user.deviceInfo = JSON.stringify({
-          device: deviceName,
-          transfersCount,
-          tokensCount: tokensCount - 2,
-          acceptedTransfers,
-          ticketSlots,
-          ticketsCreatedCount: Math.max(ticketsCreatedCount, 1),
-          ticketsCount,
-          userType: 'token',
-        });
+    if (user.deviceInfo) {
+      if (user.deviceInfo.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(user.deviceInfo);
+          deviceName = parsed.device || 'Unknown Device';
+          transfersCount = typeof parsed.transfersCount === 'number' ? parsed.transfersCount : 4;
+          tokensCount = typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0;
+          acceptedTransfers = Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [];
+          ticketSlots = typeof parsed.ticketSlots === 'number' ? parsed.ticketSlots : 20;
+          ticketsCreatedCount = typeof parsed.ticketsCreatedCount === 'number' ? parsed.ticketsCreatedCount : 0;
+          ticketsCount = typeof parsed.ticketsCount === 'number' ? parsed.ticketsCount : 0;
+          storedUserType = parsed.userType === 'token' ? 'token' : 'payment';
+        } catch (e) {}
       } else {
-        // Payment users: deduct 1 from transfersCount
-        if (transfersCount <= 0) {
-          throw new Error('You have no ticket transfers left on your account.');
-        }
-        user.deviceInfo = JSON.stringify({
-          device: deviceName,
-          transfersCount: transfersCount - 1,
-          tokensCount,
-          acceptedTransfers,
-          ticketSlots,
-          ticketsCreatedCount: Math.max(ticketsCreatedCount, 1),
-          ticketsCount,
-          userType: 'payment',
-        });
+        deviceName = user.deviceInfo;
       }
-
-      await saveUser(user);
     }
+
+    const isTokenUser = user.userType === 'token' || storedUserType === 'token';
+
+    if (isTokenUser) {
+      // Token users: deduct 2 tokens per transfer
+      if (tokensCount < 2) {
+        throw new Error('Insufficient tokens. You need at least 2 tokens to transfer tickets.');
+      }
+      tokensCount = Math.max(0, tokensCount - 2);
+    } else {
+      // Payment users: deduct 1 transfer credit
+      if (transfersCount <= 0) {
+        throw new Error('You have no ticket transfers left on your account.');
+      }
+      transfersCount = Math.max(0, transfersCount - 1);
+    }
+
+    user.deviceInfo = JSON.stringify({
+      device: deviceName,
+      transfersCount,
+      tokensCount,
+      acceptedTransfers,
+      ticketSlots,
+      ticketsCreatedCount: Math.max(ticketsCreatedCount, 1),
+      ticketsCount,
+      userType: isTokenUser ? 'token' : 'payment',
+    });
+
+    await saveUser(user);
 
     const html = compileTransferEmailHtml(data);
     const result = await sendEmail({
@@ -788,22 +822,20 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
   });
 
 // ---------------------------------------------------------------------------
-// 11. Update User Profile (session-gated)
+// 11. Update User Profile (session-gated & ownership-verified)
 // ---------------------------------------------------------------------------
 export const updateUserProfileFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: { email: string; name: string; sessionId: string }) => ({
+  .inputValidator((d: { email?: string; name: string; sessionId?: string }) => ({
     email: String(d?.email ?? '').trim(),
     name: String(d?.name ?? '').trim(),
     sessionId: String(d?.sessionId ?? '').trim(),
   }))
   .handler(async ({ data }) => {
-    const user = await getUserByEmail(data.email);
-    if (!user) throw new Error('User not found');
-
-    // SECURITY: verify the caller owns this account
-    if (user.loginMode !== 'multiple' && user.sessionId !== data.sessionId) {
-      throw new Error('Session mismatch. Please sign in again.');
-    }
+    // SECURITY: Authenticate caller and verify account ownership
+    const user = await requireAuthenticatedUser({
+      email: data.email,
+      sessionId: data.sessionId,
+    });
 
     user.name = data.name;
     await saveUser(user);
@@ -982,20 +1014,21 @@ export const updateUserSlotsFn = createServerFn({ method: 'POST' })
   });
 
 // ---------------------------------------------------------------------------
-// 15. Increment Tickets Created Count (session-gated)
+// 15. Increment Tickets Created Count (session-gated & ownership-verified)
 // ---------------------------------------------------------------------------
 export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
   .inputValidator(
-    (d: { email: string; sessionId: string }) => ({
+    (d: { email?: string; sessionId?: string }) => ({
       email: String(d?.email ?? '').trim(),
       sessionId: String(d?.sessionId ?? '').trim(),
     }),
   )
   .handler(async ({ data }) => {
-    const user = await getUserByEmail(data.email);
-    if (!user || user.sessionId !== data.sessionId || user.status !== 'active') {
-      throw new Error('Unauthorized session');
-    }
+    // SECURITY: Authenticate caller and verify account ownership
+    const user = await requireAuthenticatedUser({
+      email: data.email,
+      sessionId: data.sessionId,
+    });
 
     let deviceStr = 'Unknown Device';
     let acceptedTransfers: any[] = [];
@@ -1044,11 +1077,11 @@ export const incrementTicketsCreatedFn = createServerFn({ method: 'POST' })
   });
 
 // ---------------------------------------------------------------------------
-// 16. Consume Tokens for Ticket Creation / Editing (Token Users only, session-gated)
+// 16. Consume Tokens for Ticket Creation / Editing (Token Users only, session-gated & ownership-verified)
 // ---------------------------------------------------------------------------
 export const consumeTokenFn = createServerFn({ method: 'POST' })
   .inputValidator(
-    (d: { email: string; sessionId: string; amount?: number; action?: string }) => ({
+    (d: { email?: string; sessionId?: string; amount?: number; action?: string }) => ({
       email: String(d?.email ?? '').trim(),
       sessionId: String(d?.sessionId ?? '').trim(),
       amount: Math.max(1, Number(d?.amount ?? 2)),
@@ -1056,10 +1089,11 @@ export const consumeTokenFn = createServerFn({ method: 'POST' })
     }),
   )
   .handler(async ({ data }) => {
-    const user = await getUserByEmail(data.email);
-    if (!user || user.sessionId !== data.sessionId || user.status !== 'active') {
-      throw new Error('Unauthorized session');
-    }
+    // SECURITY: Authenticate caller and verify account ownership
+    const user = await requireAuthenticatedUser({
+      email: data.email,
+      sessionId: data.sessionId,
+    });
 
     const isTokenUser = user.userType === 'token' || user.loginMode === 'token';
     if (!isTokenUser) {
@@ -1266,11 +1300,11 @@ export const registerUserFn = createServerFn({ method: 'POST' })
   });
 
 // ---------------------------------------------------------------------------
-// 19. Change User Password (User Account Settings)
+// 19. Change User Password (User Account Settings, session-gated & ownership-verified)
 // ---------------------------------------------------------------------------
 export const changePasswordUserFn = createServerFn({ method: 'POST' })
   .inputValidator(
-    (d: { email: string; sessionId: string; currentPassword: string; newPassword: string }) => ({
+    (d: { email?: string; sessionId?: string; currentPassword: string; newPassword: string }) => ({
       email: String(d?.email ?? '').trim().toLowerCase(),
       sessionId: String(d?.sessionId ?? '').trim(),
       currentPassword: String(d?.currentPassword ?? '').trim(),
@@ -1278,10 +1312,11 @@ export const changePasswordUserFn = createServerFn({ method: 'POST' })
     }),
   )
   .handler(async ({ data }) => {
-    const user = await getUserByEmail(data.email);
-    if (!user || user.sessionId !== data.sessionId) {
-      throw new Error('Unauthorized session. Please sign in again.');
-    }
+    // SECURITY: Authenticate caller and verify account ownership
+    const user = await requireAuthenticatedUser({
+      email: data.email,
+      sessionId: data.sessionId,
+    });
 
     if (!data.newPassword || data.newPassword.length < 6) {
       throw new Error('New password must be at least 6 characters long.');
