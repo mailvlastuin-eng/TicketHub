@@ -80,13 +80,16 @@ export async function getAllUsers(): Promise<UserAccess[]> {
     const data = await res.json();
     return data.map((u: any) => {
       let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
-      let username: string | undefined = undefined;
+      let username: string | undefined = u.username || undefined;
       if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
         try {
           const parsed = JSON.parse(u.deviceInfo);
           if (parsed.userType === 'token') userType = 'token';
-          if (parsed.username) username = parsed.username;
+          if (parsed.username) username = username || parsed.username;
         } catch (e) {}
+      }
+      if (!username && u.email) {
+        username = u.email.split('@')[0];
       }
       return {
         ...u,
@@ -109,13 +112,16 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
     if (data.length > 0) {
       const u = data[0];
       let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
-      let username: string | undefined = undefined;
+      let username: string | undefined = u.username || undefined;
       if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
         try {
           const parsed = JSON.parse(u.deviceInfo);
           if (parsed.userType === 'token') userType = 'token';
-          if (parsed.username) username = parsed.username;
+          if (parsed.username) username = username || parsed.username;
         } catch (e) {}
+      }
+      if (!username && u.email) {
+        username = u.email.split('@')[0];
       }
       return {
         ...u,
@@ -152,13 +158,16 @@ export async function getUserBySessionId(sessionId: string): Promise<UserAccess 
     if (data.length > 0) {
       const u = data[0];
       let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
-      let username: string | undefined = undefined;
+      let username: string | undefined = u.username || undefined;
       if (u.deviceInfo && u.deviceInfo.trim().startsWith('{')) {
         try {
           const parsed = JSON.parse(u.deviceInfo);
           if (parsed.userType === 'token') userType = 'token';
-          if (parsed.username) username = parsed.username;
+          if (parsed.username) username = username || parsed.username;
         } catch (e) {}
+      }
+      if (!username && u.email) {
+        username = u.email.split('@')[0];
       }
       return {
         ...u,
