@@ -54,11 +54,10 @@ function savePrefs(p: Prefs) {
 function MyAccountPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
-  const { settings, updateSettings } = useSettings();
+  const { settings } = useSettings();
   const [prefs, setPrefs] = useState<Prefs>(() => loadPrefs());
-  const [editing, setEditing] = useState<"country" | "city" | "name" | "email" | null>(null);
+  const [editing, setEditing] = useState<"country" | "city" | "name" | null>(null);
   const [nameDraft, setNameDraft] = useState("");
-  const [emailDraft, setEmailDraft] = useState("");
 
   // Password change state
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -88,15 +87,11 @@ function MyAccountPage() {
 
   const updateName = async (n: string) => {
     if (!n.trim()) return;
-    signIn({ ...user, name: n.trim() });
+    signIn({ email: user.email, name: n.trim() });
     
     // Also save in settings store so they are synchronized!
     const current = getSettings();
     saveSettings({
-      ...current,
-      name: n.trim(),
-    });
-    updateSettings({
       ...current,
       name: n.trim(),
     });
@@ -111,21 +106,6 @@ function MyAccountPage() {
     } catch (err) {
       console.error("Failed to sync name to Supabase:", err);
     }
-    toast.success("Virtual name updated!");
-  };
-
-  const updateEmail = async (m: string) => {
-    if (!m.trim()) return;
-    const current = getSettings();
-    saveSettings({
-      ...current,
-      virtualMail: m.trim(),
-    });
-    updateSettings({
-      ...current,
-      virtualMail: m.trim(),
-    });
-    toast.success("Virtual email updated!");
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -176,118 +156,62 @@ function MyAccountPage() {
   const displayName = settings.name || user.name;
   const displayEmail = settings.virtualMail || user.email;
 
-  const getInitials = (s: string) => s.split(" ").map(w => w[0]?.toUpperCase() ?? "").slice(0, 2).join("") || "?";
-  const avatarPalette = ["from-violet-500 to-purple-600", "from-blue-500 to-cyan-500", "from-emerald-500 to-teal-600", "from-rose-500 to-pink-600", "from-amber-500 to-orange-500"];
-  const avatarColor = avatarPalette[(displayName || user.email).charCodeAt(0) % avatarPalette.length];
-
   return (
     <main className="min-h-screen bg-background pb-24">
       <div className="max-w-md mx-auto">
-        {/* Blue header with rounded avatar and inline editable credentials */}
+        {/* Blue header */}
         <header className="bg-primary text-primary-foreground px-5 pt-[calc(16px+env(safe-area-inset-top,24px))] pb-6">
           <h1 className="text-center text-base font-medium">My Account</h1>
-          <div className="mt-6 flex items-center gap-4">
-            {/* Avatar - completely rounded */}
-            <div
-              style={{ width: 52, height: 52, fontSize: 20 }}
-              className={`rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-bold flex-shrink-0 select-none shadow-md border-2 border-white/20`}
-            >
-              {getInitials(displayName || user.email)}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              {editing === "name" ? (
-                <input
-                  autoFocus
-                  value={nameDraft}
-                  onChange={(e) => setNameDraft(e.target.value)}
-                  onBlur={() => {
+          <div className="mt-6">
+            {editing === "name" ? (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                onBlur={() => {
+                  updateName(nameDraft);
+                  setEditing(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
                     updateName(nameDraft);
                     setEditing(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      updateName(nameDraft);
-                      setEditing(null);
-                    }
-                  }}
-                  className="w-full bg-transparent text-xl font-bold outline-none border-b border-white/60 text-white"
-                />
-              ) : (
-                <button
-                  onClick={() => {
-                    setNameDraft(displayName);
-                    setEditing("name");
-                  }}
-                  className="text-left group flex items-center gap-1.5 cursor-pointer max-w-full"
-                >
-                  <h2 className="text-xl font-bold leading-tight truncate">{displayName}</h2>
-                  <SquarePen className="h-4 w-4 opacity-70 group-hover:opacity-100 shrink-0" />
-                </button>
-              )}
-
-              {editing === "email" ? (
-                <input
-                  autoFocus
-                  value={emailDraft}
-                  onChange={(e) => setEmailDraft(e.target.value)}
-                  onBlur={() => {
-                    updateEmail(emailDraft);
-                    setEditing(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      updateEmail(emailDraft);
-                      setEditing(null);
-                    }
-                  }}
-                  className="w-full bg-transparent text-xs outline-none border-b border-white/60 text-white mt-1"
-                />
-              ) : (
-                <button
-                  onClick={() => {
-                    setEmailDraft(displayEmail);
-                    setEditing("email");
-                  }}
-                  className="text-left group flex items-center gap-1.5 mt-1 cursor-pointer max-w-full"
-                >
-                  <p className="text-xs opacity-90 truncate">{displayEmail}</p>
-                  <SquarePen className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 shrink-0" />
-                </button>
-              )}
-            </div>
+                  }
+                }}
+                className="w-full bg-transparent text-2xl font-bold outline-none border-b border-white/40"
+              />
+            ) : (
+              <button
+                onClick={() => {
+                  setNameDraft(displayName);
+                  setEditing("name");
+                }}
+                className="text-left"
+              >
+                <h2 className="text-2xl font-bold leading-tight">{displayName}</h2>
+              </button>
+            )}
+            <p className="text-sm mt-1 opacity-90">{displayEmail}</p>
           </div>
         </header>
 
         {/* Notifications */}
         <Section title="Notifications">
-          <EditableRow
+          <Row
             icon={<UserIcon className="h-5 w-5" />}
-            label="Virtual Name"
-            value={displayName}
-            editing={editing === "name"}
-            onEdit={() => {
+            label={displayName}
+            onClick={() => {
               setNameDraft(displayName);
               setEditing("name");
+              window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            onDone={(v) => {
-              updateName(v);
-              setEditing(null);
-            }}
+            right={<ChevronRight className="h-5 w-5 text-foreground/50" />}
           />
-          <EditableRow
+          <Row
             icon={<Mail className="h-5 w-5" />}
-            label="Virtual Email"
-            value={displayEmail}
-            editing={editing === "email"}
-            onEdit={() => {
-              setEmailDraft(displayEmail);
-              setEditing("email");
-            }}
-            onDone={(v) => {
-              updateEmail(v);
-              setEditing(null);
-            }}
+            label={displayEmail}
+            onClick={() => navigate({ to: "/favorites" })}
+            right={<ChevronRight className="h-5 w-5 text-foreground/50" />}
           />
           <Row
             icon={<SquarePen className="h-5 w-5" />}
