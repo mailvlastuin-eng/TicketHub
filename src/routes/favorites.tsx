@@ -1,6 +1,23 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, Heart, Ticket as TicketIcon, User as UserIcon, RefreshCw, Plus } from "lucide-react";
+import {
+  Search,
+  Heart,
+  Ticket as TicketIcon,
+  User as UserIcon,
+  RefreshCw,
+  Plus,
+  Eye,
+  EyeOff,
+  Settings2,
+  ChevronDown,
+  Edit3,
+  Trash2,
+  MessageCircle,
+  Users,
+  Lock,
+  BadgeCheck,
+} from "lucide-react";
 import { signOut, useUser, signIn } from "@/lib/auth";
 import {
   addCustomTicket,
@@ -133,12 +150,29 @@ function FavoritesPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showAppSettings, setShowAppSettings] = useState(false);
+  const [showManageTickets, setShowManageTickets] = useState(false);
   const custom = useCustomTickets();
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !user.sessionId) return;
+    if (!currentPassword.trim()) {
+      toast.error("Please enter your current password.");
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long.");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      toast.error("New password cannot be the same as your current password.");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error("New passwords do not match.");
       return;
@@ -210,7 +244,6 @@ function FavoritesPage() {
     }
   };
 
-  // Sync transfers count and ticket slots in background on mount / user change
   useEffect(() => {
     if (user && user.sessionId) {
       checkSessionFn({
@@ -239,7 +272,6 @@ function FavoritesPage() {
     }
   }, [user?.email, user?.sessionId]);
 
-  // Keep localTransfers in sync with user changes
   useEffect(() => {
     if (user && typeof user.transfersCount === 'number') {
       setLocalTransfers(user.transfersCount);
@@ -259,6 +291,20 @@ function FavoritesPage() {
 
   if (!ready || !user) return null;
 
+  const isTokenUser = user?.userType === 'token';
+  const tokensCount = user?.tokensCount ?? 0;
+  const transfersCount = localTransfers !== null
+    ? localTransfers
+    : (typeof user?.transfersCount === 'number' ? user.transfersCount : 4);
+  const ticketsCreated = user?.ticketsCreatedCount ?? 0;
+  const ticketSlots = user?.ticketSlots ?? 20;
+  const slotsRemaining = Math.max(0, ticketSlots - ticketsCreated);
+  const isBouncing = isTokenUser && tokensCount === 0;
+
+  const getInitials = (name: string) => name.split(" ").map(w => w[0]?.toUpperCase() ?? "").slice(0, 2).join("") || "?";
+  const avatarColors = ["from-violet-500 to-purple-600", "from-blue-500 to-cyan-500", "from-emerald-500 to-teal-600", "from-rose-500 to-pink-600", "from-amber-500 to-orange-500"];
+  const avatarColor = avatarColors[(user.name || user.email).charCodeAt(0) % avatarColors.length];
+
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
@@ -266,7 +312,6 @@ function FavoritesPage() {
     setIsUpdating(true);
     playSoftSound();
 
-    // 1. Save settings locally
     updateSettings({
       name: form.name,
       virtualMail: form.virtualMail,
@@ -286,28 +331,16 @@ function FavoritesPage() {
       tt: form.tt,
     });
 
-    // 2. Sync to active user session
     if (user) {
-      signIn({
-        ...user,
-        name: form.name,
-      });
-
-      // 3. Sync profile name changes to Supabase database
+      signIn({ ...user, name: form.name });
       try {
-        await updateUserProfileFn({
-          data: {
-            email: user.email,
-            name: form.name,
-          },
-        });
+        await updateUserProfileFn({ data: { email: user.email, name: form.name } });
       } catch (err) {
         console.error("Failed to sync profile update to Supabase:", err);
       }
     }
 
     await new Promise((resolve) => setTimeout(resolve, 800));
-
     setIsUpdating(false);
     setMsg("Settings updated");
     window.setTimeout(() => setMsg(null), 2000);
@@ -320,19 +353,15 @@ function FavoritesPage() {
       return;
     }
 
-    const isTokenUser = user?.userType === 'token';
-
     if (isTokenUser) {
-      if ((user?.tokensCount ?? 0) < 2) {
+      if (tokensCount < 2) {
         setMsg("Insufficient tokens (2 tokens required)");
         toast.error("You need at least 2 tokens to create a ticket.");
         window.setTimeout(() => setMsg(null), 1500);
         return;
       }
     } else {
-      const currentSlots = user?.ticketSlots ?? 20;
-      const currentCreated = user?.ticketsCreatedCount ?? 0;
-      if (currentCreated >= currentSlots) {
+      if (ticketsCreated >= ticketSlots) {
         setMsg("No ticket slots remaining. Please contact the admin.");
         toast.error("You have run out of ticket slots.");
         window.setTimeout(() => setMsg(null), 1500);
@@ -350,16 +379,12 @@ function FavoritesPage() {
       time: form.time.trim() || "TBA",
       priceFrom: Number(form.priceFrom) || 0,
       image: form.image.trim() || PLACEHOLDER_IMG,
-      description:
-        form.description.trim() ||
-        "A new event created from the Manager panel.",
+      description: form.description.trim() || "A new event created from the Manager panel.",
     };
 
     const resetForm = () => {
       setForm((f) => ({ ...f, eventTitle: "", category: "", venue: "", city: "", date: "", time: "", priceFrom: "", description: "" }));
       setShowNew(false);
-      setMsg("Event created successfully");
-      window.setTimeout(() => setMsg(null), 1500);
     };
 
     if (user && user.sessionId) {
@@ -386,204 +411,360 @@ function FavoritesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background pb-24">
+    <main className="min-h-screen bg-background pb-28">
       <div className="max-w-md mx-auto">
-        {/* Header */}
+        {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="bg-primary text-primary-foreground pt-[calc(16px+env(safe-area-inset-top,20px))] pb-5 text-center">
           <h1 className="text-lg font-medium">Manager</h1>
         </div>
 
-        {/* Transfers / Tokens Banner */}
-        <div className="mx-5 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between text-blue-955 select-none">
-          <div className="flex items-center gap-3">
-            <TicketIcon className="h-5 w-5 text-blue-600" />
-            {user?.userType === 'token' ? (
-              // Token User: show single token balance
-              <div>
-                <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Tokens</p>
-                <p className="text-xs font-bold mt-0.5">{user.tokensCount ?? 0} remaining</p>
-              </div>
-            ) : (
-              // Payment User: show Transfers + Ticket Slots
-              <div className="flex gap-6">
-                <div>
-                  <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Transfers</p>
-                  <p className="text-xs font-bold mt-0.5">{localTransfers !== null ? localTransfers : (typeof user?.transfersCount === 'number' ? user.transfersCount : 4)} remaining</p>
+        <div className="p-4 space-y-3">
+
+          {/* ── User Info Card ───────────────────────────────────────────── */}
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="h-1.5 bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500" />
+            <div className="p-4">
+              <div className="flex items-center gap-3.5">
+                {/* Avatar */}
+                <div
+                  style={{ width: 52, height: 52, fontSize: 20 }}
+                  className={`rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-bold flex-shrink-0 select-none shadow-md`}
+                >
+                  {getInitials(user.name || user.email)}
                 </div>
-                <div className="border-l border-blue-200 pl-4">
-                  <p className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">Ticket Slots</p>
-                  <p className="text-xs font-bold mt-0.5">
-                    {user?.ticketsCreatedCount !== undefined && user?.ticketSlots !== undefined 
-                      ? `${Math.max(0, user.ticketSlots - user.ticketsCreatedCount)} remaining` 
-                      : `${user?.ticketSlots ?? 20} remaining`}
-                  </p>
+
+                {/* Name & email */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">{user.name || "User"}</p>
+                  <p className="text-[11px] text-slate-500 truncate mt-0.5">{user.email}</p>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${isTokenUser ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}>
+                      {isTokenUser ? "Token Account" : "Payment Account"}
+                    </span>
+                    <BadgeCheck className="h-3.5 w-3.5 text-emerald-500" />
+                  </div>
+                </div>
+
+                {/* Balance */}
+                <div className="flex-shrink-0 text-right">
+                  {isTokenUser ? (
+                    <div className="flex flex-col items-center">
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider text-violet-600">Tokens</span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className={`text-lg font-black ${tokensCount === 0 ? "text-red-500" : "text-slate-900"}`}>
+                          {tokensCount}
+                        </span>
+                        <button
+                          onClick={handleRefreshTransfers}
+                          disabled={refreshing}
+                          className={`flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 text-violet-600 hover:bg-violet-200 transition-all cursor-pointer disabled:opacity-50 ${isBouncing ? "animate-bounce" : ""}`}
+                          title="Refresh balance"
+                        >
+                          <Plus className="h-3 w-3" strokeWidth={3} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-blue-600 block">Transfers</span>
+                          <span className="text-base font-black text-slate-900">{transfersCount}</span>
+                        </div>
+                        <div className="w-px h-8 bg-slate-200" />
+                        <div className="text-right">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 block">Slots</span>
+                          <span className="text-base font-black text-slate-900">{slotsRemaining}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRefreshTransfers}
+                        disabled={refreshing}
+                        className="text-[9px] font-black uppercase bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {refreshing ? "..." : "↻ Refresh"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
           </div>
+
+          {/* ── New Events Button ────────────────────────────────────────── */}
           <button
-            onClick={handleRefreshTransfers}
-            disabled={refreshing}
-            className="text-[10px] font-black uppercase bg-blue-100 hover:bg-blue-200 text-blue-700 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 transition-colors cursor-pointer disabled:opacity-60 focus:outline-none"
+            onClick={() => navigate({ to: "/create-ticket" })}
+            className="w-full rounded-xl bg-[#0e5c3c] hover:bg-[#0b4d32] text-white text-sm font-bold py-3.5 px-5 shadow-md shadow-emerald-800/10 hover:shadow-emerald-800/20 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-0"
           >
-            {refreshing ? "Refreshing..." : "Refresh"}
+            <Plus className="h-4 w-4 text-white" strokeWidth={2.5} />
+            New Events
           </button>
-        </div>
 
-        <div className="p-5 space-y-4">
-          <Row>
-            <Field label="Name" value={form.name} onChange={(v) => set("name", v)} />
-            <Field
-              label="Virtual Mail"
-              value={form.virtualMail}
-              onChange={(v) => set("virtualMail", v)}
-            />
-          </Row>
-
-          <Row cols={3}>
-            <Field label="City & State" value={form.cityState} onChange={(v) => set("cityState", v)} />
-            <Field label="Country" value={form.country} onChange={(v) => set("country", v)} />
-            <Field label="Currency" value={form.currency} onChange={(v) => set("currency", v)} options={CURRENCY_OPTS} />
-          </Row>
-
-          <Row cols={3}>
-            <Field label="Dark" value={form.dark} onChange={(v) => set("dark", v)} options={DARK_OPTS} />
-            <Field label="Transfer BTN" value={form.transferBtn} onChange={(v) => set("transferBtn", v)} options={SHOW_OPTS} />
-            <Field label="MAP View" value={form.mapView} onChange={(v) => set("mapView", v)} options={YESNO_OPTS} />
-          </Row>
-
-          <Row cols={3}>
-            <Field label="Barcode" value={form.barcode} onChange={(v) => set("barcode", v)} options={SHOW_OPTS} />
-            <Field label="Ticket Bar" value={form.ticketBar} onChange={(v) => set("ticketBar", v)} options={SHOW_OPTS} />
-            <Field label="Sell Tab" value={form.sellTab} onChange={(v) => set("sellTab", v)} options={SHOW_OPTS} />
-          </Row>
-
-          <div className="pt-1">
-            <button
-              onClick={handleUpdate}
-              disabled={isUpdating}
-              className={`h-11 rounded-[4px] text-sm font-semibold w-full cursor-pointer transition-all flex items-center justify-center gap-2 disabled:opacity-85 ${
-                msg === "Settings updated"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-primary text-primary-foreground hover:opacity-90"
-              }`}
-            >
-              {isUpdating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : msg === "Settings updated" ? (
-                "✓ Settings updated!"
-              ) : (
-                "Update"
-              )}
-            </button>
-          </div>
-
-          {/* Change Password Collapsible Card */}
-          <div className="pt-2">
+          {/* ── Manage / Edit Tickets ─────────────────────────────────────── */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <button
               type="button"
-              onClick={() => setShowPasswordCard(!showPasswordCard)}
-              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center justify-between"
+              onClick={() => setShowManageTickets((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
             >
-              <span>Change Account Password</span>
-              <span className="text-slate-400 font-extrabold">{showPasswordCard ? "▲" : "▼"}</span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <TicketIcon className="h-4 w-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-800">Manage / Edit Tickets</span>
+                {custom.length > 0 && (
+                  <span className="text-[9px] font-black text-white px-1.5 py-0.5 rounded-full bg-blue-600">{custom.length}</span>
+                )}
+              </div>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${showManageTickets ? "rotate-180" : ""}`} />
             </button>
 
-            {showPasswordCard && (
-              <form onSubmit={handleChangePassword} className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block">
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter current password"
-                    className="w-full h-9 border border-slate-300 bg-white rounded px-3 text-xs text-slate-900 mt-1 outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min. 6 chars)"
-                    className="w-full h-9 border border-slate-300 bg-white rounded px-3 text-xs text-slate-900 mt-1 outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
-                    className="w-full h-9 border border-slate-300 bg-white rounded px-3 text-xs text-slate-900 mt-1 outline-none focus:border-blue-600"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={changingPassword}
-                  className="w-full h-9 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs font-extrabold uppercase rounded transition-colors cursor-pointer"
-                >
-                  {changingPassword ? "Updating Password..." : "Save New Password"}
-                </button>
-              </form>
+            {showManageTickets && (
+              <div className="px-4 pb-4 border-t border-slate-100">
+                {custom.length === 0 ? (
+                  <div className="py-8 text-center text-slate-400 text-xs">
+                    <TicketIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                    <p className="font-medium">No tickets created yet</p>
+                    <p className="mt-0.5 opacity-70">Tap "New Events" to create your first ticket</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 pt-3">
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-1 pb-1">
+                      {custom.length} ticket{custom.length !== 1 ? "s" : ""} — slots not restored upon deletion
+                    </p>
+                    {custom.map((t) => (
+                      <EventRow
+                        key={t.id}
+                        ticket={t}
+                        onEdit={() => navigate({ to: "/edit-ticket/$id", params: { id: t.id } })}
+                        onDelete={() => {
+                          if (confirm(`Delete "${t.title}"? Note: ticket slots are not restored.`)) {
+                            deleteCustomTicket(t.id);
+                            toast.success("Event deleted");
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
-          <div className="pt-2">
+          {/* ── App Settings ─────────────────────────────────────────────── */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <button
-              onClick={() => navigate({ to: "/create-ticket" })}
-              className="w-full rounded-md bg-[#0e5c3c] hover:bg-[#0b4d32] text-white text-sm font-bold py-3.5 px-5 shadow-md shadow-emerald-800/10 hover:shadow-emerald-800/20 active:scale-[0.99] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-0"
+              type="button"
+              onClick={() => setShowAppSettings((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
             >
-              <Plus className="h-4.5 w-4.5 text-white stroke-[2.5]" />
-              New Events
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <Settings2 className="h-4 w-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-800">App Settings</span>
+              </div>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${showAppSettings ? "rotate-180" : ""}`} />
+            </button>
+
+            {showAppSettings && (
+              <div className="px-4 pb-4 border-t border-slate-100 space-y-4 pt-3">
+                {/* Account fields */}
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Account</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Name" value={form.name} onChange={(v) => set("name", v)} />
+                    <Field label="Virtual Mail" value={form.virtualMail} onChange={(v) => set("virtualMail", v)} />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mt-3">
+                    <Field label="City & State" value={form.cityState} onChange={(v) => set("cityState", v)} />
+                    <Field label="Country" value={form.country} onChange={(v) => set("country", v)} />
+                    <Field label="Currency" value={form.currency} onChange={(v) => set("currency", v)} options={CURRENCY_OPTS} />
+                  </div>
+                </div>
+
+                {/* Display settings */}
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Display</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Field label="Dark" value={form.dark} onChange={(v) => set("dark", v)} options={DARK_OPTS} />
+                    <Field label="Transfer BTN" value={form.transferBtn} onChange={(v) => set("transferBtn", v)} options={SHOW_OPTS} />
+                    <Field label="MAP View" value={form.mapView} onChange={(v) => set("mapView", v)} options={YESNO_OPTS} />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mt-3">
+                    <Field label="Barcode" value={form.barcode} onChange={(v) => set("barcode", v)} options={SHOW_OPTS} />
+                    <Field label="Ticket Bar" value={form.ticketBar} onChange={(v) => set("ticketBar", v)} options={SHOW_OPTS} />
+                    <Field label="Sell Tab" value={form.sellTab} onChange={(v) => set("sellTab", v)} options={SHOW_OPTS} />
+                  </div>
+                </div>
+
+                {/* Save button */}
+                <button
+                  onClick={handleUpdate}
+                  disabled={isUpdating}
+                  className={`h-11 rounded-lg text-sm font-semibold w-full cursor-pointer transition-all flex items-center justify-center gap-2 disabled:opacity-85 ${
+                    msg === "Settings updated"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-primary text-primary-foreground hover:opacity-90"
+                  }`}
+                >
+                  {isUpdating ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : msg === "Settings updated" ? (
+                    "✓ Settings updated!"
+                  ) : (
+                    "Save App Settings"
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ── Account Section ───────────────────────────────────────────── */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-1">Account</p>
+
+            {/* Change Password */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowPasswordCard(!showPasswordCard)}
+                className="w-full py-3 px-4 text-slate-800 text-xs font-bold transition-colors cursor-pointer flex items-center justify-between hover:bg-slate-50"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <Lock className="h-3.5 w-3.5 text-slate-600" />
+                  </div>
+                  <span>Change Account Password</span>
+                </div>
+                <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${showPasswordCard ? "rotate-180" : ""}`} />
+              </button>
+
+              {showPasswordCard && (
+                <form onSubmit={handleChangePassword} className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-3">
+                  {/* Current Password */}
+                  <div>
+                    <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block mb-1">Current Password</label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? "text" : "password"}
+                        required
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        className="w-full h-9 border border-slate-300 bg-white rounded-lg px-3 pr-9 text-xs text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                      />
+                      <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  {/* New Password */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide">New Password</label>
+                      <span className="text-[10px] text-slate-400 font-semibold">Min. 6 chars</span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        required
+                        minLength={6}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        className="w-full h-9 border border-slate-300 bg-white rounded-lg px-3 pr-9 text-xs text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                      />
+                      <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide block mb-1">Confirm New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                        minLength={6}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                        className="w-full h-9 border border-slate-300 bg-white rounded-lg px-3 pr-9 text-xs text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                      />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={changingPassword}
+                    className="w-full h-9 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs font-extrabold uppercase rounded-lg transition-colors cursor-pointer"
+                  >
+                    {changingPassword ? "Updating Password..." : "Save New Password"}
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Sign Out */}
+            <button
+              onClick={() => { signOut(); navigate({ to: "/", replace: true }); }}
+              className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors cursor-pointer flex items-center gap-2.5"
+            >
+              <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
+                <UserIcon className="h-3.5 w-3.5 text-red-500" />
+              </div>
+              Sign Out
             </button>
           </div>
 
-          {msg && (
-            <p className="text-center text-sm text-primary font-medium">{msg}</p>
-          )}
-
-          {/* Existing custom events */}
-          {custom.length > 0 && (
-            <div className="space-y-3 pt-4">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Created Events</span>
-                <span className="text-[10px] text-slate-400 font-medium">Slots are not restored upon deletion</span>
-              </div>
-              {custom.map((t) => (
-                <EventRow
-                  key={t.id}
-                  ticket={t}
-                  onEdit={() => navigate({ to: "/edit-ticket/$id", params: { id: t.id } })}
-                  onDelete={() => {
-                    if (confirm(`Delete event "${t.title}"? (Note: Used ticket slots are not restored)`)) {
-                      deleteCustomTicket(t.id);
-                      toast.success("Event deleted");
-                    }
-                  }}
-                />
-              ))}
+          {/* ── Telegram Section ──────────────────────────────────────────── */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-1">Telegram</p>
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+              <a
+                href="https://t.me/yoursupporthandle"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-xl bg-[#0088cc]/10 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="h-4 w-4 text-[#0088cc]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-slate-800">Contact Support</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Get help from our team</p>
+                </div>
+                <ChevronDown className="-rotate-90 h-4 w-4 text-slate-300" />
+              </a>
+              <a
+                href="https://t.me/yourgrouphandle"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-xl bg-[#0088cc]/10 flex items-center justify-center flex-shrink-0">
+                  <Users className="h-4 w-4 text-[#0088cc]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-slate-800">Join Telegram Group</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Connect with other members</p>
+                </div>
+                <ChevronDown className="-rotate-90 h-4 w-4 text-slate-300" />
+              </a>
             </div>
-          )}
+          </div>
+
         </div>
       </div>
 
-      {/* Bottom tab bar */}
+      {/* ── Bottom tab bar ────────────────────────────────────────────────── */}
       <nav className="fixed bottom-0 inset-x-0 border-t bg-background z-40 pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-md mx-auto grid grid-cols-4">
           <TabItem
@@ -608,14 +789,6 @@ function FavoritesPage() {
   );
 }
 
-function Row({ children, cols = 2 }: { children: React.ReactNode; cols?: 2 | 3 }) {
-  return (
-    <div className={`grid gap-3 ${cols === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
-      {children}
-    </div>
-  );
-}
-
 function Field({
   label,
   value,
@@ -631,26 +804,20 @@ function Field({
 }) {
   return (
     <div>
-      <label className="text-xs font-semibold text-foreground">{label}</label>
+      <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wide">{label}</label>
       {options ? (
         <div className="relative mt-1">
           <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full h-10 appearance-none rounded-[4px] border border-foreground/20 pl-3 pr-8 text-sm outline-none focus:border-primary bg-background cursor-pointer"
+            className="w-full h-9 appearance-none rounded-lg border border-slate-200 pl-2.5 pr-7 text-xs outline-none focus:border-blue-500 bg-background cursor-pointer text-slate-900"
           >
             {!options.includes(value) && <option value={value}>{value}</option>}
             {options.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
+              <option key={o} value={o}>{o}</option>
             ))}
           </select>
-          <svg
-            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/60"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
+          <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
           </svg>
         </div>
@@ -659,7 +826,7 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-sm outline-none focus:border-primary bg-background"
+          className="mt-1 w-full h-9 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-blue-500 bg-background text-slate-900"
         />
       )}
     </div>
@@ -677,29 +844,35 @@ function EventRow({
 }) {
   const [hidden, setHidden] = useState(false);
   return (
-    <div className="rounded-[4px] overflow-hidden border border-foreground/10 shadow-sm">
-      <div className={`px-4 py-3.5 ${hidden ? "bg-foreground/20" : "bg-black"} flex items-center justify-between`}>
-        <p className="text-sm font-bold text-white leading-snug tracking-tight">
+    <div className={`rounded-xl border overflow-hidden transition-opacity ${hidden ? "opacity-50 border-slate-200" : "border-slate-200"}`}>
+      <div className={`px-3.5 py-2.5 flex items-center justify-between ${hidden ? "bg-slate-100" : "bg-slate-900"}`}>
+        <p className={`text-xs font-bold leading-snug tracking-tight truncate ${hidden ? "text-slate-500" : "text-white"}`}>
           {ticket.title}
         </p>
+        {hidden && (
+          <span className="text-[9px] font-black uppercase text-slate-400 ml-2 flex-shrink-0">Hidden</span>
+        )}
       </div>
-      <div className="flex gap-2 px-3 py-2 border-t border-foreground/10 bg-background">
+      <div className="flex divide-x divide-slate-100 bg-white">
         <button
           onClick={onEdit}
-          className="flex-1 rounded-[4px] bg-primary text-primary-foreground text-xs font-semibold py-1.5"
+          className="flex-1 py-2 text-[11px] font-bold text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-1 cursor-pointer"
         >
+          <Edit3 className="h-3 w-3" />
           Edit
         </button>
         <button
           onClick={onDelete}
-          className="flex-1 rounded-[4px] bg-destructive text-destructive-foreground text-xs font-semibold py-1.5"
+          className="flex-1 py-2 text-[11px] font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-1 cursor-pointer"
         >
+          <Trash2 className="h-3 w-3" />
           Delete
         </button>
         <button
           onClick={() => setHidden((h) => !h)}
-          className="flex-1 rounded-[4px] border border-primary text-primary text-xs font-semibold py-1.5"
+          className="flex-1 py-2 text-[11px] font-bold text-slate-500 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1 cursor-pointer"
         >
+          <EyeOff className="h-3 w-3" />
           {hidden ? "Show" : "Hide"}
         </button>
       </div>

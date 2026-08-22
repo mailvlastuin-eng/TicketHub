@@ -1312,21 +1312,35 @@ export const changePasswordUserFn = createServerFn({ method: 'POST' })
     }),
   )
   .handler(async ({ data }) => {
-    // SECURITY: Authenticate caller and verify account ownership
+    // 1. Rate Limiting to prevent brute-force attacks
+    const ip = getClientIp();
+    const rl = checkRateLimit(ip, RATE_LIMITS.changePassword);
+    if (!rl.allowed) {
+      throw new Error(`Too many password change attempts. Please try again in ${rl.retryAfter} seconds.`);
+    }
+
+    // 2. SECURITY: Authenticate caller and verify account ownership
     const user = await requireAuthenticatedUser({
       email: data.email,
       sessionId: data.sessionId,
     });
 
+    // 3. Validate new password length and format
     if (!data.newPassword || data.newPassword.length < 6) {
       throw new Error('New password must be at least 6 characters long.');
     }
 
+    if (data.newPassword === data.currentPassword) {
+      throw new Error('New password cannot be the same as your current password.');
+    }
+
+    // 4. Verify current password
     const passwordMatch = await verifyPassword(data.currentPassword, user.password);
     if (!passwordMatch.match) {
       throw new Error('Current password is incorrect.');
     }
 
+    // 5. Hash and persist new password in database
     user.password = await hashPassword(data.newPassword);
     await saveUser(user);
 

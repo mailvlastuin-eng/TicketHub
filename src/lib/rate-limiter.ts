@@ -124,4 +124,12 @@ export const RATE_LIMITS = {
   transfer: { id: 'transfer', maxRequests: 3, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
   acceptTransfer: { id: 'accept_transfer', maxRequests: 10, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
   checkSession: { id: 'check_session', maxRequests: 60, windowMs: 60 * 1000 } as RateLimitConfig,
+  changePassword: {
+    id: 'change_password',
+    windowMs: 30 * 60 * 1000,
+    tiers: [
+      { attempts: 5, lockoutMs: 5 * 60 * 1000 },
+      { attempts: 8, lockoutMs: 15 * 60 * 1000 },
+    ],
+  } as RateLimitConfig,
 } as const;
