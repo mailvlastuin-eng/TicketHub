@@ -622,6 +622,39 @@ function FavoritesPage() {
               </button>
             </div>
 
+            {/* ── Software Version Section ───────────────────────────────── */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-1">System & Updates</p>
+              <div className="bg-white border border-slate-200 rounded-md p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-sm bg-slate-100 flex items-center justify-center">
+                      <RefreshCw className="h-3.5 w-3.5 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">Software Version</p>
+                      <p className="text-[10px] text-slate-500 font-medium">v2.4.0 (Latest Release)</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Up to date</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.info("Updating software and refreshing assets...");
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 600);
+                  }}
+                  className="w-full h-9 bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold uppercase rounded-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Update Software
+                </button>
+              </div>
+            </div>
+
           </div>
           {/* end double-spaced bottom section */}
 
