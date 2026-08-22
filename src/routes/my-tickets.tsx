@@ -228,15 +228,15 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
     <Link
       to="/my-ticket/$id"
       params={{ id: ticket.id }}
-      className="block overflow-hidden relative"
+      className="block overflow-hidden relative bg-[#111] rounded-md"
     >
       {ticket.image && (
-        <div className="aspect-[16/10] overflow-hidden relative">
+        <div className="aspect-[16/10] overflow-hidden relative bg-[#111]">
           <img
             src={ticket.image}
             alt={ticket.title}
             loading="lazy"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover block"
           />
           {/* Date badge absolutely over the photo */}
           <div className="absolute bottom-0 left-0 bg-black/85 text-white px-4 py-2 z-10">
@@ -246,7 +246,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
           </div>
         </div>
       )}
-      <div className="bg-[#111] text-white px-4 pt-4 pb-5">
+      <div className="bg-[#111] text-white px-4 pt-4 pb-5 -mt-[1px] relative z-10">
         <h3 className="text-lg font-bold uppercase leading-tight">
           {ticket.title}
         </h3>
