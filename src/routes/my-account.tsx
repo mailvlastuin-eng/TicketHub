@@ -13,10 +13,16 @@ import {
   HelpCircle,
   ChevronRight,
   LogOut,
+  Lock,
+  Eye,
+  EyeOff,
+  X,
+  ShieldCheck,
 } from "lucide-react";
 import { signOut, useUser, signIn } from "@/lib/auth";
 import { useSettings, getSettings, saveSettings } from "@/lib/settings-store";
-import { updateUserProfileFn } from "../admin/functions";
+import { updateUserProfileFn, changePasswordUserFn } from "../admin/functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/my-account")({
   head: () => ({ meta: [{ title: "My Account — Ticketmaster" }] }),
@@ -52,6 +58,16 @@ function MyAccountPage() {
   const [prefs, setPrefs] = useState<Prefs>(() => loadPrefs());
   const [editing, setEditing] = useState<"country" | "city" | "name" | null>(null);
   const [nameDraft, setNameDraft] = useState("");
+
+  // Password change state
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     if (ready && !user) navigate({ to: "/", replace: true });
@@ -89,6 +105,51 @@ function MyAccountPage() {
       });
     } catch (err) {
       console.error("Failed to sync name to Supabase:", err);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !user.sessionId) {
+      toast.error("Please sign in to change your password.");
+      return;
+    }
+    if (!currentPassword.trim()) {
+      toast.error("Please enter your current password.");
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long.");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      toast.error("New password cannot be the same as your current password.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await changePasswordUserFn({
+        data: {
+          email: user.email,
+          sessionId: user.sessionId,
+          currentPassword,
+          newPassword,
+        },
+      });
+      toast.success("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setIsPasswordModalOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to change password");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -211,6 +272,21 @@ function MyAccountPage() {
           />
         </Section>
 
+        {/* Account Security */}
+        <Section title="Account Security">
+          <Row
+            icon={<Lock className="h-5 w-5" />}
+            label="Change Password"
+            onClick={() => {
+              setCurrentPassword("");
+              setNewPassword("");
+              setConfirmPassword("");
+              setIsPasswordModalOpen(true);
+            }}
+            right={<ChevronRight className="h-5 w-5 text-foreground/50" />}
+          />
+        </Section>
+
         {/* Help */}
         <Section title="Help & Guidance">
           <Row
@@ -240,6 +316,126 @@ function MyAccountPage() {
           />
         </Section>
       </div>
+
+      {/* Change Password Modal */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-background border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 relative animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <Lock className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-foreground leading-none">Change Password</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Update your account login password</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-3.5 pt-1">
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter your current password"
+                    className="w-full h-10 px-3 pr-10 border border-input bg-background rounded-lg text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-muted-foreground/60"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-foreground block">
+                    New Password
+                  </label>
+                  <span className="text-[11px] text-muted-foreground">Min. 6 characters</span>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    className="w-full h-10 px-3 pr-10 border border-input bg-background rounded-lg text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-muted-foreground/60"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    className="w-full h-10 px-3 pr-10 border border-input bg-background rounded-lg text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-muted-foreground/60"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  className="flex-1 h-10 border border-input hover:bg-muted text-foreground text-sm font-semibold rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="flex-1 h-10 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold rounded-lg transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {isChangingPassword ? "Saving..." : "Save Password"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
       {/* Bottom tab bar */}
       <nav className="fixed bottom-0 inset-x-0 border-t bg-background z-40 pb-[env(safe-area-inset-bottom)]">
