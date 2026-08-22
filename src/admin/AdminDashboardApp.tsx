@@ -1089,7 +1089,10 @@ export function AdminDashboardApp() {
                   filteredUsers.map((u) => {
                     const isExpanded = expandedUserId === u.id;
                     const parsedDev = parseDeviceInfo(u.deviceInfo);
+
+
                     const isTokenUser = u.userType === 'token' || parsedDev.userType === 'token' || u.loginMode === 'token';
+                    const usernameVal = u.username || parsedDev.username || (u.email ? u.email.split('@')[0] : '');
                     const currentTransfers = editingTransfers[u.id] !== undefined ? editingTransfers[u.id] : parsedDev.transfersCount;
                     const isSaving = savingTransfers[u.id];
 
@@ -1113,7 +1116,7 @@ export function AdminDashboardApp() {
                             <div className="flex items-center gap-2 flex-wrap">
                               {isTokenUser ? (
                                 <span className="font-bold text-sm text-slate-900 truncate tracking-tight">
-                                  {(u.username || parsedDev.username) ? `@${u.username || parsedDev.username}` : u.email}
+                                  @{usernameVal}
                                 </span>
                               ) : (
                                 <span className="font-bold text-sm text-slate-900 truncate tracking-tight">
@@ -1161,7 +1164,7 @@ export function AdminDashboardApp() {
                                 <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">User Identity</span>
                                 <div className="text-[11px] text-slate-600 space-y-0.5">
                                   <p><strong className="text-slate-800">Email:</strong> {u.email}</p>
-                                  <p><strong className="text-slate-800">Username:</strong> {(u.username || parsedDev.username) ? `@${u.username || parsedDev.username}` : 'Not set'}</p>
+                                  <p><strong className="text-slate-800">Username:</strong> @{usernameVal}</p>
                                 </div>
                               </div>
 
@@ -1174,25 +1177,6 @@ export function AdminDashboardApp() {
                                   </span>
                                 </div>
                               )}
-
-
-                              {/* Authorization & Creation Dates */}
-                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2 lg:col-span-1">
-                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Authorization Details</span>
-                                <div className="text-[11px] text-slate-600 space-y-0.5">
-                                  {u.createdAt && (
-                                    <p><strong className="text-slate-800">Created:</strong> {new Date(u.createdAt).toLocaleString()}</p>
-                                  )}
-                                  {u.activatedAt ? (
-                                    <>
-                                      <p><strong className="text-slate-800">Started:</strong> {new Date(u.activatedAt).toLocaleString()}</p>
-                                      <p><strong className="text-slate-800">Expires:</strong> {new Date(u.expiresAt).toLocaleString()}</p>
-                                    </>
-                                  ) : (
-                                    <p className="text-xs font-semibold text-slate-400 italic">Awaiting buyer login...</p>
-                                  )}
-                                </div>
-                              </div>
 
                               {/* Tickets Created & Transferred */}
                               <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm text-left">
