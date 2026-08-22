@@ -290,7 +290,6 @@ function FavoritesPage() {
     };
     const resetForm = () => {
       setForm((f) => ({ ...f, eventTitle: "", category: "", venue: "", city: "", date: "", time: "", priceFrom: "", description: "" }));
-      setShowNew(false);
     };
     if (user && user.sessionId) {
       const fn = isTokenUser
@@ -386,8 +385,10 @@ function FavoritesPage() {
           </div>
 
           {/* ── Buy Token / Buy Transfer ─────────────────────────────────── */}
-          <button
-            onClick={handleRefreshTransfers}
+          <a
+            href="https://t.me/Greywolf_Classic"
+            target="_blank"
+            rel="noopener noreferrer"
             className={`w-full py-2.5 px-4 rounded-md text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
               isTokenUser
                 ? "bg-violet-600 hover:bg-violet-700 text-white"
@@ -396,7 +397,7 @@ function FavoritesPage() {
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={3} />
             {isTokenUser ? "Buy Token" : "Buy Transfer"}
-          </button>
+          </a>
 
           {/* ── Create Event ─────────────────────────────────────────────── */}
           <button
