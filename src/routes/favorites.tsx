@@ -431,9 +431,6 @@ function FavoritesPage() {
                   </div>
                 ) : (
                   <div className="space-y-2 pt-3">
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 px-1 pb-1">
-                      ⚠ Ticket slots are permanent — not restored on deletion
-                    </p>
                     {custom.map((t) => (
                       <EventRow
                         key={t.id}
@@ -711,7 +708,7 @@ function EventRow({ ticket, onEdit, onDelete }: { ticket: Ticket; onEdit: () => 
   return (
     <div className={`rounded-sm border overflow-hidden transition-opacity ${hidden ? "opacity-50 border-slate-200" : "border-slate-200"}`}>
       {/* ~20% taller header: py-3.5 vs the old py-2.5 */}
-      <div className={`px-3.5 py-3.5 flex items-center justify-between ${hidden ? "bg-slate-100" : "bg-slate-900"}`}>
+      <div className={`px-3.5 py-3.5 flex items-center justify-between ${hidden ? "bg-slate-100" : "bg-blue-600"}`}>
         <p className={`text-xs font-bold leading-snug tracking-tight truncate ${hidden ? "text-slate-500" : "text-white"}`}>{ticket.title}</p>
         {hidden && <span className="text-[9px] font-black uppercase text-slate-400 ml-2 flex-shrink-0">Hidden</span>}
       </div>

@@ -210,7 +210,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Fixed Background Image and Title placeholder */}
-          <div className="absolute top-0 left-0 w-full z-0 flex flex-col bg-[#F3F4F6]">
+          <div className="absolute top-0 left-0 w-full z-0 flex flex-col bg-[#111]">
             <div className="w-full aspect-[16/10] bg-zinc-800 animate-pulse" />
             <div className="bg-[#111] p-4 pb-6 space-y-4">
               <div className="h-6 w-3/4 bg-zinc-700 rounded animate-pulse" />
@@ -333,12 +333,12 @@ function MyTicketDetail() {
           className="w-full h-full overflow-y-auto scrollbar-none bg-white min-h-[100dvh]"
         >
           {/* Hero image container */}
-          <div className="w-full aspect-[4/3] overflow-hidden relative bg-primary pointer-events-none">
+          <div className="w-full aspect-[4/3] overflow-hidden relative bg-[#111] pointer-events-none">
             {ticket.image ? (
               <img
                 src={ticket.image}
                 alt={ticket.title}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover block"
               />
             ) : null}
             <div className="absolute inset-0 bg-black/10" />
@@ -355,7 +355,7 @@ function MyTicketDetail() {
           </div>
 
           {/* Title and details block */}
-          <div className="flex flex-col w-full bg-[#111] shrink-0">
+          <div className="flex flex-col w-full bg-[#111] shrink-0 -mt-[1px] relative z-10">
             {/* Title block */}
             <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 z-10 relative h-[100px] box-border">
               <div className="flex-1 min-w-0">
@@ -474,15 +474,15 @@ function MyTicketDetail() {
                     className="mt-5 block overflow-hidden rounded-[4px] border border-foreground/10 bg-white"
                   >
                     {related[0].image && (
-                      <div className="w-full aspect-[16/10] overflow-hidden">
+                      <div className="w-full aspect-[16/10] overflow-hidden bg-[#111]">
                         <img
                           src={related[0].image}
                           alt={related[0].title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover block"
                         />
                       </div>
                     )}
-                    <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3">
+                    <div className="bg-[#111] text-white px-4 pt-4 pb-5 flex items-start justify-between gap-3 -mt-[1px] relative z-10">
                       <div>
                         <p className="text-[10px] font-semibold text-white/70">
                           {formatDateBar(related[0])}
