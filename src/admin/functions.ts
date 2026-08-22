@@ -45,6 +45,13 @@ function getCallerIp(headers: Record<string, string | string[] | undefined>): st
   return (headers['x-real-ip'] as string) ?? '127.0.0.1';
 }
 
+function getClientIp(): string {
+  const headers = getRequestHeaders();
+  return getCallerIp(headers as unknown as Record<string, string | string[] | undefined>);
+}
+
+
+
 // Helper to generate a random 8-character password
 function generatePassword(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';

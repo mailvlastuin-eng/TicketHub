@@ -1111,10 +1111,13 @@ export function AdminDashboardApp() {
                         >
                           <div className="flex flex-col text-left min-w-0 pr-4">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-sm text-slate-900 truncate tracking-tight">{u.email}</span>
-                              {(u.username || parsedDev.username) && (
-                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                                  @{u.username || parsedDev.username}
+                              {isTokenUser ? (
+                                <span className="font-bold text-sm text-slate-900 truncate tracking-tight">
+                                  {(u.username || parsedDev.username) ? `@${u.username || parsedDev.username}` : u.email}
+                                </span>
+                              ) : (
+                                <span className="font-bold text-sm text-slate-900 truncate tracking-tight">
+                                  {u.email}
                                 </span>
                               )}
                             </div>
@@ -1153,6 +1156,15 @@ export function AdminDashboardApp() {
                         {isExpanded && (
                           <div className="px-5 pb-5 pt-3 border-t border-slate-100 bg-slate-50/60 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                              {/* User Identity Details (Email + Username) */}
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
+                                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">User Identity</span>
+                                <div className="text-[11px] text-slate-600 space-y-0.5">
+                                  <p><strong className="text-slate-800">Email:</strong> {u.email}</p>
+                                  <p><strong className="text-slate-800">Username:</strong> {(u.username || parsedDev.username) ? `@${u.username || parsedDev.username}` : 'Not set'}</p>
+                                </div>
+                              </div>
+
                               {/* Login Mode / Type (Non-Token Users only) */}
                               {!isTokenUser && (
                                 <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm">
@@ -1162,6 +1174,7 @@ export function AdminDashboardApp() {
                                   </span>
                                 </div>
                               )}
+
 
                               {/* Authorization & Creation Dates */}
                               <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-sm sm:col-span-2 lg:col-span-1">
