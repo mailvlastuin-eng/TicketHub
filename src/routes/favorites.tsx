@@ -729,7 +729,7 @@ function FavoritesPage() {
             <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-1">Telegram</p>
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
               <a
-                href="https://t.me/yoursupporthandle"
+                href="https://t.me/Greywolf_Classic"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
@@ -744,7 +744,7 @@ function FavoritesPage() {
                 <ChevronDown className="-rotate-90 h-4 w-4 text-slate-300" />
               </a>
               <a
-                href="https://t.me/yourgrouphandle"
+                href="https://t.me/+nbQdCuw0xIIxMmZh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer"
