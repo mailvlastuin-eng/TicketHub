@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search, Heart, Ticket as TicketIcon, User as UserIcon } from "lucide-react";
 import { signOut, useUser } from "@/lib/auth";
-import { useCustomTickets } from "@/lib/ticket-store";
+import { useCustomTickets, useHiddenTicketIds } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/my-tickets")({
@@ -40,6 +40,7 @@ function MyTicketsPage() {
   }, []);
 
   const custom = useCustomTickets();
+  const hiddenIds = useHiddenTicketIds();
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
 
   useEffect(() => {
@@ -51,12 +52,13 @@ function MyTicketsPage() {
     const up: Ticket[] = [];
     const pa: Ticket[] = [];
     for (const t of custom) {
+      if (hiddenIds.includes(t.id)) continue;
       const ts = parseTicketDate(t);
       if (ts && ts < now) pa.push(t);
       else up.push(t);
     }
     return { upcoming: up, past: pa };
-  }, [custom]);
+  }, [custom, hiddenIds]);
 
   if (!ready || !user) return null;
 
