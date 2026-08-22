@@ -23,6 +23,8 @@ import {
   deleteCustomTicket,
   useCustomTickets,
   getCustomTickets,
+  toggleHideTicket,
+  useHiddenTicketIds,
 } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { useSettings, getSettings } from "@/lib/settings-store";
@@ -322,7 +324,7 @@ function FavoritesPage() {
                 {/* Avatar */}
                 <div
                   style={{ width: 50, height: 50, fontSize: 19 }}
-                  className={`rounded-md bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-bold flex-shrink-0 select-none shadow`}
+                  className={`rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-bold flex-shrink-0 select-none shadow`}
                 >
                   {getInitials(user.name || user.email)}
                 </div>
@@ -343,18 +345,10 @@ function FavoritesPage() {
                   {isTokenUser ? (
                     <div className="flex flex-col items-center">
                       <span className="text-[9px] font-extrabold uppercase tracking-wider text-violet-600">Tokens</span>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <span className={`text-lg font-black ${tokensCount === 0 ? "text-red-500" : "text-slate-900"}`}>
+                      <div className="flex items-center justify-center mt-0.5">
+                        <span className={`text-lg font-black ${tokensCount === 0 ? "text-red-500 animate-bounce inline-block" : "text-slate-900"}`}>
                           {tokensCount}
                         </span>
-                        <button
-                          onClick={handleRefreshTransfers}
-                          disabled={refreshing}
-                          className={`flex items-center justify-center w-5 h-5 rounded-full bg-violet-100 text-violet-600 hover:bg-violet-200 transition-all cursor-pointer disabled:opacity-50 ${isBouncing ? "animate-bounce" : ""}`}
-                          title="Refresh"
-                        >
-                          <Plus className="h-3 w-3" strokeWidth={3} />
-                        </button>
                       </div>
                     </div>
                   ) : (
@@ -673,7 +667,14 @@ function Field({ label, value, onChange, placeholder, options }: {
 
 // ─────────────────────────────────────────────────────────────────────────────
 function EventRow({ ticket, onEdit, onDelete }: { ticket: Ticket; onEdit: () => void; onDelete: () => void }) {
-  const [hidden, setHidden] = useState(false);
+  const hiddenIds = useHiddenTicketIds();
+  const hidden = hiddenIds.includes(ticket.id);
+
+  const handleToggleHide = () => {
+    const isNowHidden = toggleHideTicket(ticket.id);
+    toast.success(isNowHidden ? "Ticket hidden from My Tickets" : "Ticket restored to My Tickets");
+  };
+
   return (
     <div className={`rounded-sm border overflow-hidden transition-opacity ${hidden ? "opacity-50 border-slate-200" : "border-slate-200"}`}>
       {/* ~20% taller header: py-3.5 vs the old py-2.5 */}
@@ -688,8 +689,9 @@ function EventRow({ ticket, onEdit, onDelete }: { ticket: Ticket; onEdit: () => 
         <button onClick={onDelete} className="flex-1 py-2.5 text-[11px] font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-1 cursor-pointer">
           <Trash2 className="h-3 w-3" />Delete
         </button>
-        <button onClick={() => setHidden((h) => !h)} className="flex-1 py-2.5 text-[11px] font-bold text-slate-500 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1 cursor-pointer">
-          <EyeOff className="h-3 w-3" />{hidden ? "Show" : "Hide"}
+        <button onClick={handleToggleHide} className="flex-1 py-2.5 text-[11px] font-bold text-slate-500 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1 cursor-pointer">
+          {hidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+          {hidden ? "Show" : "Hide"}
         </button>
       </div>
     </div>
