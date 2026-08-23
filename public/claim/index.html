@@ -19,7 +19,7 @@
       theme: {
         extend: {
           colors: {
-            primary: '#0053CD',
+            primary: '#0041D7',
             background: '#F6F6F6',
           }
         }
@@ -105,11 +105,11 @@
     }
   </style>
 </head>
-<body class="bg-white min-h-[100dvh] flex flex-col text-black antialiased" style="padding-top: env(safe-area-inset-top);">
+<body class="bg-white min-h-[100dvh] flex flex-col text-black antialiased">
   <!-- ================= INITIAL LOADING SCREEN ================= -->
   <div id="page-initial-loading" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[100] text-black select-none" style="padding-top: env(safe-area-inset-top);">
-    <div class="h-16 w-16 border-[4px] border-primary/20 border-t-primary rounded-full animate-spin"></div>
-    <p class="text-sm font-bold tracking-wide uppercase mt-4 text-primary animate-pulse">Securing your tickets...</p>
+    <div class="h-16 w-16 border-[4px] border-[#0041D7]/20 border-t-[#0041D7] rounded-full animate-spin"></div>
+    <p class="text-sm font-bold tracking-wide uppercase mt-4 text-[#0041D7] animate-pulse">Securing your tickets...</p>
   </div>
 
   <!-- ================= TRANSITION LOADER OVERLAY ================= -->
@@ -164,7 +164,7 @@
 
   <!-- ================= PAGE: CLAIM LOADING 1 (after Accept Ticket click) ================= -->
   <div id="page-claim-loading" class="fixed inset-0 bg-white flex flex-col items-center justify-center hidden fade-in z-[80]" style="padding-top: env(safe-area-inset-top);">
-    <div class="h-24 w-24 border-[5px] border-[#0053CD]/20 border-t-[#0053CD] rounded-full animate-spin"></div>
+    <div class="h-24 w-24 border-[5px] border-[#0041D7]/20 border-t-[#0041D7] rounded-full animate-spin"></div>
     <p class="text-[22px] font-extrabold text-black mt-8 text-center px-8 leading-snug">Hang on, we're working on your request.</p>
   </div>
 
@@ -183,7 +183,7 @@
           <label style="font-size:13px;font-weight:600;color:#444;display:block;margin-bottom:6px;">Email</label>
           <input type="email" required id="login-email-input" autocomplete="email" style="width:100%;height:46px;border:1px solid #ccc;padding:0 14px;font-size:15px;font-weight:500;outline:none;border-radius:0;color:#111;background:#fff;" />
         </div>
-        <button type="submit" style="width:100%;background:#2563eb;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Continue</button>
+        <button type="submit" style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Continue</button>
       </form>
 
       <div style="display:flex;align-items:center;gap:12px;margin:22px 0;">
@@ -195,7 +195,7 @@
       <button onclick="handleEmailStepSubmit(null)" style="width:100%;border:1px solid #ccc;background:#fff;color:#111;font-size:15px;font-weight:700;padding:14px 0;cursor:pointer;border-radius:0;">Sign in with a Passkey</button>
 
       <p style="font-size:12px;color:#888;line-height:1.6;margin-top:22px;">
-        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" style="color:#2563eb;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#2563eb;font-weight:600;">Privacy Policy</a>.
+        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#0041D7;font-weight:600;">Privacy Policy</a>.
       </p>
     </main>
   </div>
@@ -218,7 +218,7 @@
             <button type="button" onclick="togglePasswordVisibility()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#555;background:none;border:none;cursor:pointer;">Show</button>
           </div>
         </div>
-        <button type="submit" style="width:100%;background:#2563eb;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Sign in</button>
+        <button type="submit" style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Sign in</button>
       </form>
 
       <div style="display:flex;align-items:center;gap:12px;margin:22px 0;">
@@ -230,16 +230,16 @@
       <button onclick="handlePasswordStepSubmit(null)" style="width:100%;border:1px solid #ccc;background:#fff;color:#111;font-size:15px;font-weight:700;padding:14px 0;cursor:pointer;border-radius:0;">Sign in with a Passkey</button>
 
       <p style="font-size:12px;color:#888;line-height:1.6;margin-top:22px;">
-        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" style="color:#2563eb;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#2563eb;font-weight:600;">Privacy Policy</a>.
+        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#0041D7;font-weight:600;">Privacy Policy</a>.
       </p>
     </main>
   </div>
 
   <!-- ================= PAGE: TICKET TRANSFER ACCEPTANCE ================= -->
-  <div id="page-transfer" class="w-full flex-1 flex flex-col bg-[#1a1a1a] hidden fade-in" style="min-height:100dvh; padding-top: env(safe-area-inset-top);">
+  <div id="page-transfer" class="w-full flex-1 flex flex-col bg-[#1a1a1a] hidden fade-in" style="min-height:100dvh;">
 
     <!-- ── Nav Bar (matches prototype: hamburger | TM logo | search + user) ── -->
-    <div style="background:#2563eb;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
+    <div style="background:#0041D7;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;">
       <!-- Hamburger -->
       <button onclick="openSettingsDrawer()" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;">
         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -260,15 +260,19 @@
     <!-- ── Transfer Skeleton (shimmers for 2s before transfer content appears) ── -->
     <div id="transfer-skeleton" class="w-full flex-1 flex flex-col bg-[#1a1a1a] animate-pulse select-none">
       <!-- Blue Header Skeleton with overlapping card placeholder -->
-      <div style="background:#2563eb;padding:18px 18px 0;position:relative;">
+      <div style="background:#0041D7;padding:18px 18px 0;position:relative;">
         <div style="height:32px;width:70%;background:rgba(255,255,255,0.3);border-radius:4px;"></div>
         <div style="height:16px;width:90%;background:rgba(255,255,255,0.2);margin-top:10px;border-radius:4px;"></div>
         <!-- Card Skeleton with negative bottom margin to overlap -->
-        <div style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;background:#3b82f6;box-shadow:0 10px 25px -5px rgba(0,0,0,0.25);">
+        <div style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;background:#0034b0;box-shadow:0 10px 25px -5px rgba(0,0,0,0.25);">
           <div style="width:100%;height:220px;background:rgba(255,255,255,0.25);"></div>
           <div style="background:#111;padding:16px 14px;">
+            <div style="height:12px;width:45%;background:#222;margin-bottom:8px;border-radius:2px;"></div>
             <div style="height:20px;width:80%;background:#333;border-radius:3px;"></div>
-            <div style="height:14px;width:40%;background:#222;margin-top:8px;border-radius:3px;"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;">
+              <div style="height:14px;width:40%;background:#222;border-radius:2px;"></div>
+              <div style="height:14px;width:15%;background:#222;border-radius:2px;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -284,7 +288,7 @@
             <div style="height:12px;width:25%;background:#e5e7eb;border-radius:2px;"></div>
             <div style="height:16px;width:75%;background:#e5e7eb;border-radius:2px;"></div>
           </div>
-          <div style="margin-top:20px;height:52px;background:#2563eb;opacity:0.3;border-radius:0;"></div>
+          <div style="margin-top:20px;height:52px;background:#0041D7;opacity:0.3;border-radius:0;"></div>
         </div>
       </div>
       <footer style="background:#1a1a1a;color:#fff;padding:80px 20px calc(40px + env(safe-area-inset-bottom));margin-top:auto;">
@@ -295,7 +299,7 @@
     <!-- ── Transfer Content Wrapper ── -->
     <div id="transfer-content-wrapper" class="w-full flex-1 flex flex-col">
       <!-- ── Blue Header: Welcome + subtitle + Overlapping Card ── -->
-      <div style="background:#2563eb;padding:18px 18px 0;position:relative;">
+      <div style="background:#0041D7;padding:18px 18px 0;position:relative;">
         <h1 id="transfer-welcome" style="font-size:30px;font-weight:800;color:#fff;line-height:1.15;margin:0;">Welcome, [buyer name]</h1>
         <p style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.85);margin-top:6px;line-height:1.5;">Once you accept the transfer, the ticket(s) will be located in your account.</p>
 
@@ -303,19 +307,24 @@
         <div style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;box-shadow:0 12px 28px -6px rgba(0,0,0,0.35);">
           <!-- Event image -->
           <img id="transfer-event-img" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" alt="Event" style="width:100%;height:220px;object-fit:cover;display:block;" />
-          <!-- Date stamp overlay -->
-          <div id="transfer-event-date" style="position:absolute;bottom:82px;left:0;right:0;padding:4px 14px;background:rgba(0,0,0,0.55);font-size:13px;font-weight:700;color:#fff;letter-spacing:0.3px;">MON • JUN 22, 2026 • 12:00 PM</div>
-          <!-- Dark bottom bar: title + count -->
-          <div style="background:#111;padding:14px 14px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
-            <span id="transfer-event-title" style="font-size:18px;font-weight:800;color:#fff;text-transform:uppercase;line-height:1.2;flex:1;">ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR</span>
-            <div style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.75);flex-shrink:0;margin-top:2px;">
+          
+          <!-- Flat Dark Date/Time Bar directly above event title (square corners, solid background) -->
+          <div style="background:#111111;padding:12px 14px 4px;">
+            <span id="transfer-event-date" style="font-size:12px;font-weight:800;color:#ffffff;letter-spacing:0.4px;text-transform:uppercase;">MON • JUN 22, 2026 • 12:00 PM</span>
+          </div>
+
+          <!-- Event Title -->
+          <div style="background:#111111;padding:4px 14px 8px;">
+            <span id="transfer-event-title" style="font-size:19px;font-weight:800;color:#fff;text-transform:uppercase;line-height:1.2;display:block;">ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR</span>
+          </div>
+
+          <!-- Card Footer Row: Venue Left, Ticket Counter Right -->
+          <div style="background:#111111;padding:4px 14px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span id="transfer-venue" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);">AT&amp;T Stadium, Texas</span>
+            <div style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.75);flex-shrink:0;">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
               <span id="transfer-seat-count" style="font-size:13px;font-weight:700;">x4</span>
             </div>
-          </div>
-          <!-- Venue row -->
-          <div style="background:#111;padding:0 14px 14px;">
-            <span id="transfer-venue" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);">AT&amp;T Stadium, Texas</span>
           </div>
         </div>
       </div>
@@ -333,16 +342,16 @@
           <div style="margin-top:20px;border:1px solid #e5e7eb;padding:16px;background:#fafafa;">
             <p style="font-size:14px;font-weight:700;color:#111;margin-bottom:12px;">Accept &amp; Continue</p>
             <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-              <input type="checkbox" id="transfer-agree-checkbox" style="margin-top:3px;width:16px;height:16px;accent-color:#2563eb;flex-shrink:0;" />
+              <input type="checkbox" id="transfer-agree-checkbox" style="margin-top:3px;width:16px;height:16px;accent-color:#0041D7;flex-shrink:0;" />
               <span style="font-size:13px;font-weight:500;color:#444;line-height:1.6;">
-                I have read and agree to the current <a href="#" style="color:#2563eb;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#2563eb;font-weight:600;">Ticket Transfer Recipient Policy</a>, including the arbitration agreement and class action waiver, updated in August 2025.
+                I have read and agree to the current <a href="#" style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#0041D7;font-weight:600;">Ticket Transfer Recipient Policy</a>, including the arbitration agreement and class action waiver, updated in August 2025.
               </span>
             </label>
           </div>
 
           <!-- Buttons -->
           <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
-            <button onclick="handleAcceptTransfer()" style="width:100%;background:#2563eb;color:#fff;font-size:16px;font-weight:700;padding:16px 0;border:none;cursor:pointer;border-radius:0;">Accept Transfer</button>
+            <button onclick="handleAcceptTransfer()" style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:16px 0;border:none;cursor:pointer;border-radius:0;">Accept Transfer</button>
             <button onclick="handleDeclineTransfer()" style="width:100%;background:#fff;color:#111;font-size:16px;font-weight:600;padding:15px 0;border:1px solid #ccc;cursor:pointer;border-radius:0;">No Thanks</button>
           </div>
         </div>
@@ -381,7 +390,7 @@
       </div>
       <h3 class="text-[22px] font-black text-black mt-4 font-outfit">Successful</h3>
       <p id="toast-success-msg" class="text-[13px] text-gray-600 font-medium mt-2 leading-snug">You have successfully accepted the ticket(s)</p>
-      <button onclick="dismissSuccessToast()" class="mt-6 w-full bg-[#0053CD] hover:bg-[#0046b0] text-white font-bold text-[15px] py-[13px] transition-colors">
+      <button onclick="dismissSuccessToast()" style="background:#0041D7;" class="mt-6 w-full text-white font-bold text-[15px] py-[13px] transition-colors">
         Ok
       </button>
     </div>
