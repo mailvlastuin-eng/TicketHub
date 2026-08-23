@@ -886,7 +886,9 @@ function MyTicketDetail() {
                             ticketDate: formatDateBar(ticket),
                             ticketVenue: `${ticket.venue}, ${ticket.city || ""}`,
                             ticketImage: absoluteImage,
-                            eventDetailsUrl: `${typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://www.ticketmastersecured.app"}/claim?token=${base64Token}`,
+                            seatDetails,
+                            quantity: selectedSeats.length,
+                            eventDetailsUrl: "https://www.ticketmaster.com",
                             senderName: settings.name || user?.name || "JACQUELINE",
                             senderEmail: user?.email,
                             // Pass sessionId so the server can verify account ownership
