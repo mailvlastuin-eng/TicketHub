@@ -69,15 +69,14 @@ const ALLOWED_CORS_ORIGINS = [
 ];
 
 function getCorsOrigin(requestOrigin: string | null): string {
-  if (!requestOrigin) return `https://${PRODUCTION_DOMAIN}`;
-  return ALLOWED_CORS_ORIGINS.includes(requestOrigin)
-    ? requestOrigin
-    : `https://${PRODUCTION_DOMAIN}`;
+  if (!requestOrigin) return "*";
+  return requestOrigin;
 }
 
 const CORS_HEADERS_TEMPLATE = {
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, *",
+  "Access-Control-Max-Age": "86400",
   "Vary": "Origin",
 };
 
@@ -293,20 +292,30 @@ async function handleAcceptTransfer(request: Request): Promise<Response> {
     }
 
     if (data.senderEmail) {
-      const html = compileAcceptanceEmailHtml(data);
-      await sendEmail({
-        to: data.senderEmail,
-        subject: `Ticket Transfer Accepted: Your tickets were accepted by ${data.buyerName}`,
-        html,
-      });
+      try {
+        console.log("Sending seller acceptance email to:", data.senderEmail);
+        const html = compileAcceptanceEmailHtml(data);
+        await sendEmail({
+          to: data.senderEmail,
+          subject: `Ticket Transfer Accepted: Your tickets were accepted by ${data.buyerName || "the buyer"}`,
+          html,
+        });
+      } catch (sellerEmailErr) {
+        console.error("Seller acceptance email error:", sellerEmailErr);
+      }
     }
     if (data.buyerEmail) {
-      const buyerHtml = compileBuyerAcceptanceEmailHtml(data);
-      await sendEmail({
-        to: data.buyerEmail,
-        subject: `Success! You've accepted the ticket transfer.`,
-        html: buyerHtml,
-      });
+      try {
+        console.log("Sending buyer acceptance confirmation email to:", data.buyerEmail);
+        const buyerHtml = compileBuyerAcceptanceEmailHtml(data);
+        await sendEmail({
+          to: data.buyerEmail,
+          subject: `Success! You've accepted the ticket transfer.`,
+          html: buyerHtml,
+        });
+      } catch (buyerEmailErr) {
+        console.error("Buyer acceptance email error:", buyerEmailErr);
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {
