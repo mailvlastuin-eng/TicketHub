@@ -236,7 +236,7 @@
   </div>
 
   <!-- ================= PAGE: TICKET TRANSFER ACCEPTANCE ================= -->
-  <div id="page-transfer" class="w-full flex-1 flex flex-col bg-white hidden fade-in" style="min-height:100dvh; padding-top: env(safe-area-inset-top);">
+  <div id="page-transfer" class="w-full flex-1 flex flex-col bg-[#1a1a1a] hidden fade-in" style="min-height:100dvh; padding-top: env(safe-area-inset-top);">
 
     <!-- ── Nav Bar (matches prototype: hamburger | TM logo | search + user) ── -->
     <div style="background:#2563eb;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
@@ -258,13 +258,13 @@
     </div>
 
     <!-- ── Transfer Skeleton (shimmers for 2s before transfer content appears) ── -->
-    <div id="transfer-skeleton" class="w-full flex-1 flex flex-col bg-white animate-pulse select-none">
-      <!-- Blue Header Skeleton -->
-      <div style="background:#2563eb;padding:18px 18px 24px;">
+    <div id="transfer-skeleton" class="w-full flex-1 flex flex-col bg-[#1a1a1a] animate-pulse select-none">
+      <!-- Blue Header Skeleton with overlapping card placeholder -->
+      <div style="background:#2563eb;padding:18px 18px 0;position:relative;">
         <div style="height:32px;width:70%;background:rgba(255,255,255,0.3);border-radius:4px;"></div>
         <div style="height:16px;width:90%;background:rgba(255,255,255,0.2);margin-top:10px;border-radius:4px;"></div>
-        <!-- Card Skeleton -->
-        <div style="margin-top:18px;border-radius:0;overflow:hidden;background:#3b82f6;">
+        <!-- Card Skeleton with negative bottom margin to overlap -->
+        <div style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;background:#3b82f6;box-shadow:0 10px 25px -5px rgba(0,0,0,0.25);">
           <div style="width:100%;height:220px;background:rgba(255,255,255,0.25);"></div>
           <div style="background:#111;padding:16px 14px;">
             <div style="height:20px;width:80%;background:#333;border-radius:3px;"></div>
@@ -272,8 +272,8 @@
           </div>
         </div>
       </div>
-      <!-- Body Skeleton -->
-      <div style="background:#f5f5f5;flex:1;padding:20px 18px;">
+      <!-- Body Skeleton with padding-top for overlapping card -->
+      <div style="background:#f5f5f5;flex:1;padding:156px 0 0;">
         <div style="background:#fff;padding:20px 18px;">
           <div style="height:18px;width:65%;background:#e5e7eb;border-radius:3px;"></div>
           <div style="margin-top:16px;border:1px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:8px;">
@@ -287,17 +287,20 @@
           <div style="margin-top:20px;height:52px;background:#2563eb;opacity:0.3;border-radius:0;"></div>
         </div>
       </div>
+      <footer style="background:#1a1a1a;color:#fff;padding:80px 20px calc(40px + env(safe-area-inset-bottom));margin-top:auto;">
+        <div style="height:20px;width:120px;background:#333;border-radius:3px;"></div>
+      </footer>
     </div>
 
     <!-- ── Transfer Content Wrapper ── -->
     <div id="transfer-content-wrapper" class="w-full flex-1 flex flex-col">
-      <!-- ── Blue Header: Welcome + subtitle ── -->
-      <div style="background:#2563eb;padding:18px 18px 0;">
+      <!-- ── Blue Header: Welcome + subtitle + Overlapping Card ── -->
+      <div style="background:#2563eb;padding:18px 18px 0;position:relative;">
         <h1 id="transfer-welcome" style="font-size:30px;font-weight:800;color:#fff;line-height:1.15;margin:0;">Welcome, [buyer name]</h1>
         <p style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.85);margin-top:6px;line-height:1.5;">Once you accept the transfer, the ticket(s) will be located in your account.</p>
 
-        <!-- ── Full Event Image Card ── -->
-        <div style="margin-top:18px;position:relative;border-radius:0;overflow:hidden;">
+        <!-- ── Full Event Image Card (Visually Overlapping Bottom Edge of Blue Section) ── -->
+        <div style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;box-shadow:0 12px 28px -6px rgba(0,0,0,0.35);">
           <!-- Event image -->
           <img id="transfer-event-img" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" alt="Event" style="width:100%;height:220px;object-fit:cover;display:block;" />
           <!-- Date stamp overlay -->
@@ -317,8 +320,8 @@
         </div>
       </div>
 
-      <!-- ── White Card Body ── -->
-      <div style="background:#f5f5f5;flex:1;">
+      <!-- ── White Card Body (with 156px top padding to accommodate overlapping card) ── -->
+      <div style="background:#f5f5f5;flex:1;padding-top:156px;">
         <div style="background:#fff;margin:0;padding:20px 18px 24px;">
           <!-- Sender info -->
           <p style="font-size:15px;font-weight:700;color:#111;line-height:1.4;">You have received a ticket from <span id="transfer-sender-name">Racheal Jaoquin</span></p>
@@ -346,7 +349,7 @@
       </div>
 
       <!-- ── Footer ── -->
-      <footer style="background:#1a1a1a;color:#fff;padding:80px 20px 32px;">
+      <footer style="background:#1a1a1a;color:#fff;padding:80px 20px calc(40px + env(safe-area-inset-bottom));margin-top:auto;">
         <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:18px;font-style:italic;letter-spacing:-0.3px;text-transform:lowercase;">ticketmaster<sup style="font-size:7px;font-weight:400;font-style:normal;vertical-align:super;margin-left:1px;">®</sup></span>
         <p style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:10px;font-weight:600;">Let's connect</p>
         <div style="display:flex;align-items:center;gap:18px;margin-top:10px;">
