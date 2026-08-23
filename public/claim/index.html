@@ -248,10 +248,10 @@
       <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:19px;font-style:italic;letter-spacing:-0.5px;color:#fff;text-transform:lowercase;">ticketmaster<sup style="font-size:8px;font-weight:400;font-style:normal;vertical-align:super;margin-left:1px;">®</sup></span>
       <!-- Right icons -->
       <div style="display:flex;align-items:center;gap:16px;">
-        <button style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;">
+        <button onclick="openGlobalSearchModal()" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;" aria-label="Search Ticketmaster">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
         </button>
-        <button style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;">
+        <button onclick="openSettingsDrawer()" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;" aria-label="Account settings">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
         </button>
       </div>
@@ -380,6 +380,48 @@
   </div>
   <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
+  <!-- ================= GLOBAL SEARCH MODAL ================= -->
+  <div id="global-search-modal" class="fixed inset-0 bg-white z-[99] hidden flex-col select-none" style="padding-top: env(safe-area-inset-top);">
+    <!-- Top Search Header -->
+    <div style="background:#0041D7;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+      <button onclick="closeGlobalSearchModal()" style="background:none;border:none;cursor:pointer;padding:6px;color:#fff;" aria-label="Close search">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <div style="flex:1;position:relative;display:flex;align-items:center;">
+        <svg width="18" height="18" fill="none" stroke="#9ca3af" stroke-width="2.2" viewBox="0 0 24 24" style="position:absolute;left:12px;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input id="global-search-input" type="text" placeholder="Search artists, events &amp; venues..." style="width:100%;height:44px;background:#ffffff;border:none;outline:none;border-radius:4px;padding:0 38px 0 38px;font-size:15px;font-weight:600;color:#111;" oninput="handleGlobalSearchInput(this.value)" />
+        <button id="global-search-clear-btn" onclick="clearGlobalSearchInput()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;display:none;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Body -->
+    <div style="flex:1;overflow-y:auto;background:#f9fafb;padding:16px;">
+      <!-- Initial suggestion / placeholder state -->
+      <div id="global-search-placeholder" style="text-align:center;padding:48px 20px;color:#6b7280;">
+        <svg width="48" height="48" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 12px;"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <p style="font-size:16px;font-weight:700;color:#374151;">Search on Ticketmaster</p>
+        <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Find concerts, sports, theater and live events</p>
+      </div>
+
+      <!-- Loading State -->
+      <div id="global-search-loading" style="display:none;text-align:center;padding:48px 20px;">
+        <div style="width:40px;height:40px;border:3px solid #e5e7eb;border-top-color:#0041D7;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;"></div>
+        <p style="font-size:14px;font-weight:700;color:#374151;">Searching live Ticketmaster events...</p>
+      </div>
+
+      <!-- Results List -->
+      <div id="global-search-results" style="display:none;flex-direction:column;gap:10px;"></div>
+
+      <!-- Empty State -->
+      <div id="global-search-empty" style="display:none;text-align:center;padding:48px 20px;color:#6b7280;">
+        <p style="font-size:16px;font-weight:700;color:#374151;">No Events Found</p>
+        <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Try searching for another artist, city or venue.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= TOAST: SUCCESS ================= -->
   <div id="toast-success" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[98] hidden">
     <div class="bg-white mx-6 max-w-[340px] w-full px-6 py-8 flex flex-col items-center text-center shadow-2xl">
@@ -456,8 +498,8 @@
           ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
         </span>
         <div class="flex items-center gap-4">
-          <button onclick="toggleSearchOverlay()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all"><i data-lucide="search" class="h-5 w-5"></i></button>
-          <button onclick="openSettingsDrawer()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all"><i data-lucide="user" class="h-5 w-5"></i></button>
+          <button onclick="openGlobalSearchModal()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all" aria-label="Search Ticketmaster"><i data-lucide="search" class="h-5 w-5"></i></button>
+          <button onclick="openSettingsDrawer()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all" aria-label="Account settings"><i data-lucide="user" class="h-5 w-5"></i></button>
         </div>
       </div>
 
@@ -1538,149 +1580,142 @@
       lucide.createIcons();
     }
 
-    // Ticketmaster event searching
-    function toggleSearchOverlay() {
-      const bar = document.getElementById('claim-search-bar');
-      const input = document.getElementById('claim-search-input');
-      const results = document.getElementById('search-results-container');
-      const tabs = document.getElementById('tab-content-area');
-      
-      if (!bar || !input || !results || !tabs) return;
-      
-      if (bar.classList.contains('hidden')) {
-        bar.classList.remove('hidden');
-        input.focus();
-      } else {
-        bar.classList.add('hidden');
+    // ================= GLOBAL LIVE TICKETMASTER SEARCH CONTROLLER =================
+    let globalSearchDebounce;
+    function openGlobalSearchModal() {
+      const modal = document.getElementById('global-search-modal');
+      const input = document.getElementById('global-search-input');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
+      if (input) {
         input.value = '';
-        results.classList.add('hidden');
-        tabs.classList.remove('hidden');
+        setTimeout(() => input.focus(), 100);
+      }
+      const ph = document.getElementById('global-search-placeholder');
+      const results = document.getElementById('global-search-results');
+      const loading = document.getElementById('global-search-loading');
+      const empty = document.getElementById('global-search-empty');
+      const clearBtn = document.getElementById('global-search-clear-btn');
+      if (ph) ph.style.display = 'block';
+      if (results) { results.innerHTML = ''; results.style.display = 'none'; }
+      if (loading) loading.style.display = 'none';
+      if (empty) empty.style.display = 'none';
+      if (clearBtn) clearBtn.style.display = 'none';
+    }
+
+    function closeGlobalSearchModal() {
+      const modal = document.getElementById('global-search-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
       }
     }
 
-    let debounceTimer;
-    function debouncedSearch(val) {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        performTMSearch(val);
-      }, 450);
+    function clearGlobalSearchInput() {
+      const input = document.getElementById('global-search-input');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      handleGlobalSearchInput('');
     }
 
-    async function performTMSearch(query) {
-      const resultsList = document.getElementById('search-results-list');
-      const resultsContainer = document.getElementById('search-results-container');
-      const tabContent = document.getElementById('tab-content-area');
-      
-      if (!resultsList || !resultsContainer || !tabContent) return;
-      
-      if (!query.trim()) {
-        resultsContainer.classList.add('hidden');
-        tabContent.classList.remove('hidden');
+    function handleGlobalSearchInput(val) {
+      const clearBtn = document.getElementById('global-search-clear-btn');
+      if (clearBtn) {
+        clearBtn.style.display = val.trim() ? 'block' : 'none';
+      }
+      clearTimeout(globalSearchDebounce);
+      const query = val.trim();
+      const ph = document.getElementById('global-search-placeholder');
+      const results = document.getElementById('global-search-results');
+      const loading = document.getElementById('global-search-loading');
+      const empty = document.getElementById('global-search-empty');
+
+      if (!query) {
+        if (ph) ph.style.display = 'block';
+        if (results) { results.innerHTML = ''; results.style.display = 'none'; }
+        if (loading) loading.style.display = 'none';
+        if (empty) empty.style.display = 'none';
         return;
       }
-      
-      resultsList.innerHTML = `
-        <div class="py-10 text-center text-gray-500 font-semibold select-none flex flex-col items-center justify-center gap-2">
-          <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-primary"></i>
-          <span>Searching Ticketmaster...</span>
-        </div>
-      `;
-      resultsContainer.classList.remove('hidden');
-      tabContent.classList.add('hidden');
-      lucide.createIcons();
-      
-      try {
-        const res = await fetch(`https://app.ticketmaster.com/discovery/v2/events.json?size=15&keyword=${encodeURIComponent(query)}&apikey=9GkWfVxJ0yYAbjNmvKFVFpOM10fHTH6M`);
-        const data = await res.json();
-        const events = data._embedded?.events || [];
-        
-        resultsList.innerHTML = '';
-        if (events.length === 0) {
-          resultsList.innerHTML = '<div class="py-12 text-center text-gray-500 font-bold select-none">No events matched. Try something else!</div>';
-          return;
-        }
-        
-        events.forEach(e => {
-          const venue = e._embedded?.venues?.[0]?.name || 'TBA Venue';
-          const city = e._embedded?.venues?.[0]?.city?.name || '';
-          const state = e._embedded?.venues?.[0]?.state?.stateCode || '';
-          const date = e.dates?.start?.localDate || 'TBA';
-          const img = e.images?.[0]?.url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800';
-          
-          const item = document.createElement('div');
-          item.className = 'flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer transition-colors text-left select-none';
-          item.innerHTML = `
-            <img src="${img}" class="w-12 h-12 object-cover shrink-0" alt="" />
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-black text-black dark:text-white truncate uppercase font-outfit leading-tight">${e.name}</p>
-              <p class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold truncate mt-0.5">${venue} • ${city}${state ? ', ' + state : ''}</p>
-              <p class="text-[9px] text-[#0053CD] dark:text-blue-400 font-bold uppercase mt-0.5">${date}</p>
-            </div>
-          `;
-          item.onclick = () => selectTMEvent(e);
-          resultsList.appendChild(item);
-        });
-      } catch (err) {
-        console.error("Search failed:", err);
-        resultsList.innerHTML = '<div class="py-8 text-center text-red-500 font-bold select-none">Search service offline. Please retry.</div>';
-      }
-      lucide.createIcons();
-    }
 
-    function selectTMEvent(event) {
-      const venue = event._embedded?.venues?.[0]?.name || 'TBD Venue';
-      const city = event._embedded?.venues?.[0]?.city?.name || '';
-      const state = event._embedded?.venues?.[0]?.state?.stateCode || '';
-      
-      let dateStr = 'TBD DATE';
-      if (event.dates?.start?.localDate) {
+      if (ph) ph.style.display = 'none';
+      if (empty) empty.style.display = 'none';
+      if (results) results.style.display = 'none';
+      if (loading) loading.style.display = 'block';
+
+      globalSearchDebounce = setTimeout(async () => {
         try {
-          const dateObj = new Date(event.dates.start.localDate + 'T00:00:00');
-          const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-          const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-          const dayName = days[dateObj.getDay()];
-          const monthName = months[dateObj.getMonth()];
-          const dayNum = dateObj.getDate();
-          const year = dateObj.getFullYear();
-          let timeStr = '7:00 PM';
-          if (event.dates.start.localTime) {
-            const [h, m] = event.dates.start.localTime.split(':');
-            const hour = parseInt(h);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour % 12 || 12;
-            timeStr = `${displayHour}:${m} ${ampm}`;
+          const res = await fetch(`https://app.ticketmaster.com/discovery/v2/events.json?size=20&keyword=${encodeURIComponent(query)}&apikey=9GkWfVxJ0yYAbjNmvKFVFpOM10fHTH6M`);
+          const data = await res.json();
+          const events = data._embedded?.events || [];
+
+          if (loading) loading.style.display = 'none';
+
+          if (events.length === 0) {
+            if (empty) empty.style.display = 'block';
+            if (results) results.style.display = 'none';
+            return;
           }
-          dateStr = `${dayName} • ${monthName} ${dayNum}, ${year} • ${timeStr}`;
+
+          if (results) {
+            results.innerHTML = '';
+            events.forEach(e => {
+              const venue = e._embedded?.venues?.[0]?.name || 'Venue TBA';
+              const city = e._embedded?.venues?.[0]?.city?.name || '';
+              const state = e._embedded?.venues?.[0]?.state?.stateCode || '';
+              const date = e.dates?.start?.localDate || 'TBA';
+              const img = e.images?.[0]?.url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800';
+              const eventUrl = e.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(e.name)}`;
+
+              const card = document.createElement('div');
+              card.style.cssText = 'background:#ffffff;border:1px solid #e5e7eb;padding:12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.15s;';
+              card.onmouseover = () => card.style.background = '#f3f4f6';
+              card.onmouseout = () => card.style.background = '#ffffff';
+
+              card.innerHTML = `
+                <img src="${img}" style="width:54px;height:54px;object-fit:cover;flex-shrink:0;border-radius:2px;" alt="" />
+                <div style="flex:1;min-width:0;">
+                  <p style="font-size:14px;font-weight:800;color:#111;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;">${e.name}</p>
+                  <p style="font-size:12px;color:#6b7280;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${venue}${city ? ' • ' + city : ''}${state ? ', ' + state : ''}</p>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <span style="font-size:11px;font-weight:700;color:#0041D7;text-transform:uppercase;">${date}</span>
+                    <span style="font-size:10px;font-weight:700;color:#10b981;background:#ecfdf5;padding:1px 6px;border-radius:2px;">View on Ticketmaster ↗</span>
+                  </div>
+                </div>
+              `;
+
+              card.onclick = () => {
+                window.open(eventUrl, '_blank');
+              };
+
+              results.appendChild(card);
+            });
+            results.style.display = 'flex';
+          }
         } catch (err) {
-          dateStr = event.dates.start.localDate;
+          console.error("Global search error:", err);
+          if (loading) loading.style.display = 'none';
+          if (empty) {
+            empty.innerHTML = '<p style="font-size:15px;font-weight:700;color:#ef4444;">Search is temporarily offline. Please try again.</p>';
+            empty.style.display = 'block';
+          }
         }
-      }
-      
-      activeTicket = {
-        title: event.name.toUpperCase(),
-        category: event.classifications?.[0]?.segment?.name || 'Event',
-        venue: venue,
-        city: city + (state ? `, ${state}` : ''),
-        date: dateStr.toUpperCase(),
-        time: '',
-        priceFrom: 0,
-        image: event.images?.[0]?.url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800',
-        description: 'Selected from Ticketmaster Live Search',
-        buyerEmail: activeTicket.buyerEmail || 'user@domain.com',
-        seats: ["1", "2", "3", "4"],
-        section: '110',
-        row: '5',
-        entryInfo: 'Gate C'
-      };
-      
-      renderDashboardPage();
-      toggleSearchOverlay();
+      }, 350);
     }
 
+    // Legacy search overlay helpers (for dashboard if needed)
+    function toggleSearchOverlay() {
+      openGlobalSearchModal();
+    }
+    function debouncedSearch(val) {
+      handleGlobalSearchInput(val);
+    }
     function clearSearch() {
-      const input = document.getElementById('claim-search-input');
-      if (input) input.value = '';
-      performTMSearch('');
+      clearGlobalSearchInput();
     }
 
     // My Account drawer controllers
