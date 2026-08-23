@@ -58,6 +58,9 @@ const ALLOWED_CORS_ORIGINS = [
   `https://${PRODUCTION_DOMAIN}`,
   `https://www.${PRODUCTION_DOMAIN}`,
   `https://claim.${PRODUCTION_DOMAIN}`,
+  // New standalone claims domain
+  "https://claims-ticketmaster.app",
+  "https://www.claims-ticketmaster.app",
   // Allow local dev origins
   "http://localhost:8080",
   "http://localhost:8081",

