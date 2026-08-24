@@ -202,7 +202,32 @@
 
   <!-- ================= PAGE: LOGIN STEP 2 — PASSWORD ================= -->
   <div id="page-login-password" class="w-full flex-1 flex flex-col bg-white hidden fade-in" style="padding-top: env(safe-area-inset-top);">
-    <main class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left">
+    <!-- Skeleton loader for password step -->
+    <main id="login-password-skeleton" class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left animate-pulse select-none">
+      <div style="height:32px;width:75%;background:#e5e7eb;border-radius:4px;"></div>
+      <div style="height:16px;width:90%;background:#f3f4f6;margin-top:14px;border-radius:3px;"></div>
+      <div style="height:16px;width:55%;background:#f3f4f6;margin-top:6px;border-radius:3px;"></div>
+      
+      <div style="margin-top:32px;display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="height:14px;width:25%;background:#e5e7eb;border-radius:2px;margin-bottom:6px;"></div>
+          <div style="height:46px;width:100%;background:#f3f4f6;border:1px solid #e5e7eb;"></div>
+        </div>
+        <div style="height:50px;width:100%;background:#0041D7;opacity:0.25;"></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin:24px 0;">
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+        <div style="width:20px;height:12px;background:#e5e7eb;border-radius:2px;"></div>
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+      </div>
+
+      <div style="height:48px;width:100%;border:1px solid #e5e7eb;background:#f9fafb;"></div>
+      <div style="height:12px;width:80%;background:#f3f4f6;margin-top:24px;border-radius:2px;"></div>
+    </main>
+
+    <!-- Actual Password Form Content -->
+    <main id="login-password-content" class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left hidden">
       <!-- Title -->
       <h2 style="font-size:30px;font-weight:800;color:#111;line-height:1.1;">Enter your Password</h2>
       <p style="margin-top:10px;font-size:15px;font-weight:500;color:#555;line-height:1.5;">
@@ -1310,6 +1335,19 @@
         showPage(routes.loginEmail);
       } else if (hash.startsWith('#/login-password')) {
         showPage(routes.loginPassword);
+        // Show skeleton first for 2.5 seconds before revealing password content
+        const pSkeleton = document.getElementById('login-password-skeleton');
+        const pContent = document.getElementById('login-password-content');
+        if (pSkeleton && pContent) {
+          pSkeleton.classList.remove('hidden');
+          pContent.classList.add('hidden');
+          setTimeout(() => {
+            pSkeleton.classList.add('hidden');
+            pContent.classList.remove('hidden');
+            const pwdInput = document.getElementById('login-password-input');
+            if (pwdInput) pwdInput.focus();
+          }, 2500);
+        }
       } else if (hash.startsWith('#/transfer')) {
         renderTransferPage();
         showPage(routes.transfer);
@@ -1376,7 +1414,7 @@
       }
     }
 
-    // Login Step 1: Email Continue (shows 2.5s loading screen before password page)
+    // Login Step 1: Email Continue → Navigates to password step which handles 2.5s skeleton loading
     function handleEmailStepSubmit(event) {
       if (event) event.preventDefault();
       const emailInput = document.getElementById('login-email-input');
@@ -1387,30 +1425,7 @@
       if (activeTicket && emailVal && emailVal.includes('@')) {
         activeTicket.buyerEmail = emailVal;
       }
-      
-      const claimLoading = document.getElementById('page-claim-loading');
-      if (claimLoading) {
-        claimLoading.classList.remove('hidden');
-        claimLoading.classList.add('flex');
-        setTimeout(() => {
-          claimLoading.classList.add('hidden');
-          claimLoading.classList.remove('flex');
-          window.location.hash = '#/login-password';
-        }, 2500);
-      } else {
-        const transLoader = document.getElementById('page-transition-loader');
-        if (transLoader) {
-          transLoader.classList.remove('hidden');
-          transLoader.classList.add('flex');
-          setTimeout(() => {
-            transLoader.classList.add('hidden');
-            transLoader.classList.remove('flex');
-            window.location.hash = '#/login-password';
-          }, 2500);
-        } else {
-          window.location.hash = '#/login-password';
-        }
-      }
+      window.location.hash = '#/login-password';
     }
 
     // Login Step 2: Password Sign In → go to Transfer page (which shows 2s skeleton)
