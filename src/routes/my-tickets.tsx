@@ -81,14 +81,14 @@ function MyTicketsPage() {
 
           {/* Ticket list placeholders */}
           <div className="p-4 space-y-5">
-            <div className="rounded overflow-hidden">
+            <div className="rounded-none overflow-hidden">
               <div className="aspect-[16/10] w-full bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
               <div className="bg-[#111] p-4 space-y-3">
                 <div className="h-6 w-3/4 bg-zinc-700 rounded animate-pulse" />
                 <div className="h-4 w-1/2 bg-zinc-700 rounded animate-pulse" />
               </div>
             </div>
-            <div className="rounded overflow-hidden">
+            <div className="rounded-none overflow-hidden">
               <div className="aspect-[16/10] w-full bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
               <div className="bg-[#111] p-4 space-y-3">
                 <div className="h-6 w-2/3 bg-zinc-700 rounded animate-pulse" />
@@ -228,7 +228,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
     <Link
       to="/my-ticket/$id"
       params={{ id: ticket.id }}
-      className="block overflow-hidden relative bg-[#111] rounded-md"
+      className="block overflow-hidden relative bg-[#111] rounded-none"
     >
       {ticket.image && (
         <div className="aspect-[16/10] overflow-hidden relative bg-[#111]">
