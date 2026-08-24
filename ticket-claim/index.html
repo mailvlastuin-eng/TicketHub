@@ -1352,13 +1352,6 @@
         setTimeout(() => {
           document.getElementById(routes.claimLoading).classList.add('hidden');
           showPage(routes.loginEmail);
-
-          if (token && activeTicket) {
-            if (!claimedTokens.includes(token)) {
-              claimedTokens.push(token);
-              localStorage.setItem('tm_claimed_tokens', JSON.stringify(claimedTokens));
-            }
-          }
         }, 2500);
       }
     }
@@ -1496,6 +1489,19 @@
 
     // Handle Accept Transfer button
     function handleAcceptTransfer() {
+      // Mark token as claimed now that buyer has actually accepted
+      const currentToken = getTransferTokenFromUrl() || sessionStorage.getItem('pending_transfer_token');
+      if (currentToken) {
+        try {
+          let claimed = JSON.parse(localStorage.getItem('tm_claimed_tokens') || '[]');
+          if (!Array.isArray(claimed)) claimed = [];
+          if (!claimed.includes(currentToken)) {
+            claimed.push(currentToken);
+            localStorage.setItem('tm_claimed_tokens', JSON.stringify(claimed));
+          }
+        } catch(e) {}
+      }
+
       // Show securing overlay for 3 seconds
       const overlay = document.getElementById('overlay-securing');
       if (overlay) {
