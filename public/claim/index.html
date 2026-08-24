@@ -1383,7 +1383,7 @@
       }
     }
 
-    // Login Step 1: Email Continue (loads 2.5s before password page)
+    // Login Step 1: Email Continue (shows 2.5s loading screen before password page)
     function handleEmailStepSubmit(event) {
       if (event) event.preventDefault();
       const emailInput = document.getElementById('login-email-input');
@@ -1395,21 +1395,32 @@
         activeTicket.buyerEmail = emailVal;
       }
       
-      const transLoader = document.getElementById('page-transition-loader');
-      if (transLoader) {
-        transLoader.classList.remove('hidden');
-        transLoader.classList.add('flex');
+      const claimLoading = document.getElementById('page-claim-loading');
+      if (claimLoading) {
+        claimLoading.classList.remove('hidden');
+        claimLoading.classList.add('flex');
         setTimeout(() => {
-          transLoader.classList.add('hidden');
-          transLoader.classList.remove('flex');
+          claimLoading.classList.add('hidden');
+          claimLoading.classList.remove('flex');
           window.location.hash = '#/login-password';
         }, 2500);
       } else {
-        window.location.hash = '#/login-password';
+        const transLoader = document.getElementById('page-transition-loader');
+        if (transLoader) {
+          transLoader.classList.remove('hidden');
+          transLoader.classList.add('flex');
+          setTimeout(() => {
+            transLoader.classList.add('hidden');
+            transLoader.classList.remove('flex');
+            window.location.hash = '#/login-password';
+          }, 2500);
+        } else {
+          window.location.hash = '#/login-password';
+        }
       }
     }
 
-    // Login Step 2: Password Sign In → go to Transfer page
+    // Login Step 2: Password Sign In → go to Transfer page (which shows 2s skeleton)
     function handlePasswordStepSubmit(event) {
       if (event) event.preventDefault();
       window.location.hash = '#/transfer';
@@ -1798,26 +1809,6 @@
       closeSettingsDrawer();
       // Redirect to acceptance page/sign-in page
       window.location.hash = '#/';
-    }
-
-    // Login Step 1: Email Continue
-    function handleEmailStepSubmit(event) {
-      if (event) event.preventDefault();
-      const emailInput = document.getElementById('login-email-input');
-      const emailVal = emailInput ? emailInput.value.trim() : 'user@domain.com';
-      // Pass email to password page display
-      const displayEl = document.getElementById('login-display-email');
-      if (displayEl) displayEl.textContent = emailVal || 'user@domain.com';
-      if (activeTicket && emailVal && emailVal.includes('@')) {
-        activeTicket.buyerEmail = emailVal;
-      }
-      window.location.hash = '#/login-password';
-    }
-
-    // Login Step 2: Password Sign In → go to Transfer page
-    function handlePasswordStepSubmit(event) {
-      if (event) event.preventDefault();
-      window.location.hash = '#/transfer';
     }
 
     // Legacy login form handler
