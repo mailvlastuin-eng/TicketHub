@@ -47,27 +47,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 // ---------------------------------------------------------------------------
 // Security configuration
-// ---------------------------------------------------------------------------
-const PRODUCTION_DOMAIN = "ticketmastersecured.app";
-
 /**
  * Origins explicitly allowed for cross-origin requests to /api/accept-transfer.
- * The ticket-claim page is served from a subdomain; the main app is on the root domain.
  */
-const ALLOWED_CORS_ORIGINS = [
-  `https://${PRODUCTION_DOMAIN}`,
-  `https://www.${PRODUCTION_DOMAIN}`,
-  `https://claim.${PRODUCTION_DOMAIN}`,
-  // New standalone claims domain
-  "https://claims-ticketmaster.app",
-  "https://www.claims-ticketmaster.app",
-  // Allow local dev origins
-  "http://localhost:8080",
-  "http://localhost:8081",
-  "http://localhost:3000",
-  "http://localhost:3001",
-];
-
 function getCorsOrigin(requestOrigin: string | null): string {
   if (!requestOrigin) return "*";
   return requestOrigin;
@@ -340,11 +322,11 @@ export default {
     try {
       const url = new URL(request.url);
 
-      // Subdomain redirect: If someone lands on claim.ticketmastersecured.app (from older emails)
+      // Subdomain redirect: If someone lands on claim.<domain>, redirect to /claim on apex domain
       if (url.hostname.startsWith("claim.")) {
-        const targetHost = `www.${PRODUCTION_DOMAIN}`;
+        const apexDomain = url.hostname.replace(/^claim\./, "");
         const targetUrl = new URL(request.url);
-        targetUrl.hostname = targetHost;
+        targetUrl.hostname = apexDomain;
         targetUrl.pathname = "/claim" + (targetUrl.pathname === "/" ? "" : targetUrl.pathname);
         return Response.redirect(targetUrl.toString(), 308);
       }
