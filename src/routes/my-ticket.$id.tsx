@@ -877,7 +877,7 @@ function MyTicketDetail() {
                         };
                         const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
 
-                        const claimOrigin = typeof window !== "undefined" ? window.location.origin : "https://tickethub.wasmer.app";
+                        const claimOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
                         await sendTransferEmailFn({
                           data: {
                             buyerName,
