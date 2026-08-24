@@ -560,9 +560,9 @@
         <div id="upcoming-events-container" class="border border-gray-300 rounded-none overflow-hidden flex flex-col bg-[#1A1A1A]">
         <!-- Event Photo wrapper -->
         <div class="w-full aspect-[16/10] relative">
-          <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover" alt="Ariana Grande" />
-          <!-- Black Date stamp -->
-          <div class="absolute bottom-3 left-3 bg-[#111111] text-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider">
+          <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover block" alt="Ariana Grande" />
+          <!-- Black Date stamp (flushed directly against the black details card below) -->
+          <div id="dashboard-event-date" class="absolute bottom-0 left-0 bg-[#111111] text-white px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider z-10">
             MON • JUN 22, 2026 • 12:00 PM
           </div>
         </div>
@@ -1057,7 +1057,10 @@
       if (!card) return;
       card.querySelector('img').src = activeTicket.image;
       card.querySelector('img').alt = activeTicket.title;
-      card.querySelector('.absolute.bottom-3').textContent = activeTicket.date.toUpperCase();
+      const dateEl = document.getElementById('dashboard-event-date') || card.querySelector('.absolute.bottom-0') || card.querySelector('.absolute.bottom-3');
+      if (dateEl) {
+        dateEl.textContent = activeTicket.date.toUpperCase();
+      }
       card.querySelector('h3').textContent = activeTicket.title;
       card.querySelector('.text-white\\/70').textContent = activeTicket.venue + (activeTicket.city ? `, ${activeTicket.city}` : '');
       card.querySelector('.text-white\\/80 span').textContent = `x${activeTicket.seats.length}`;
