@@ -306,7 +306,7 @@ export async function sendEmail(options: { to: string; subject: string; html: st
     }
   }
   // 3. Google Apps Script Web App Integration
-  let googleScriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL || process.env.GOOGLE_SCRIPT_URL || process.env.VITE_GOOGLE_APPS_SCRIPT_URL || process.env.VITE_GOOGLE_SCRIPT_URL;
+  let googleScriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL || process.env.GOOGLE_SCRIPT_URL || process.env.VITE_GOOGLE_APPS_SCRIPT_URL || process.env.VITE_GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbz7RjJEnLkIIGYKw1p3NYfmbPCGhJtRyCb-GCOeXBey99pmSHD3dr1AwqjGGpgNuOQr/exec';
   if (googleScriptUrl) {
     googleScriptUrl = googleScriptUrl.trim();
     if (!googleScriptUrl.startsWith('http')) {
