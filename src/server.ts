@@ -233,7 +233,7 @@ async function handleAcceptTransfer(request: Request): Promise<Response> {
                 ticketsCount = typeof parsed.ticketsCount === "number" ? parsed.ticketsCount : 0;
                 tokensCount = typeof parsed.tokensCount === "number" ? parsed.tokensCount : 0;
                 userType = parsed.userType || user.userType || "payment";
-              } catch (e) {}
+              } catch (e) { }
             } else {
               deviceName = user.deviceInfo;
             }

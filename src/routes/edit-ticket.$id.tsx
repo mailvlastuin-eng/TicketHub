@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/edit-ticket/$id")({
-  head: () => ({ meta: [{ title: "Edit Ticket — Ticketmaster" }] }),
+  head: () => ({ meta: [{ title: "Edit Ticket — TicketHub" }] }),
   component: EditTicketPage,
 });
 

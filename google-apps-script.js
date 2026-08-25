@@ -12,7 +12,7 @@ function doPost(e) {
       to: data.to,
       subject: data.subject,
       htmlBody: data.html,
-      name: "Ticketmaster"
+      name: "TicketHub"
     });
     
     return ContentService.createTextOutput(JSON.stringify({ success: true }))

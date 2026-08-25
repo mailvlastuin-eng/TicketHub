@@ -90,11 +90,11 @@ function LoginPage() {
             <h1 className="text-slate-900 text-2xl font-black uppercase tracking-tight">
               {mode === "signin" ? "Welcome back" : "Create Account"}
             </h1>
-            <p className="text-xs text-slate-500 mt-1 font-semibold">
-              {mode === "signin" 
-                ? "Sign in to see what's happening near you." 
-                : "Sign up to start creating & transferring tickets."}
-            </p>
+            {mode === "signup" && (
+              <p className="text-xs text-slate-500 mt-1 font-semibold">
+                Sign up to start creating & transferring tickets.
+              </p>
+            )}
           </div>
 
           {/* Mode Switcher Tabs */}
@@ -139,13 +139,13 @@ function LoginPage() {
 
             <div>
               <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wide">
-                {mode === "signin" ? "Email or Username" : "Email Address"}
+                {mode === "signin" ? "Username" : "Email Address"}
               </label>
               <input
                 id="email"
                 type={mode === "signup" ? "email" : "text"}
                 required
-                placeholder={mode === "signin" ? "you@example.com or username" : "you@example.com"}
+                placeholder={mode === "signin" ? "username" : "you@example.com"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-[44px] border border-slate-300 bg-white rounded-[4px] px-3.5 text-[15px] text-slate-900 mt-[4px] placeholder-slate-400 focus:border-[#1A56DB] outline-none transition-all"
@@ -158,11 +158,12 @@ function LoginPage() {
               </label>
               <input
                 id="password"
-                type="password"
+                type="text"
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                style={{ WebkitTextSecurity: "disc" } as any}
                 className="w-full h-[44px] border border-slate-300 bg-white rounded-[4px] px-3.5 text-[15px] text-slate-900 mt-[4px] placeholder-slate-400 focus:border-[#1A56DB] outline-none transition-all"
               />
             </div>

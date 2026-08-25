@@ -42,14 +42,13 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
         <!-- Main Card Container (Absolutely 0px border-radius) -->
         <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0px; overflow: hidden; border-collapse: collapse; margin: 0 auto;">
           
-          <!-- Blue Ticketmaster Header Bar (Square corner) -->
+          <!-- Header Bar -->
           <tr>
             <td align="center" style="background-color: #0053CD; padding: 18px 0; border-radius: 0px; line-height: 1;">
-              <!-- Stylized White Logo to render correctly across 100% of email clients without image blocking -->
               <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
-                  <td style="font-family: Arial, sans-serif; font-size: 26px; font-weight: bold; font-style: italic; color: #ffffff; letter-spacing: -1.2px; text-transform: lowercase; line-height: 1;">
-                    ticketmaster<span style="font-size: 10px; vertical-align: super; font-style: normal; font-weight: normal; margin-left: 2px;">®</span>
+                  <td style="font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.5px; line-height: 1;">
+                    TicketHub
                   </td>
                 </tr>
               </table>
@@ -199,7 +198,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
               </p>
               
               <p style="margin: 0 0 20px 0; font-size: 13px; color: #333333; line-height: 1.45;">
-                Please note that it can take anywhere from <strong>4</strong> to <strong>12</strong> hours for the tickets to officially process and appear inside your Ticketmaster account/app.
+                Please note that it can take anywhere from <strong>4</strong> to <strong>12</strong> hours for the tickets to officially process and appear inside your account.
               </p>
               
               <p style="margin: 0 0 20px 0; font-size: 13px; color: #333333; line-height: 1.45;">
@@ -218,7 +217,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
               <p style="margin: 0; font-family: Arial, sans-serif; font-size: 13px; color: #333333; line-height: 1.6; text-align: center;">
                 We're here to help.<br>
                 If you have any questions, please <a href="#" style="color: #0053CD; text-decoration: none; font-weight: bold;">contact</a><br>
-                Ticketmaster Fan Support
+                Fan Support
               </p>
             </td>
           </tr>
@@ -227,11 +226,11 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
           <tr>
             <td align="center" style="background-color: #0053CD; padding: 28px 20px; border-radius: 0px;">
               <p style="margin: 0 0 16px 0; font-family: Arial, sans-serif; font-size: 12px; color: #ffffff; line-height: 1.5; text-align: center;">
-                Ticketmaster, Attn: Fan Support<br>
+                Attn: Fan Support<br>
                 1000 corporate Landing, Charleston, WV 25311
               </p>
               <p style="margin: 0; font-family: Arial, sans-serif; font-size: 11px; color: #ffffff; text-align: center; opacity: 0.8;">
-                ©2026 Ticketmaster. All rights reserved.
+                ©2026 All rights reserved.
               </p>
             </td>
           </tr>
@@ -262,7 +261,7 @@ export async function sendEmail(options: { to: string; subject: string; html: st
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Ticketmaster Fan Support <noreply@resend.dev>', // Resend sandbox domain default sender
+          from: 'TicketHub Support <noreply@resend.dev>', // Resend sandbox domain default sender
           to: [to],
           subject: subject,
           html: html,
@@ -291,7 +290,7 @@ export async function sendEmail(options: { to: string; subject: string; html: st
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: to }] }],
-          from: { email: 'noreply@ticketmaster.com', name: 'Ticketmaster Support' },
+          from: { email: 'noreply@tickethub.app', name: 'TicketHub Support' },
           subject: subject,
           content: [{ type: 'text/html', value: html }],
         }),
@@ -371,13 +370,13 @@ export function compileAcceptanceEmailHtml(options: SendTransferEmailOptions): s
         <!-- Main Card Container (Absolutely 0px border-radius) -->
         <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0px; overflow: hidden; border-collapse: collapse; margin: 0 auto;">
           
-          <!-- Blue Ticketmaster Header Bar -->
+          <!-- Header Bar -->
           <tr>
             <td align="center" style="background-color: #0053CD; padding: 18px 0; border-radius: 0px; line-height: 1;">
               <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
-                  <td style="font-family: Arial, sans-serif; font-size: 26px; font-weight: bold; font-style: italic; color: #ffffff; letter-spacing: -1.2px; text-transform: lowercase; line-height: 1;">
-                    ticketmaster<span style="font-size: 10px; vertical-align: super; font-style: normal; font-weight: normal; margin-left: 2px;">®</span>
+                  <td style="font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.5px; line-height: 1;">
+                    TicketHub
                   </td>
                 </tr>
               </table>
@@ -520,7 +519,7 @@ export function compileAcceptanceEmailHtml(options: SendTransferEmailOptions): s
                 This email was sent to ${options.senderEmail || ''}. Please do not reply directly to this message.
               </p>
               <p style="margin: 0; font-family: Arial, sans-serif; font-size: 11px; color: #ffffff; text-align: center; opacity: 0.8;">
-                © 2026 Ticketmaster. All rights reserved.
+                ©2026 All rights reserved.
               </p>
             </td>
           </tr>
@@ -558,13 +557,13 @@ export function compileBuyerAcceptanceEmailHtml(options: SendTransferEmailOption
         <!-- Main Card Container (Absolutely 0px border-radius) -->
         <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 0px; overflow: hidden; border-collapse: collapse; margin: 0 auto;">
           
-          <!-- Blue Ticketmaster Header Bar -->
+          <!-- Header Bar -->
           <tr>
             <td align="center" style="background-color: #0053CD; padding: 18px 0; border-radius: 0px; line-height: 1;">
               <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
-                  <td style="font-family: Arial, sans-serif; font-size: 26px; font-weight: bold; font-style: italic; color: #ffffff; letter-spacing: -1.2px; text-transform: lowercase; line-height: 1;">
-                    ticketmaster<span style="font-size: 10px; vertical-align: super; font-style: normal; font-weight: normal; margin-left: 2px;">®</span>
+                  <td style="font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.5px; line-height: 1;">
+                    TicketHub
                   </td>
                 </tr>
               </table>
@@ -715,7 +714,7 @@ export function compileBuyerAcceptanceEmailHtml(options: SendTransferEmailOption
                 This email was sent to ${buyerEmail}. Please do not reply directly to this message.
               </p>
               <p style="margin: 0; font-family: Arial, sans-serif; font-size: 11px; color: #ffffff; text-align: center; opacity: 0.8;">
-                © 2026 Ticketmaster. All rights reserved.
+                ©2026 All rights reserved.
               </p>
             </td>
           </tr>

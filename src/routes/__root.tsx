@@ -80,15 +80,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
-      { title: "Ticketmaster — Discover live events" },
+      { title: "Discover Events" },
       { name: "description", content: "Find and book tickets to concerts, theater, sports, and more." },
-      { property: "og:title", content: "Ticketmaster — Discover live events" },
+      { property: "og:title", content: "Discover Events" },
       { property: "og:description", content: "Find and book tickets to concerts, theater, sports, and more." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Ticketmaster" },
+      { name: "apple-mobile-web-app-title", content: "TicketHub" },
     ],
     links: [
       {
@@ -113,6 +113,8 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta name="googlebot" content="noindex, nofollow" />
 
         {isAdmin ? (
           <>

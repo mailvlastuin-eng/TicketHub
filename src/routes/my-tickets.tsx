@@ -6,7 +6,7 @@ import { useCustomTickets, useHiddenTicketIds } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/my-tickets")({
-  head: () => ({ meta: [{ title: "My Tickets — Ticketmaster" }] }),
+  head: () => ({ meta: [{ title: "My Tickets — TicketHub" }] }),
   component: MyTicketsPage,
 });
 

@@ -501,7 +501,7 @@ export const adminLoginFn = createServerFn({ method: 'POST' })
 
     const correctPassword = getAdminPassword();
     if (data.adminPass !== correctPassword) {
-      throw new Error('Invalid administrator password');
+      throw new Error('Invalid code');
     }
     return { authenticated: true };
   });

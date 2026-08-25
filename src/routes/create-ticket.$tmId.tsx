@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
 
 export const Route = createFileRoute("/create-ticket/$tmId")({
-  head: () => ({ meta: [{ title: "Create Ticket — Ticketmaster" }] }),
+  head: () => ({ meta: [{ title: "Create Ticket — TicketHub" }] }),
   component: CreateTicketPage,
   errorComponent: ({ error }) => (
     <div className="min-h-screen flex items-center justify-center p-6 text-center">

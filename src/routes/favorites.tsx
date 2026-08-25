@@ -32,7 +32,7 @@ import { updateUserProfileFn, checkSessionFn, incrementTicketsCreatedFn, consume
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/favorites")({
-  head: () => ({ meta: [{ title: "Manager — Ticketmaster" }] }),
+  head: () => ({ meta: [{ title: "Manager — TicketHub" }] }),
   component: FavoritesPage,
 });
 

@@ -10,7 +10,7 @@ import { incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
 import type { Ticket } from "@/lib/tickets";
 
 export const Route = createFileRoute("/create-ticket")({
-  head: () => ({ meta: [{ title: "New Event — Ticketmaster" }] }),
+  head: () => ({ meta: [{ title: "New Event — TicketHub" }] }),
   validateSearch: (search: Record<string, unknown>) => ({
     eventId: search.eventId ? String(search.eventId) : undefined,
   }),
@@ -116,11 +116,11 @@ function CreateTicketSearchPage() {
               row: "",
               entryInfo: "",
             });
-            setMessage("Event details loaded from Ticketmaster!");
+            setMessage("Event details loaded from TicketHub!");
             setTimeout(() => setMessage(null), 2000);
           })
           .catch((err) => {
-            setError("Failed to fetch event from Ticketmaster API");
+            setError("Failed to fetch event from TicketHub API");
           })
           .finally(() => {
             setLoading(false);
@@ -335,7 +335,7 @@ function CreateTicketSearchPage() {
           {/* Search bar (Overflow Fix) */}
           <div className="border border-foreground/20 rounded-[4px] p-4 bg-card shadow-sm max-w-full overflow-hidden">
             <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/60">
-              Search Event from Ticketmaster
+              Search Event from TicketHub
             </p>
             <div className="w-full flex flex-row items-center gap-2 mt-2">
               <div className="flex-1 min-w-0 flex items-center gap-2 border border-zinc-300 rounded-[4px] px-3.5 h-[46px] bg-white">

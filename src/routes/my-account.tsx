@@ -25,7 +25,7 @@ import { updateUserProfileFn, changePasswordUserFn } from "../admin/functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/my-account")({
-  head: () => ({ meta: [{ title: "My Account — Ticketmaster" }] }),
+  head: () => ({ meta: [{ title: "My Account — TicketHub" }] }),
   component: MyAccountPage,
 });
 

@@ -19,7 +19,7 @@ import { sendTransferEmailFn } from "../admin/functions";
 import { CachedMap } from "@/components/CachedMap";
 
 export const Route = createFileRoute("/my-ticket/$id")({
-  head: () => ({ meta: [{ title: "Ticket — Ticketmaster" }] }),
+  head: () => ({ meta: [{ title: "Ticket — TicketHub" }] }),
   component: MyTicketDetail,
   notFoundComponent: () => (
     <div className="min-h-screen flex items-center justify-center">

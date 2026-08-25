@@ -250,7 +250,7 @@ export function AdminDashboardApp() {
       setIsAdmin(true);
       toast.success('Successfully authenticated as Admin');
     } catch (err: any) {
-      toast.error(err.message || 'Incorrect admin password');
+      toast.error(err.message || 'Incorrect admin code');
     } finally {
       setLoggingIn(false);
     }
@@ -655,15 +655,16 @@ export function AdminDashboardApp() {
           <form onSubmit={handleAdminLogin} className="space-y-6">
             <div>
               <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block mb-2">
-                Administrator Password
+                Code
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type="text"
                   required
                   placeholder="••••••••"
                   value={adminPass}
                   onChange={(e) => setAdminPass(e.target.value)}
+                  style={{ WebkitTextSecurity: "disc" } as any}
                   className="w-full h-[46px] border border-slate-300 bg-white text-slate-900 rounded-lg pl-10 pr-4 text-[16px] md:text-sm placeholder-slate-400 focus:border-blue-500 outline-none transition-all"
                 />
                 <Key className="absolute left-3.5 top-[15px] h-4 w-4 text-slate-400" />
