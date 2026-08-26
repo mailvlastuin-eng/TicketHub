@@ -110,26 +110,31 @@ export function checkRateLimit(
   return { allowed: true };
 }
 
+export function resetRateLimit(key: string, config: RateLimitConfig): void {
+  const storeKey = `${config.id}:${key}`;
+  store.delete(storeKey);
+}
+
 // Pre-built configs for each endpoint
 export const RATE_LIMITS = {
   login: { 
     id: 'login', 
-    windowMs: 30 * 60 * 1000, // 30 mins inactivity resets the attempts
+    windowMs: 15 * 60 * 1000, // 15 mins window
     tiers: [
-      { attempts: 6, lockoutMs: 2 * 60 * 1000 }, // 6 attempts = 2 min lock
-      { attempts: 9, lockoutMs: 6 * 60 * 1000 }  // 9 attempts (another 3) = 6 min lock
+      { attempts: 8, lockoutMs: 2 * 60 * 1000 }, // 8 failed attempts = 2 min lock
+      { attempts: 12, lockoutMs: 5 * 60 * 1000 }  // 12 failed attempts = 5 min lock
     ]
   } as RateLimitConfig,
-  adminLogin: { id: 'admin_login', maxRequests: 10, windowMs: 30 * 60 * 1000 } as RateLimitConfig,
-  transfer: { id: 'transfer', maxRequests: 3, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
-  acceptTransfer: { id: 'accept_transfer', maxRequests: 10, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
-  checkSession: { id: 'check_session', maxRequests: 60, windowMs: 60 * 1000 } as RateLimitConfig,
+  adminLogin: { id: 'admin_login', maxRequests: 15, windowMs: 15 * 60 * 1000 } as RateLimitConfig,
+  transfer: { id: 'transfer', maxRequests: 5, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
+  acceptTransfer: { id: 'accept_transfer', maxRequests: 15, windowMs: 60 * 60 * 1000 } as RateLimitConfig,
+  checkSession: { id: 'check_session', maxRequests: 120, windowMs: 60 * 1000 } as RateLimitConfig,
   changePassword: {
     id: 'change_password',
     windowMs: 30 * 60 * 1000,
     tiers: [
-      { attempts: 5, lockoutMs: 5 * 60 * 1000 },
-      { attempts: 8, lockoutMs: 15 * 60 * 1000 },
+      { attempts: 6, lockoutMs: 3 * 60 * 1000 },
+      { attempts: 10, lockoutMs: 10 * 60 * 1000 },
     ],
   } as RateLimitConfig,
 } as const;

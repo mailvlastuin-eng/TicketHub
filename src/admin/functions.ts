@@ -13,7 +13,7 @@ import {
 } from './db';
 import { getDeviceString } from './utils';
 import { compileTransferEmailHtml, sendEmail, type SendTransferEmailOptions } from './email';
-import { checkRateLimit, RATE_LIMITS } from '../lib/rate-limiter';
+import { checkRateLimit, resetRateLimit, RATE_LIMITS } from '../lib/rate-limiter';
 import { hashPassword, verifyPassword } from '../lib/crypto';
 
 // ---------------------------------------------------------------------------
@@ -34,17 +34,36 @@ function getAdminPassword(): string {
   return requireEnv('ADMIN_PASSWORD');
 }
 
+// Helper to extract header value safely from Web API Headers or plain objects
+function getHeaderValue(headers: any, name: string): string | undefined {
+  if (!headers) return undefined;
+  if (typeof headers.get === 'function') {
+    return headers.get(name) || headers.get(name.toLowerCase()) || undefined;
+  }
+  return headers[name] || headers[name.toLowerCase()] || undefined;
+}
+
 // Helper to extract caller IP from request headers
-function getCallerIp(headers: Record<string, string | string[] | undefined>): string {
-  const forwarded = headers['x-forwarded-for'];
+function getCallerIp(headers: any): string {
+  const forwarded = getHeaderValue(headers, 'x-forwarded-for');
   if (Array.isArray(forwarded)) return forwarded[0] ?? '127.0.0.1';
   if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
-  return (headers['x-real-ip'] as string) ?? '127.0.0.1';
+  const realIp =
+    getHeaderValue(headers, 'x-real-ip') ||
+    getHeaderValue(headers, 'cf-connecting-ip') ||
+    getHeaderValue(headers, 'x-client-ip') ||
+    getHeaderValue(headers, 'fastly-client-ip');
+  if (typeof realIp === 'string' && realIp.trim()) return realIp.trim();
+  return '127.0.0.1';
+}
+
+function getUserAgent(headers: any): string {
+  return getHeaderValue(headers, 'user-agent') || 'Unknown';
 }
 
 function getClientIp(): string {
   const headers = getRequestHeaders();
-  return getCallerIp(headers as unknown as Record<string, string | string[] | undefined>);
+  return getCallerIp(headers);
 }
 
 
@@ -118,12 +137,13 @@ export const loginUserFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const { email, password } = data;
     const headers = getRequestHeaders();
-    const userAgent = (headers['user-agent'] as string) || 'Unknown';
-    const ip = getCallerIp(headers as Record<string, string | string[] | undefined>);
+    const userAgent = getUserAgent(headers);
+    const ip = getCallerIp(headers);
     const deviceInfo = getDeviceString(userAgent);
 
-    // --- Rate limit: 6 attempts per 2 min, then 9 attempts per 6 min ---
-    const rl = checkRateLimit(ip, RATE_LIMITS.login);
+    // Rate limit per IP + account identifier to isolate bad actors from legitimate users
+    const rateLimitKey = `${ip}:${email.toLowerCase()}`;
+    const rl = checkRateLimit(rateLimitKey, RATE_LIMITS.login);
     if (!rl.allowed) {
       throw new Error(
         `Too many login attempts. Please wait ${Math.ceil(rl.retryAfter! / 60)} minutes before trying again.`,
@@ -151,6 +171,10 @@ export const loginUserFn = createServerFn({ method: 'POST' })
       });
       throw new Error('Invalid email or password');
     }
+
+    // Reset rate limit on successful authentication
+    resetRateLimit(rateLimitKey, RATE_LIMITS.login);
+    resetRateLimit(ip, RATE_LIMITS.login);
 
     // Lazy migration: if the stored password was plaintext, rehash it now
     if (passwordMatch.isLegacy) {
@@ -317,9 +341,9 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
   }))
   .handler(async ({ data }) => {
     const headers = getRequestHeaders();
-    const ip = getCallerIp(headers as Record<string, string | string[] | undefined>);
+    const ip = getCallerIp(headers);
 
-    // Rate limit: 60 session checks per minute per IP
+    // Rate limit: 120 session checks per minute per IP
     const rl = checkRateLimit(ip, RATE_LIMITS.checkSession);
     if (!rl.allowed) {
       return { valid: false };
@@ -488,9 +512,9 @@ export const adminLoginFn = createServerFn({ method: 'POST' })
   }))
   .handler(async ({ data }) => {
     const headers = getRequestHeaders();
-    const ip = getCallerIp(headers as Record<string, string | string[] | undefined>);
+    const ip = getCallerIp(headers);
 
-    // Rate limit: 3 attempts per 30 min per IP
+    // Rate limit: 15 attempts per 15 min per IP
     const rl = checkRateLimit(ip, RATE_LIMITS.adminLogin);
     if (!rl.allowed) {
       throw new Error(`Too many admin login attempts. Try again in ${Math.ceil(rl.retryAfter! / 60)} minutes.`);
@@ -500,6 +524,7 @@ export const adminLoginFn = createServerFn({ method: 'POST' })
     if (data.adminPass !== correctPassword) {
       throw new Error('Invalid code');
     }
+    resetRateLimit(ip, RATE_LIMITS.adminLogin);
     return { authenticated: true };
   });
 
@@ -749,7 +774,7 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
     throw new Error('Transfer currently under maintenance, contact support.');
 
     const headers = getRequestHeaders();
-    const ip = getCallerIp(headers as Record<string, string | string[] | undefined>);
+    const ip = getCallerIp(headers);
 
     // Rate limit: 3 transfers per hour per IP
     const rl = checkRateLimit(ip, RATE_LIMITS.transfer);

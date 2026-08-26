@@ -101,9 +101,12 @@ export async function getAllUsers(): Promise<UserAccess[]> {
 export async function getUserByEmail(email: string): Promise<UserAccess | undefined> {
   try {
     const normalizedEmail = email.trim().toLowerCase();
-    const res = await supabaseFetch(`users?email=ilike.${normalizedEmail}`);
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      return undefined;
+    }
+    const res = await supabaseFetch(`users?email=ilike.${encodeURIComponent(normalizedEmail)}`);
     const data = await res.json();
-    if (data.length > 0) {
+    if (Array.isArray(data) && data.length > 0) {
       const u = data[0];
       let userType: 'payment' | 'token' = u.loginMode === 'token' ? 'token' : 'payment';
       let username: string | undefined = u.username || undefined;
@@ -126,20 +129,24 @@ export async function getUserByEmail(email: string): Promise<UserAccess | undefi
     }
   } catch (err) {
     console.error('Failed to get user by email from Supabase:', err);
-    throw err;
   }
   return undefined;
 }
 
 export async function getUserByIdentifier(identifier: string): Promise<UserAccess | undefined> {
   const clean = identifier.trim().toLowerCase();
+  if (!clean) return undefined;
+
   const byEmail = await getUserByEmail(clean);
   if (byEmail) return byEmail;
 
-  // Search by username if email lookup yielded no result
+  // Search by username or email prefix if email lookup yielded no result
   const allUsers = await getAllUsers();
   return allUsers.find(
-    (u) => u.username && u.username.trim().toLowerCase() === clean
+    (u) =>
+      (u.username && u.username.trim().toLowerCase() === clean) ||
+      (u.email && u.email.trim().toLowerCase() === clean) ||
+      (u.email && u.email.split('@')[0].trim().toLowerCase() === clean)
   );
 }
 
