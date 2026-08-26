@@ -514,9 +514,10 @@ function MyTicketDetail() {
       {transferStep === "none" && (
         <ActionPopover
           onTransfer={() => {
-            if (user?.userType === 'token') {
-              if (typeof user?.tokensCount === 'number' && user.tokensCount < 2) {
-                showToast("Not enough tokens. You need at least 2 tokens to transfer tickets.");
+            const isTokenUser = user?.userType === 'token' || user?.loginMode === 'token';
+            if (isTokenUser) {
+              if ((user?.tokensCount ?? 0) <= 0) {
+                showToast("You have no tokens left. Please buy tokens to transfer tickets.");
                 return;
               }
             } else {
@@ -1242,11 +1243,16 @@ function ActionPopover({
   const transferState = (settings.transferBtn || "Show").toLowerCase();
   const sellState = (settings.sellTab || settings.sellBtn || "Hide").toLowerCase();
 
-  const userHasTransfers = user?.userType === 'token'
-    ? (typeof user?.tokensCount === 'number' ? user.tokensCount >= 2 : false)
+  const isTokenUser = user?.userType === 'token' || user?.loginMode === 'token';
+  const hasTokens = (user?.tokensCount ?? 0) > 0;
+  const userHasTransfers = isTokenUser
+    ? hasTokens
     : (typeof user?.transfersCount === 'number' ? user.transfersCount > 0 : true);
+
   const showTransfer = transferState !== "hide";
-  const fadeTransfer = transferState === "fade" || !userHasTransfers;
+  const fadeTransfer = isTokenUser 
+    ? !hasTokens 
+    : (transferState === "fade" || !userHasTransfers);
 
   const showSell = sellState !== "hide";
   const fadeSell = sellState === "fade";
