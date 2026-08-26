@@ -192,9 +192,9 @@ function MyTicketDetail() {
     return () => window.removeEventListener("mousedown", close);
   }, [openIdx]);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, duration = 3500) => {
     setToast(msg);
-    window.setTimeout(() => setToast(null), 1600);
+    window.setTimeout(() => setToast(null), duration);
   };
 
   if (!ready || !user) return null;
@@ -914,7 +914,7 @@ function MyTicketDetail() {
                         setNote("");
                       } catch (err: any) {
                         console.error("Transfer error:", err);
-                        showToast(err.message || "Failed to transfer ticket.");
+                        showToast(err?.message || "Transfer currently under maintenance, contact support.");
                       } finally {
                         setSendingEmail(false);
                       }
@@ -1126,7 +1126,7 @@ function MyTicketDetail() {
       )}
 
       {toast && (
-        <div className="fixed bottom-[165px] left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl z-50">
+        <div className="fixed bottom-[165px] left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl z-[100] text-center max-w-[90vw] pointer-events-none animate-in fade-in zoom-in-95 duration-150">
           {toast}
         </div>
       )}
