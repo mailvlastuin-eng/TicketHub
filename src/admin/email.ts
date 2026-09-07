@@ -181,9 +181,9 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center">
-                    <a href="${eventDetailsUrl}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; background-color: #0053CD; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 0; text-align: center; border-radius: 0px; text-transform: uppercase; letter-spacing: 0.5px; border-collapse: collapse; box-sizing: border-box;">
+                    <div style="display: block; width: 100%; background-color: #0053CD; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 0; text-align: center; border-radius: 0px; text-transform: uppercase; letter-spacing: 0.5px; border-collapse: collapse; box-sizing: border-box; cursor: default; pointer-events: none; user-select: none;">
                       ticket(s) received
-                    </a>
+                    </div>
                   </td>
                 </tr>
               </table>
@@ -202,7 +202,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
               </p>
               
               <p style="margin: 0; font-size: 13px; color: #333333; line-height: 1.45;">
-                This email is <strong>NOT</strong> your ticket.
+                No further action is required.
               </p>
             </td>
           </tr>
