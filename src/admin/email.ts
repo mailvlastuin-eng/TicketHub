@@ -33,7 +33,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Ticket Transfer From ${senderName.toUpperCase()} is Ready To Be Accepted!</title>
+  <title>Your ticket transfer from ${senderName} has been received.</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #F6F6F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F6F6F6; padding: 0; margin: 0; width: 100%;">
@@ -48,7 +48,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
               <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
                   <td style="font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.5px; line-height: 1;">
-                    TicketHub
+                    Ticket master
                   </td>
                 </tr>
               </table>
@@ -59,7 +59,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
           <tr>
             <td align="center" style="padding: 30px 20px 20px 20px;">
               <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #000000; line-height: 1.35; text-align: center; letter-spacing: -0.2px;">
-                Your Ticket Transfer From ${senderName.toUpperCase()} is<br>Ready To Be Accepted!
+                Your ticket transfer from ${senderName} has been received.
               </h1>
             </td>
           </tr>
@@ -182,7 +182,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                 <tr>
                   <td align="center">
                     <a href="${eventDetailsUrl}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; background-color: #0053CD; color: #ffffff; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 0; text-align: center; border-radius: 0px; text-transform: uppercase; letter-spacing: 0.5px; border-collapse: collapse; box-sizing: border-box;">
-                      ACCEPT TICKETS
+                      ticket(s) received
                     </a>
                   </td>
                 </tr>
@@ -193,10 +193,6 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
           <!-- Legal / Instructions Disclaimers -->
           <tr>
             <td style="padding: 0 24px 24px 24px; font-family: Arial, sans-serif; text-align: left;">
-              <p style="margin: 0 0 20px 0; font-size: 13px; color: #333333; line-height: 1.45;">
-                By Clicking “ACCEPT TICKETS”, you agree to our <a href="#" style="color: #0053CD; text-decoration: none;">Terms of Use</a> and any applicable ticket back terms.
-              </p>
-              
               <p style="margin: 0 0 20px 0; font-size: 13px; color: #333333; line-height: 1.45;">
                 Please note that it can take anywhere from <strong>4</strong> to <strong>12</strong> hours for the tickets to officially process and appear inside your account.
               </p>
@@ -261,7 +257,7 @@ export async function sendEmail(options: { to: string; subject: string; html: st
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'TicketHub Support <noreply@resend.dev>', // Resend sandbox domain default sender
+          from: 'Ticket master Support <noreply@resend.dev>', // Resend sandbox domain default sender
           to: [to],
           subject: subject,
           html: html,
@@ -290,7 +286,7 @@ export async function sendEmail(options: { to: string; subject: string; html: st
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: to }] }],
-          from: { email: 'noreply@tickethub.app', name: 'TicketHub Support' },
+          from: { email: 'noreply@tickethub.app', name: 'Ticket master Support' },
           subject: subject,
           content: [{ type: 'text/html', value: html }],
         }),
@@ -376,7 +372,7 @@ export function compileAcceptanceEmailHtml(options: SendTransferEmailOptions): s
               <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
                   <td style="font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.5px; line-height: 1;">
-                    TicketHub
+                    Ticket master
                   </td>
                 </tr>
               </table>
@@ -563,7 +559,7 @@ export function compileBuyerAcceptanceEmailHtml(options: SendTransferEmailOption
               <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
                   <td style="font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.5px; line-height: 1;">
-                    TicketHub
+                    Ticket master
                   </td>
                 </tr>
               </table>
