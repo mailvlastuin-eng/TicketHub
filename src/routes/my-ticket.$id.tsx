@@ -915,7 +915,7 @@ function MyTicketDetail() {
                         setNote("");
                       } catch (err: any) {
                         console.error("Transfer error:", err);
-                        showToast(err?.message || "Transfer currently under maintenance, contact support.");
+                        showToast(err?.message || "Failed to transfer ticket.");
                       } finally {
                         setSendingEmail(false);
                       }

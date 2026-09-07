@@ -770,9 +770,6 @@ export const getDiagnosticsFn = createServerFn({ method: 'POST' })
 export const sendTransferEmailFn = createServerFn({ method: 'POST' })
   .inputValidator((d: SendTransferEmailOptions & { senderEmail?: string; sessionId?: string }) => d)
   .handler(async ({ data }) => {
-    // Temporarily disabled: under maintenance
-    throw new Error('Transfer currently under maintenance, contact support.');
-
     const headers = getRequestHeaders();
     const ip = getCallerIp(headers);
 
