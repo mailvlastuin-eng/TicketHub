@@ -390,33 +390,25 @@ export const checkSessionFn = createServerFn({ method: 'POST' })
     }
 
     if (user.status === 'active' && user.activatedAt) {
-      let durationDays = 30;
-      if (user.duration === '3m') durationDays = 90;
-      if (user.duration === '6m') durationDays = 180;
-      if (user.duration === '1y') durationDays = 360;
+      // Trust the stored expiresAt — it may have been extended by an admin renewal.
+      // Only fall back to computing from activatedAt+duration if expiresAt is missing.
+      if (!user.expiresAt) {
+        let durationDays = 30;
+        if (user.duration === '3m') durationDays = 90;
+        if (user.duration === '6m') durationDays = 180;
+        if (user.duration === '1y') durationDays = 360;
 
-      const expectedExpiry = new Date(
-        new Date(user.activatedAt).getTime() + durationDays * 24 * 60 * 60 * 1000,
-      ).toISOString();
-
-      let needsSave = false;
-      if (user.expiresAt !== expectedExpiry) {
-        user.expiresAt = expectedExpiry;
-        needsSave = true;
-      }
-
-      const isExpired = new Date() > new Date(expectedExpiry);
-      if (isExpired) {
-        user.status = 'expired';
-        user.sessionId = null;
-        needsSave = true;
-      }
-
-      if (needsSave) {
+        user.expiresAt = new Date(
+          new Date(user.activatedAt).getTime() + durationDays * 24 * 60 * 60 * 1000,
+        ).toISOString();
         await saveUser(user);
       }
 
+      const isExpired = new Date() > new Date(user.expiresAt);
       if (isExpired) {
+        user.status = 'expired';
+        user.sessionId = null;
+        await saveUser(user);
         return { valid: false };
       }
     } else if (user.expiresAt) {
@@ -560,38 +552,28 @@ export const getAdminDashboardDataFn = createServerFn({ method: 'POST' })
         } catch (e) {}
       }
 
-      if (u.status === 'active' && u.activatedAt) {
-        let durationDays = 30;
-        if (u.duration === '3m') durationDays = 90;
-        if (u.duration === '6m') durationDays = 180;
-        if (u.duration === '1y') durationDays = 360;
+      if (u.status === 'active') {
+        // Trust the stored expiresAt — it may have been extended by an admin renewal.
+        // Only fall back to computing from activatedAt+duration if expiresAt is missing.
+        if (!u.expiresAt && u.activatedAt) {
+          let durationDays = 30;
+          if (u.duration === '3m') durationDays = 90;
+          if (u.duration === '6m') durationDays = 180;
+          if (u.duration === '1y') durationDays = 360;
 
-        const expectedExpiry = new Date(
-          new Date(u.activatedAt).getTime() + durationDays * 24 * 60 * 60 * 1000,
-        ).toISOString();
-
-        let needsSave = false;
-        if (u.expiresAt !== expectedExpiry) {
-          u.expiresAt = expectedExpiry;
-          needsSave = true;
-        }
-
-        const isExpired = new Date() > new Date(expectedExpiry);
-        if (isExpired) {
-          u.status = 'expired';
-          u.sessionId = null;
-          needsSave = true;
-        }
-
-        if (needsSave) {
+          u.expiresAt = new Date(
+            new Date(u.activatedAt).getTime() + durationDays * 24 * 60 * 60 * 1000,
+          ).toISOString();
           await saveUser(u);
         }
-      } else if (u.status === 'active' && u.expiresAt) {
-        const isExpired = new Date() > new Date(u.expiresAt);
-        if (isExpired) {
-          u.status = 'expired';
-          u.sessionId = null;
-          await saveUser(u);
+
+        if (u.expiresAt) {
+          const isExpired = new Date() > new Date(u.expiresAt);
+          if (isExpired) {
+            u.status = 'expired';
+            u.sessionId = null;
+            await saveUser(u);
+          }
         }
       }
     }
