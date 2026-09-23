@@ -128,6 +128,20 @@ function MyTicketDetail() {
     // Scroll to top on mount so the previous list-page scroll offset is not retained.
     // 'instant' avoids a visible jump on iOS standalone (PWA) mode.
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
+    // The html/body default background is #F3F4F6 (light grey). On iOS Safari with
+    // black-translucent status bar, that colour bleeds into the safe-area-inset-top
+    // region and produces a white gradient scrim over the hero image.
+    // Swap to black for this page only and restore on unmount.
+    const prevHtmlBg = document.documentElement.style.backgroundColor;
+    const prevBodyBg = document.body.style.backgroundColor;
+    document.documentElement.style.backgroundColor = '#000000';
+    document.body.style.backgroundColor = '#000000';
+
+    return () => {
+      document.documentElement.style.backgroundColor = prevHtmlBg;
+      document.body.style.backgroundColor = prevBodyBg;
+    };
   }, []);
 
   useEffect(() => {
