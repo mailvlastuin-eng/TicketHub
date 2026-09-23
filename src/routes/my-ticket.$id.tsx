@@ -19,7 +19,12 @@ import { sendTransferEmailFn } from "../admin/functions";
 import { CachedMap } from "@/components/CachedMap";
 
 export const Route = createFileRoute("/my-ticket/$id")({
-  head: () => ({ meta: [{ title: "Ticket — TicketHub" }] }),
+  head: () => ({
+    meta: [
+      { title: "Ticket — TicketHub" },
+      { name: "theme-color", content: "#000000" },
+    ],
+  }),
   component: MyTicketDetail,
   notFoundComponent: () => (
     <div className="min-h-screen flex items-center justify-center">
@@ -128,6 +133,37 @@ function MyTicketDetail() {
     // Scroll to top on mount so the previous list-page scroll offset is not retained.
     // 'instant' avoids a visible jump on iOS standalone (PWA) mode.
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
+    // Tell iOS Safari to keep status bar text/icons white and eliminate the white scrim gradient
+    const prevHtmlBg = document.documentElement.style.backgroundColor;
+    const prevBodyBg = document.body.style.backgroundColor;
+    document.documentElement.style.backgroundColor = "#000000";
+    document.body.style.backgroundColor = "#000000";
+
+    let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    let created = false;
+    let prevThemeColor = "";
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+      created = true;
+    } else {
+      prevThemeColor = meta.content;
+    }
+    meta.content = "#000000";
+
+    return () => {
+      document.documentElement.style.backgroundColor = prevHtmlBg;
+      document.body.style.backgroundColor = prevBodyBg;
+      if (meta) {
+        if (created) {
+          meta.remove();
+        } else {
+          meta.content = prevThemeColor;
+        }
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -225,7 +261,7 @@ function MyTicketDetail() {
   if (loading) {
     return (
       <main className="h-[100dvh] w-full overflow-hidden bg-zinc-950 relative">
-        <div className="max-w-md mx-auto h-[100dvh] relative bg-[#F3F4F6] select-none overflow-hidden">
+        <div className="max-w-md mx-auto h-[100dvh] relative bg-[#111] select-none overflow-hidden">
           {/* Header Placeholder */}
           <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3">
             <div className="h-8 w-8 bg-zinc-700/50 rounded-full animate-pulse" />
@@ -294,7 +330,7 @@ function MyTicketDetail() {
         }
       `}</style>
 
-      <div className="max-w-md mx-auto h-[100dvh] relative bg-white select-none overflow-hidden">
+      <div className="max-w-md mx-auto h-[100dvh] relative bg-[#111] select-none overflow-hidden">
         {/* Sticky Top Header (Back/Help buttons & title) */}
         <div className="absolute top-0 left-0 right-0 h-[calc(48px+env(safe-area-inset-top,48px))] z-30 flex items-end justify-between px-4 pb-3 text-white overflow-hidden pointer-events-none">
           {/* Header background image slice that covers the scrolling text */}
