@@ -1360,7 +1360,7 @@ function SeatCell({
   return (
     <div className={alignmentClass}>
       <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">{label}</p>
-      <p className="text-[20px] font-bold text-black mt-0.5 leading-none">{value}</p>
+      <p className="text-[15px] font-bold text-black mt-0.5 leading-none">{value}</p>
     </div>
   );
 }
@@ -1377,7 +1377,7 @@ function StandardTicketCard({ entry }: { entry: StandardTicketEntry }) {
       <div className="bg-[#eaeaea] px-5 py-[14.5px] rounded-none grid grid-cols-2 gap-2">
         <div className="text-left">
           <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">SECTION</p>
-          <p className="text-[20px] font-bold text-black mt-0.5 leading-none">{entry.section || "GA"}</p>
+          <p className="text-[15px] font-bold text-black mt-0.5 leading-none">{entry.section || "GA"}</p>
         </div>
         <div className="text-right">
           <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">TYPE</p>
