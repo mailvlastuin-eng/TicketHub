@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronDown } from "lucide-react";
 import { signIn, useUser } from "@/lib/auth";
 import { updateCustomTicket, useAllTickets } from "@/lib/ticket-store";
 import { consumeTokenFn } from "@/admin/functions";
 import { toast } from "sonner";
-import type { Ticket } from "@/lib/tickets";
+import type { Ticket, SeatedTicketEntry, StandardTicketEntry } from "@/lib/tickets";
 
 export const Route = createFileRoute("/edit-ticket/$id")({
   head: () => ({ meta: [{ title: "Edit Ticket — TicketHub" }] }),
@@ -23,12 +23,50 @@ type FormFields = {
   currency: string;
   description: string;
   image: string;
-  // Resell details
-  ticketType: string;
-  section: string;
-  row: string;
-  entryInfo: string;
 };
+
+const TICKET_TYPE_OPTIONS = [
+  "General Admission",
+  "VIP",
+  "Floor",
+  "Standing Room",
+  "Lawn",
+  "Reserved",
+  "Balcony",
+  "Pit",
+];
+
+const PRESALE_LABEL_OPTIONS = [
+  "General Sale",
+  "Presale",
+  "Verified Fan Onsale",
+  "Platinum",
+  "Fan Club Presale",
+  "American Express Presale",
+  "Artist Presale",
+];
+
+function makeSeatedEntry(overrides?: Partial<SeatedTicketEntry>): SeatedTicketEntry {
+  return {
+    id: `seated-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    section: "",
+    row: "",
+    ticketType: "Verified Fan Onsale",
+    entryInfo: "",
+    seats: ["1"],
+    ...overrides,
+  };
+}
+
+function makeStandardEntry(overrides?: Partial<StandardTicketEntry>): StandardTicketEntry {
+  return {
+    id: `std-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    section: "GA1",
+    ticketType: "General Admission",
+    presaleLabel: "General Sale",
+    ...overrides,
+  };
+}
 
 function EditTicketPage() {
   const { id } = Route.useParams();
@@ -38,7 +76,8 @@ function EditTicketPage() {
   const ticket = all.find((t) => t.id === id);
 
   const [form, setForm] = useState<FormFields | null>(null);
-  const [seats, setSeats] = useState<string[]>([]);
+  const [seatedEntries, setSeatedEntries] = useState<SeatedTicketEntry[]>([]);
+  const [standardEntries, setStandardEntries] = useState<StandardTicketEntry[]>([]);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -61,25 +100,43 @@ function EditTicketPage() {
         currency: "USD",
         description: ticket.description || "",
         image: ticket.image || "",
-        ticketType: ticket.ticketType || "Verified Fan Onsale",
-        section: ticket.section || "",
-        row: ticket.row || "",
-        entryInfo: ticket.entryInfo || "",
       });
 
-      // Parse seats
-      if (ticket.seats && ticket.seats.length > 0) {
-        setSeats(ticket.seats);
+      // Populate seated entries
+      if (ticket.seatedTickets !== undefined) {
+        setSeatedEntries(ticket.seatedTickets);
+      } else if (
+        ticket.standardTickets &&
+        ticket.standardTickets.length > 0 &&
+        (!ticket.seats || ticket.seats.length === 0) &&
+        !ticket.section
+      ) {
+        setSeatedEntries([]);
       } else {
-        // Fallback: parse seats from description or use default
-        const m = ticket.description?.match(
-          /Sec\s+([^\s·]+)(?:\s+·\s+Row\s+([^\s·]+))?(?:\s+·\s+Seat\s+([^\s·\n]+))?/i
-        );
-        if (m && m[3]) {
-          setSeats([m[3]]);
+        // Migrate from legacy flat fields
+        let seats: string[] = [];
+        if (ticket.seats && ticket.seats.length > 0) {
+          seats = ticket.seats;
         } else {
-          setSeats(["1"]);
+          const m = ticket.description?.match(
+            /Sec\s+([^\s·]+)(?:\s+·\s+Row\s+([^\s·]+))?(?:\s+·\s+Seat\s+([^\s·\n]+))?/i
+          );
+          seats = m && m[3] ? [m[3]] : ["1"];
         }
+        setSeatedEntries([
+          makeSeatedEntry({
+            section: ticket.section || "",
+            row: ticket.row || "",
+            ticketType: ticket.ticketType || "Verified Fan Onsale",
+            entryInfo: ticket.entryInfo || "",
+            seats,
+          }),
+        ]);
+      }
+
+      // Populate standard entries
+      if (ticket.standardTickets && ticket.standardTickets.length > 0) {
+        setStandardEntries(ticket.standardTickets);
       }
     }
   }, [ticket]);
@@ -104,26 +161,49 @@ function EditTicketPage() {
   const setField = <K extends keyof FormFields>(k: K, v: FormFields[K]) =>
     setForm((prev) => (prev ? { ...prev, [k]: v } : prev));
 
-  // Seats manipulation
-  const handleAddSeat = () => {
-    if (seats.length >= 8) return;
-    const lastSeatNum = Number(seats[seats.length - 1]);
-    const nextSeat = isNaN(lastSeatNum) ? "1" : String(lastSeatNum + 1);
-    setSeats((prev) => [...prev, nextSeat]);
+  // ─── Seated entry helpers ─────────────────────────────────────
+  const addSeatedEntry = () => setSeatedEntries((prev) => [...prev, makeSeatedEntry()]);
+  const removeSeatedEntry = (entryId: string) =>
+    setSeatedEntries((prev) => prev.filter((e) => e.id !== entryId));
+  const updateSeatedEntry = <K extends keyof SeatedTicketEntry>(
+    entryId: string, key: K, value: SeatedTicketEntry[K]
+  ) => setSeatedEntries((prev) => prev.map((e) => (e.id === entryId ? { ...e, [key]: value } : e)));
+  const addSeatToEntry = (entryId: string) => {
+    setSeatedEntries((prev) =>
+      prev.map((e) => {
+        if (e.id !== entryId || e.seats.length >= 8) return e;
+        const last = Number(e.seats[e.seats.length - 1]);
+        const next = isNaN(last) ? "1" : String(last + 1);
+        return { ...e, seats: [...e.seats, next] };
+      })
+    );
+  };
+  const removeSeatFromEntry = (entryId: string, idx: number) => {
+    setSeatedEntries((prev) =>
+      prev.map((e) => {
+        if (e.id !== entryId || e.seats.length <= 1) return e;
+        return { ...e, seats: e.seats.filter((_, i) => i !== idx) };
+      })
+    );
+  };
+  const updateSeatInEntry = (entryId: string, idx: number, val: string) => {
+    setSeatedEntries((prev) =>
+      prev.map((e) => {
+        if (e.id !== entryId) return e;
+        const seats = [...e.seats];
+        seats[idx] = val;
+        return { ...e, seats };
+      })
+    );
   };
 
-  const handleRemoveSeat = (index: number) => {
-    if (seats.length <= 1) return;
-    setSeats((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSeatChange = (index: number, val: string) => {
-    setSeats((prev) => {
-      const copy = [...prev];
-      copy[index] = val;
-      return copy;
-    });
-  };
+  // ─── Standard entry helpers ───────────────────────────────────
+  const addStandardEntry = () => setStandardEntries((prev) => [...prev, makeStandardEntry()]);
+  const removeStandardEntry = (entryId: string) =>
+    setStandardEntries((prev) => prev.filter((e) => e.id !== entryId));
+  const updateStandardEntry = <K extends keyof StandardTicketEntry>(
+    entryId: string, key: K, value: StandardTicketEntry[K]
+  ) => setStandardEntries((prev) => prev.map((e) => (e.id === entryId ? { ...e, [key]: value } : e)));
 
   // Save changes
   const handleSave = async () => {
@@ -132,7 +212,13 @@ function EditTicketPage() {
       return;
     }
 
-    const isTokenUser = user?.userType === 'token';
+    if (seatedEntries.length === 0 && standardEntries.length === 0) {
+      toast.error("Please add at least one seated ticket or standard ticket.");
+      setError("Please add at least one seated ticket or standard ticket.");
+      return;
+    }
+
+    const isTokenUser = user?.userType === "token";
     if (isTokenUser) {
       if ((user?.tokensCount ?? 0) < 1) {
         toast.error("Insufficient tokens. You need at least 1 token to edit a ticket.");
@@ -140,6 +226,9 @@ function EditTicketPage() {
         return;
       }
     }
+
+    const firstSeated = seatedEntries[0];
+    const allSeats = seatedEntries.flatMap((e) => e.seats.map((s) => s.trim()).filter(Boolean));
 
     const updated: Ticket = {
       ...ticket,
@@ -152,22 +241,24 @@ function EditTicketPage() {
       priceFrom: Number(form.priceFrom) || 0,
       image: form.image.trim(),
       description: form.description.trim() || "No description provided.",
-      ticketType: form.ticketType.trim(),
-      section: form.section.trim(),
-      row: form.row.trim(),
-      entryInfo: form.entryInfo.trim(),
-      seats: seats.map((s) => s.trim()).filter(Boolean),
+      // Backwards-compat flat fields from first seated entry
+      ticketType: firstSeated?.ticketType?.trim() || "",
+      section: firstSeated?.section?.trim() || "",
+      row: firstSeated?.row?.trim() || "",
+      entryInfo: firstSeated?.entryInfo?.trim() || "",
+      seats: allSeats,
+      // New structured arrays
+      seatedTickets: seatedEntries.map((e) => ({
+        ...e,
+        seats: e.seats.map((s) => s.trim()).filter(Boolean),
+      })),
+      standardTickets: standardEntries,
     };
 
     if (user && user.sessionId && isTokenUser) {
       try {
         const res = await consumeTokenFn({
-          data: {
-            email: user.email,
-            sessionId: user.sessionId,
-            amount: 1,
-            action: 'edit a ticket',
-          }
+          data: { email: user.email, sessionId: user.sessionId, amount: 1, action: "edit a ticket" },
         });
         signIn({ ...user, tokensCount: res.tokensCount });
       } catch (err: any) {
@@ -201,7 +292,7 @@ function EditTicketPage() {
         </div>
 
         {/* Token Balance Banner (For Token Users) */}
-        {user?.userType === 'token' && (
+        {user?.userType === "token" && (
           <div className="mx-5 mt-4 p-3.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-950">
             <div className="flex items-center justify-between">
               <div>
@@ -332,109 +423,241 @@ function EditTicketPage() {
             </div>
           </div>
 
-          {/* Resell Ticket Details */}
+          {/* ── Ticket Type Panels ── */}
           <div className="space-y-4 pt-4 border-t border-zinc-100">
             <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/60">
-              Resell Ticket details
+              Tickets
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-zinc-700">Section (e.g. Floor A)</label>
-                <input
-                  type="text"
-                  placeholder="Floor A"
-                  value={form.section}
-                  onChange={(e) => setField("section", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-zinc-700">Row (e.g. 12)</label>
-                <input
-                  type="text"
-                  placeholder="12"
-                  value={form.row}
-                  onChange={(e) => setField("row", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-zinc-700">Ticket Type</label>
-                <input
-                  type="text"
-                  placeholder="Verified OnSale"
-                  value={form.ticketType}
-                  onChange={(e) => setField("ticketType", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-zinc-700">Entry Info (e.g. Gate 1)</label>
-                <input
-                  type="text"
-                  placeholder="Gate 1, Verizon Gate"
-                  value={form.entryInfo}
-                  onChange={(e) => setField("entryInfo", e.target.value)}
-                  className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
-                />
-              </div>
-            </div>
-
-            {/* Dynamic Seats */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-700">Seat Numbers</label>
-                <span className="text-[11px] text-zinc-500 font-semibold">{seats.length} of 8 seats</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {seats.map((seatVal, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder={`Seat ${idx + 1}`}
-                      value={seatVal}
-                      onChange={(e) => handleSeatChange(idx, e.target.value)}
-                      className="flex-1 h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-background text-black"
-                    />
-                    {seats.length > 1 && (
-                      <button
-                        onClick={() => handleRemoveSeat(idx)}
-                        className="text-zinc-400 hover:text-red-500 transition-colors p-1"
-                        aria-label="Remove seat"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {seats.length < 8 && (
+            {/* ── Seated Tickets Panel ── */}
+            <div className="border border-zinc-200 rounded-xl bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🪑</span>
+                  <span className="font-bold text-[15px] text-zinc-900">Seated tickets</span>
+                </div>
                 <button
                   type="button"
-                  onClick={handleAddSeat}
-                  className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-primary hover:opacity-85"
+                  onClick={addSeatedEntry}
+                  className="text-primary text-sm font-bold hover:opacity-75 transition-opacity"
                 >
-                  <Plus className="w-4 h-4" /> Add more seats
+                  Add seated ticket
                 </button>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium px-4 pt-2 pb-1">
+                {seatedEntries.reduce((n, e) => n + e.seats.length, 0)} in this cart · section, row &amp; seat
+              </p>
+
+              {seatedEntries.length === 0 ? (
+                <div className="mx-4 my-3 border border-dashed border-zinc-300 rounded-lg py-5 flex items-center justify-center">
+                  <p className="text-sm text-zinc-400 font-medium">No seated tickets yet.</p>
+                </div>
+              ) : (
+                <div className="px-4 pb-4 space-y-4 mt-2">
+                  {seatedEntries.map((entry, entryIdx) => (
+                    <div key={entry.id} className="border border-zinc-200 rounded-lg p-4 space-y-3 bg-zinc-50/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-zinc-800">
+                          Seated ticket {entryIdx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeSeatedEntry(entry.id)}
+                          className="text-sm font-bold text-red-500 hover:opacity-75 transition-opacity"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Section</label>
+                          <input
+                            type="text"
+                            placeholder="Floor A"
+                            value={entry.section}
+                            onChange={(e) => updateSeatedEntry(entry.id, "section", e.target.value)}
+                            className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Row</label>
+                          <input
+                            type="text"
+                            placeholder="12"
+                            value={entry.row}
+                            onChange={(e) => updateSeatedEntry(entry.id, "row", e.target.value)}
+                            className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Ticket Type</label>
+                        <input
+                          type="text"
+                          placeholder="Verified Fan Onsale"
+                          value={entry.ticketType}
+                          onChange={(e) => updateSeatedEntry(entry.id, "ticketType", e.target.value)}
+                          className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Entry Info</label>
+                        <input
+                          type="text"
+                          placeholder="Gate 1, Verizon Gate"
+                          value={entry.entryInfo}
+                          onChange={(e) => updateSeatedEntry(entry.id, "entryInfo", e.target.value)}
+                          className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black"
+                        />
+                      </div>
+
+                      {/* Seats */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Seat Numbers</label>
+                          <span className="text-[10px] text-zinc-400 font-semibold">{entry.seats.length} of 8</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {entry.seats.map((seatVal, seatIdx) => (
+                            <div key={seatIdx} className="flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                placeholder={`Seat ${seatIdx + 1}`}
+                                value={seatVal}
+                                onChange={(e) => updateSeatInEntry(entry.id, seatIdx, e.target.value)}
+                                className="flex-1 h-9 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black"
+                              />
+                              {entry.seats.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeSeatFromEntry(entry.id, seatIdx)}
+                                  className="text-zinc-400 hover:text-red-500 transition-colors p-1 shrink-0"
+                                  aria-label="Remove seat"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {entry.seats.length < 8 && (
+                          <button
+                            type="button"
+                            onClick={() => addSeatToEntry(entry.id)}
+                            className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-primary hover:opacity-80"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add seat
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ── Standard Tickets Panel ── */}
+            <div className="border border-zinc-200 rounded-xl bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🚶</span>
+                  <span className="font-bold text-[15px] text-zinc-900">Standard tickets</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={addStandardEntry}
+                  className="text-primary text-sm font-bold hover:opacity-75 transition-opacity"
+                >
+                  Add standard ticket
+                </button>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium px-4 pt-2 pb-1">
+                {standardEntries.length} in this cart · GA1, GA2, etc.
+              </p>
+
+              {standardEntries.length === 0 ? (
+                <div className="mx-4 my-3 border border-dashed border-zinc-300 rounded-lg py-5 flex items-center justify-center">
+                  <p className="text-sm text-zinc-400 font-medium">No standard tickets yet.</p>
+                </div>
+              ) : (
+                <div className="px-4 pb-4 space-y-4 mt-2">
+                  {standardEntries.map((entry, entryIdx) => (
+                    <div key={entry.id} className="border border-zinc-200 rounded-lg p-4 space-y-3 bg-zinc-50/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-zinc-800">
+                          Standard ticket {entryIdx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeStandardEntry(entry.id)}
+                          className="text-sm font-bold text-red-500 hover:opacity-75 transition-opacity"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Section</label>
+                        <input
+                          type="text"
+                          placeholder="GA1"
+                          value={entry.section}
+                          onChange={(e) => updateStandardEntry(entry.id, "section", e.target.value)}
+                          className="mt-1 w-full h-10 rounded-[4px] border border-foreground/20 px-3 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Ticket Type</label>
+                        <div className="relative mt-1">
+                          <select
+                            value={entry.ticketType}
+                            onChange={(e) => updateStandardEntry(entry.id, "ticketType", e.target.value)}
+                            className="w-full h-10 rounded-[4px] border border-foreground/20 pl-3 pr-8 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black appearance-none"
+                          >
+                            {TICKET_TYPE_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Presale / Sale Label</label>
+                        <div className="relative mt-1">
+                          <select
+                            value={entry.presaleLabel}
+                            onChange={(e) => updateStandardEntry(entry.id, "presaleLabel", e.target.value)}
+                            className="w-full h-10 rounded-[4px] border border-foreground/20 pl-3 pr-8 text-[16px] md:text-sm outline-none focus:border-primary bg-white text-black appearance-none"
+                          >
+                            {PRESALE_LABEL_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
 
-          {user?.userType === 'token' && (user?.tokensCount ?? 0) < 1 && (
+          {user?.userType === "token" && (user?.tokensCount ?? 0) < 1 && (
             <p className="text-xs text-destructive font-semibold text-center mb-2">
-              Insufficient tokens. You need at least 1 token to edit a ticket (Current balance: {user?.tokensCount ?? 0}).
+              Insufficient tokens. You need at least 1 token to edit a ticket (Current balance:{" "}
+              {user?.tokensCount ?? 0}).
             </p>
           )}
 
           <button
             onClick={handleSave}
-            disabled={saved || (user?.userType === 'token' && (user?.tokensCount ?? 0) < 1)}
+            disabled={saved || (user?.userType === "token" && (user?.tokensCount ?? 0) < 1)}
             className="w-full rounded-[4px] bg-primary text-primary-foreground text-sm font-semibold py-3.5 hover:bg-primary/95 disabled:opacity-60 transition-colors"
           >
             {saved ? "Saving changes..." : "Save Changes"}

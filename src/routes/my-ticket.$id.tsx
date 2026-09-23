@@ -14,7 +14,7 @@ import {
 import { useUser, signIn } from "@/lib/auth";
 import { useAllTickets } from "@/lib/ticket-store";
 import { useSettings } from "@/lib/settings-store";
-import type { Ticket } from "@/lib/tickets";
+import type { Ticket, StandardTicketEntry } from "@/lib/tickets";
 import { sendTransferEmailFn } from "../admin/functions";
 import { CachedMap } from "@/components/CachedMap";
 
@@ -103,7 +103,8 @@ function MyTicketDetail() {
     const scrollLeft = container.scrollLeft;
     const clientWidth = container.clientWidth;
     const newIdx = Math.round(scrollLeft / clientWidth);
-    if (newIdx !== activeBarcodeIdx && newIdx >= 0 && newIdx < seatRows.length) {
+    const totalSlides = seatRows.length + standardRows.length;
+    if (newIdx !== activeBarcodeIdx && newIdx >= 0 && newIdx < totalSlides) {
       setActiveBarcodeIdx(newIdx);
     }
   };
@@ -152,14 +153,34 @@ function MyTicketDetail() {
     if (ready && !user) navigate({ to: "/", replace: true });
   }, [ready, user, navigate]);
 
+  const standardRows: StandardTicketEntry[] = ticket?.standardTickets ?? [];
+
   const seats = useMemo(() => (ticket ? parseSeats(ticket) : []), [ticket]);
   const seatRows = useMemo(() => {
+    // Prefer structured seatedTickets entries (new format)
+    if (ticket?.seatedTickets !== undefined) {
+      return ticket.seatedTickets.flatMap((entry) =>
+        entry.seats.map((seatNum) => ({
+          section: entry.section || "GA",
+          row: entry.row || "",
+          seat: seatNum,
+          ticketType: entry.ticketType,
+          entryInfo: entry.entryInfo,
+        }))
+      );
+    }
     if (ticket && ticket.seats && ticket.seats.length > 0) {
       return ticket.seats.map((seatNum) => ({
         section: ticket.section || "GA",
         row: ticket.row || "",
         seat: seatNum,
+        ticketType: ticket.ticketType,
+        entryInfo: ticket.entryInfo,
       }));
+    }
+    // If ticket has standard tickets configured, don't generate dummy seated rows
+    if (standardRows.length > 0) {
+      return [];
     }
     const base = seats[0] ?? { section: "GA", row: "", seat: "1" };
     const baseSeat = Number(base.seat) || 1;
@@ -168,10 +189,12 @@ function MyTicketDetail() {
       section: base.section || "237",
       row: base.row || "10",
       seat: String(baseSeat + i),
+      ticketType: ticket?.ticketType,
+      entryInfo: ticket?.entryInfo,
     }));
-  }, [seats, ticket]);
+  }, [seats, ticket, standardRows]);
 
-  const qty = seatRows.length;
+  const qty = seatRows.length + standardRows.length;
 
   const orderId = useMemo(() => {
     if (!ticket) return "";
@@ -425,15 +448,29 @@ function MyTicketDetail() {
                 </div>
 
                 <div className="mt-4 space-y-4 relative">
-                  {seatRows.map((s, i) => (
-                    <SeatCard
-                      key={i}
-                      seat={s}
-                      ticketType={ticket.ticketType}
-                      entryInfo={ticket.entryInfo}
-                      ticketId={ticket.id}
-                    />
-                  ))}
+                  {/* Seated ticket cards */}
+                  {seatRows.length > 0 && (
+                    <div className="space-y-4">
+                      {seatRows.map((s, i) => (
+                        <SeatCard
+                          key={i}
+                          seat={s}
+                          ticketType={s.ticketType ?? ticket.ticketType}
+                          entryInfo={s.entryInfo ?? ticket.entryInfo}
+                          ticketId={ticket.id}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Standard (GA) ticket cards */}
+                  {standardRows.length > 0 && (
+                    <div className="space-y-4">
+                      {standardRows.map((std, i) => (
+                        <StandardTicketCard key={std.id ?? i} entry={std} />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* More options */}
@@ -985,8 +1022,9 @@ function MyTicketDetail() {
                   className="w-full flex flex-row overflow-x-auto snap-x snap-mandatory scrollbar-hide" 
                   style={{ scrollBehavior: "smooth" }}
                 >
+                  {/* Seated ticket barcode cards */}
                   {seatRows.map((s, idx) => (
-                    <div key={idx} className="snap-center shrink-0 w-full flex justify-center items-center px-4">
+                    <div key={`seated-${idx}`} className="snap-center shrink-0 w-full flex justify-center items-center px-4">
                       <div 
                         style={{ 
                           backgroundColor: "#ffffff", 
@@ -1095,13 +1133,98 @@ function MyTicketDetail() {
                           </div>
                         </div>
                         
-                        {/* General Admission Bar */}
+                        {/* Ticket type Bar */}
                         <div style={{ backgroundColor: "#ffffff" }} className="px-5 pb-6 select-none shrink-0">
                           <div style={{ backgroundColor: "#222222", color: "#ffffff" }} className="w-full py-4 text-center font-bold text-[14px] rounded-[4px] tracking-wide">
-                            General Admission Ticket
+                            {s.ticketType || ticket?.ticketType || "Seated Ticket"}
                           </div>
                         </div>
                         
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Standard (GA) ticket barcode cards */}
+                  {standardRows.map((std, idx) => (
+                    <div key={`std-${std.id ?? idx}`} className="snap-center shrink-0 w-full flex justify-center items-center px-4">
+                      <div 
+                        style={{ 
+                          backgroundColor: "#ffffff", 
+                          borderRadius: "12px", 
+                          overflow: "hidden", 
+                          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)", 
+                          display: "flex", 
+                          flexDirection: "column", 
+                          position: "relative", 
+                          userSelect: "none" 
+                        }} 
+                        className="w-full max-w-[425px]"
+                      >
+                        {/* Cover Image */}
+                        <div className="relative w-full h-[410px] bg-zinc-950 overflow-hidden shrink-0">
+                          <img src={ticket?.image || ""} className="w-full h-full object-cover" alt={ticket?.title || ""} />
+                          {/* Barcode badge */}
+                          <div 
+                            style={{ backgroundColor: "#ffffff", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", borderRadius: "8px" }} 
+                            className="absolute top-4 left-4 right-4 p-3.5 flex flex-col items-center z-20"
+                          >
+                            <div style={{ color: "#27272a" }} className="text-[11px] font-bold flex items-center justify-center gap-1.5 mb-2.5">
+                              Screenshots won't get you in
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); }}
+                                className="p-0.5 focus:outline-none text-zinc-500 hover:text-black shrink-0"
+                              >
+                                <RefreshCw className="h-3.5 w-3.5 text-zinc-800" />
+                              </button>
+                            </div>
+                            <div className="barcode-container relative w-full h-[58px] bg-white flex items-center justify-center overflow-hidden select-none">
+                              <div className="laser-line-scan"></div>
+                              <div className="flex h-full w-full items-center justify-between gap-[2px] px-2 select-none">
+                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
+                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[3px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
+                                <div style={{ backgroundColor: "#ffffff" }} className="w-[2px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[4px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[3px] h-full"></div>
+                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
+                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[3px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
+                                <div style={{ backgroundColor: "#ffffff" }} className="w-[1px] h-full"></div>
+                                <div style={{ backgroundColor: "#000000" }} className="w-[2px] h-full"></div>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Event title */}
+                          <div style={{ backgroundColor: "#ffffff", color: "#000000" }} className="absolute bottom-0 left-0 py-3.5 pl-4 pr-7 max-w-[75%] font-black uppercase text-[15px] leading-tight font-outfit select-none z-10">
+                            {ticket?.title || ""}
+                          </div>
+                        </div>
+                        {/* Section + type info */}
+                        <div style={{ backgroundColor: "#ffffff" }} className="grid grid-cols-2 text-center py-6 px-4 select-none shrink-0">
+                          <div className="flex flex-col items-center">
+                            <span style={{ color: "#71717a" }} className="font-bold uppercase tracking-wider text-[11px]">SECTION</span>
+                            <span style={{ color: "#000000" }} className="font-black text-[21px] leading-none mt-1.5 font-outfit">{std.section || "GA"}</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span style={{ color: "#71717a" }} className="font-bold uppercase tracking-wider text-[11px]">TYPE</span>
+                            <span style={{ color: "#000000" }} className="font-black text-[16px] leading-none mt-1.5 font-outfit uppercase">{std.ticketType}</span>
+                          </div>
+                        </div>
+                        {/* Presale label bar */}
+                        <div style={{ backgroundColor: "#ffffff" }} className="px-5 pb-6 select-none shrink-0">
+                          <div style={{ backgroundColor: "#222222", color: "#ffffff" }} className="w-full py-4 text-center font-bold text-[14px] rounded-[4px] tracking-wide">
+                            {std.presaleLabel || "General Sale"}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1109,7 +1232,7 @@ function MyTicketDetail() {
                 
                 {/* Dot Indicators */}
                 <div className="flex justify-center items-center gap-2 mt-5 shrink-0">
-                  {seatRows.map((_, idx) => (
+                  {[...seatRows, ...standardRows].map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => scrollToBarcodeSeat(idx)}
@@ -1227,6 +1350,30 @@ function SeatCell({
     </div>
   );
 }
+
+function StandardTicketCard({ entry }: { entry: StandardTicketEntry }) {
+  return (
+    <div className="flex flex-col gap-[2px] w-full select-none">
+      <div className="bg-[#eaeaea] px-5 py-[14.5px] rounded-none flex items-center justify-between">
+        <span className="font-bold text-[14px] text-black">Standard Ticket</span>
+        <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+          {entry.presaleLabel}
+        </span>
+      </div>
+      <div className="bg-[#eaeaea] px-5 py-[14.5px] rounded-none grid grid-cols-2 gap-2">
+        <div className="text-left">
+          <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">SECTION</p>
+          <p className="text-[20px] font-bold text-black mt-0.5 leading-none">{entry.section || "GA"}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">TYPE</p>
+          <p className="text-[14px] font-bold text-black mt-0.5 leading-tight uppercase">{entry.ticketType}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function ActionPopover({
   onTransfer,

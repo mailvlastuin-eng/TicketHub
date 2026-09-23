@@ -5,6 +5,22 @@ import rock from "@/assets/event-rock.jpg";
 import comedy from "@/assets/event-comedy.jpg";
 import edm from "@/assets/event-edm.jpg";
 
+export type StandardTicketEntry = {
+  id: string;
+  section: string;
+  ticketType: string;
+  presaleLabel: string;
+};
+
+export type SeatedTicketEntry = {
+  id: string;
+  section: string;
+  row: string;
+  ticketType: string;
+  entryInfo: string;
+  seats: string[];
+};
+
 export type Ticket = {
   id: string;
   title: string;
@@ -22,6 +38,10 @@ export type Ticket = {
   row?: string;
   entryInfo?: string;
   seats?: string[];
+  /** Structured seated ticket entries (replaces flat section/row/seats for new tickets) */
+  seatedTickets?: SeatedTicketEntry[];
+  /** Standard (GA-style) ticket entries */
+  standardTickets?: StandardTicketEntry[];
 };
 
 export const tickets: Ticket[] = [
