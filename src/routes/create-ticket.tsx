@@ -16,6 +16,26 @@ export const Route = createFileRoute("/create-ticket")({
   validateSearch: (search: Record<string, unknown>) => ({
     eventId: search.eventId ? String(search.eventId) : undefined,
   }),
+  errorComponent: ({ error, reset }) => (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+      <h2 className="text-xl font-bold mb-2 text-foreground">Failed to load Create Event</h2>
+      <p className="text-sm text-muted-foreground mb-6 max-w-sm">{error?.message || "An unexpected error occurred."}</p>
+      <div className="flex gap-3">
+        <button
+          onClick={() => reset()}
+          className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg text-sm font-semibold transition-colors"
+        >
+          Try Again
+        </button>
+        <Link
+          to="/"
+          className="px-4 py-2 border border-input bg-background hover:bg-accent text-foreground rounded-lg text-sm font-semibold transition-colors"
+        >
+          Go Home
+        </Link>
+      </div>
+    </div>
+  ),
   component: CreateTicketSearchPage,
 });
 
@@ -223,7 +243,20 @@ function CreateTicketSearchPage() {
     };
   }, [query]);
 
-  if (!ready || !user) return null;
+  // Auto-resolve venue seat map directly from Ticketmaster API if venue typed manually
+  useEffect(() => {
+    if (!form.venue.trim() || form.seatMapUrl) return;
+    const timer = setTimeout(() => {
+      getTMVenueSeatMap({ data: { venueName: form.venue, city: form.city } })
+        .then((res) => {
+          if (res?.seatMapUrl) {
+            setForm((f) => ({ ...f, seatMapUrl: res.seatMapUrl }));
+          }
+        })
+        .catch(() => {});
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [form.venue, form.city, form.seatMapUrl]);
 
   // Load details of selected event from API
   const handleSelectEvent = async (tmId: string) => {
@@ -262,21 +295,6 @@ function CreateTicketSearchPage() {
       setLoading(false);
     }
   };
-
-  // Auto-resolve venue seat map directly from Ticketmaster API if venue typed manually
-  useEffect(() => {
-    if (!form.venue.trim() || form.seatMapUrl) return;
-    const timer = setTimeout(() => {
-      getTMVenueSeatMap({ data: { venueName: form.venue, city: form.city } })
-        .then((res) => {
-          if (res?.seatMapUrl) {
-            setForm((f) => ({ ...f, seatMapUrl: res.seatMapUrl }));
-          }
-        })
-        .catch(() => {});
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [form.venue, form.city, form.seatMapUrl]);
 
   const setField = <K extends keyof FormFields>(k: K, v: FormFields[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -445,7 +463,17 @@ function CreateTicketSearchPage() {
     }, 1500);
   };
 
-  const totalTicketCount = seatedEntries.reduce((n, e) => n + e.seats.length, 0) + standardEntries.length;
+  const totalTicketCount =
+    (seatedEntries || []).reduce((n, e) => n + (e?.seats?.length || 0), 0) +
+    (standardEntries?.length || 0);
+
+  if (!ready || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background pb-24">

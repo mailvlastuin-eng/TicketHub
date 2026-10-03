@@ -342,7 +342,7 @@ export function AdminDashboardApp() {
   };
 
   const parseDeviceInfo = (deviceInfoStr: string | null) => {
-    if (!deviceInfoStr) return { device: '', transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token', username: '' };
+    if (!deviceInfoStr) return { device: '', transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token', username: '', acceptedTransfers: [] as any[] };
     if (deviceInfoStr.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(deviceInfoStr);
@@ -357,10 +357,11 @@ export function AdminDashboardApp() {
           tokensCount: typeof parsed.tokensCount === 'number' ? parsed.tokensCount : 0,
           userType: (parsed.userType === 'token' ? 'token' : 'payment') as 'payment' | 'token',
           username: parsed.username || '',
+          acceptedTransfers: Array.isArray(parsed.acceptedTransfers) ? parsed.acceptedTransfers : [],
         };
       } catch (e) {}
     }
-    return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token', username: '' };
+    return { device: deviceInfoStr, transfersCount: 0, ticketsCount: 0, ticketSlots: 20, ticketsCreatedCount: 0, tokensCount: 0, userType: 'payment' as 'payment' | 'token', username: '', acceptedTransfers: [] as any[] };
   };
 
   // Filters & Sorting for Access Keys

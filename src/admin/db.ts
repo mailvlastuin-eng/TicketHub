@@ -12,6 +12,7 @@ export interface UserAccess {
   loginMode?: 'single' | 'multiple' | 'token';
   userType?: 'payment' | 'token';
   username?: string;
+  name?: string;
 }
 
 export interface LoginAttempt {
