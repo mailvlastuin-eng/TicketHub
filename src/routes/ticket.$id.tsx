@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Clock, MapPin, Ticket as TicketIcon } from "lucide
 import { Button } from "@/components/ui/button";
 import { useAllTickets } from "@/lib/ticket-store";
 import { useUser } from "@/lib/auth";
+import { SeatMapViewer } from "@/components/SeatMapViewer";
 
 export const Route = createFileRoute("/ticket/$id")({
   head: () => ({
@@ -89,6 +90,17 @@ function TicketDetail() {
           <div>
             <h2 className="text-lg font-semibold mb-2">About this event</h2>
             <p className="text-muted-foreground leading-relaxed">{ticket.description}</p>
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Seat Map</h2>
+            <p className="text-sm text-muted-foreground mb-3">Venue seating layout for {ticket.venue}</p>
+            <div className="rounded-lg overflow-hidden border border-border">
+              <SeatMapViewer
+                seatMapUrl={ticket.seatMapUrl}
+                sections={ticket.section ? [ticket.section] : []}
+              />
+            </div>
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import { addCustomTicket } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { toast } from "sonner";
 import { incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
+import { SeatMapViewer } from "@/components/SeatMapViewer";
 
 export const Route = createFileRoute("/create-ticket/$tmId")({
   head: () => ({ meta: [{ title: "Create Ticket — TicketHub" }] }),
@@ -42,6 +43,7 @@ type FormFields = {
   currency: string;
   description: string;
   image: string;
+  seatMapUrl: string;
 };
 
 function toForm(e: TMEventDetail): FormFields {
@@ -59,6 +61,7 @@ function toForm(e: TMEventDetail): FormFields {
     currency: e.currency,
     description: e.description,
     image: e.image,
+    seatMapUrl: e.seatMapUrl || "",
   };
 }
 
@@ -138,6 +141,7 @@ function CreateTicketPage() {
       priceFrom: Number(form.priceFrom) || 0,
       image: form.image.trim() || "",
       description: desc,
+      seatMapUrl: form.seatMapUrl || undefined,
     };
 
     if (user && user.sessionId) {
@@ -236,6 +240,17 @@ function CreateTicketPage() {
                 <Field label="Row" value={form.row} onChange={(v) => set("row", v)} placeholder="12" />
                 <Field label="Seat" value={form.seat} onChange={(v) => set("seat", v)} placeholder="7" />
               </div>
+            </div>
+
+            <div className="pt-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-foreground/60 mb-2">
+                Seat Map
+              </p>
+              <SeatMapViewer
+                seatMapUrl={form.seatMapUrl}
+                sections={form.section ? [form.section] : []}
+                compact
+              />
             </div>
 
             <Field label="Image URL" value={form.image} onChange={(v) => set("image", v)} />
