@@ -19,6 +19,7 @@ export type TMEventDetail = TMEventSummary & {
   seat: string;
   currency: string;
   url: string;
+  seatMapUrl: string;
 };
 
 const BASE = "https://app.ticketmaster.com/discovery/v2";
@@ -73,7 +74,8 @@ export const getTMEvent = createServerFn({ method: "GET" })
     if (!res.ok) throw new Error(`Ticketmaster ${res.status}`);
     const e: any = await res.json();
     const base = mapSummary(e);
-    const seatmapNote = e?.seatmap?.staticUrl ? "See official seatmap for section details." : "";
+    const seatMapUrl: string = e?.seatmap?.staticUrl ?? "";
+    const seatmapNote = seatMapUrl ? "See official seatmap for section details." : "";
     const info = [e?.info, e?.pleaseNote, seatmapNote].filter(Boolean).join("\n\n");
     return {
       ...base,
@@ -83,6 +85,7 @@ export const getTMEvent = createServerFn({ method: "GET" })
       seat: "",
       currency: e?.priceRanges?.[0]?.currency ?? "USD",
       url: e?.url ?? "",
+      seatMapUrl,
     };
   });
 

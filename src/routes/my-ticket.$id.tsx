@@ -17,6 +17,8 @@ import { useSettings } from "@/lib/settings-store";
 import type { Ticket, StandardTicketEntry } from "@/lib/tickets";
 import { sendTransferEmailFn } from "../admin/functions";
 import { CachedMap } from "@/components/CachedMap";
+import { SeatMapViewer } from "@/components/SeatMapViewer";
+import { SeatPickerDrawer } from "@/components/SeatPickerDrawer";
 
 export const Route = createFileRoute("/my-ticket/$id")({
   head: () => ({ meta: [{ title: "Ticket — TicketHub" }] }),
@@ -87,6 +89,8 @@ function MyTicketDetail() {
   const [showResaleModal, setShowResaleModal] = useState(false);
   const [activeBarcodeIdx, setActiveBarcodeIdx] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [showSeatPicker, setShowSeatPicker] = useState(false);
+  const [seatPickerSelection, setSeatPickerSelection] = useState<string[]>([]);
 
   useEffect(() => {
     if (transferStep === "none") {
@@ -516,6 +520,32 @@ function MyTicketDetail() {
                       Get Directions
                     </div>
                   </a>
+                </div>
+
+                <div className="mt-6">
+                  <p className="text-sm font-bold tracking-wide">SEAT MAP</p>
+                  <p className="text-xs text-foreground/50 mt-0.5">Venue layout for this event</p>
+                  <div className="mt-3 rounded overflow-hidden border border-foreground/10">
+                    <SeatMapViewer
+                      seatMapUrl={ticket.seatMapUrl}
+                      sections={seatRows.map((s) => s.section)}
+                      onSectionClick={() => {
+                        setSeatPickerSelection(selectedSeats);
+                        setShowSeatPicker(true);
+                      }}
+                    />
+                  </div>
+                  {seatRows.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setSeatPickerSelection(selectedSeats);
+                        setShowSeatPicker(true);
+                      }}
+                      className="mt-2 w-full h-10 rounded border border-[#1A56DB] text-[#1A56DB] text-sm font-bold hover:bg-blue-50 transition-colors"
+                    >
+                      View &amp; Select Seats
+                    </button>
+                  )}
                 </div>
 
                 {related[0] && (
@@ -982,6 +1012,28 @@ function MyTicketDetail() {
           </div>
         </>
       )}
+
+      {/* Seat Picker Drawer */}
+      <SeatPickerDrawer
+        isOpen={showSeatPicker}
+        onClose={() => setShowSeatPicker(false)}
+        seatedTickets={ticket.seatedTickets ?? seatRows.map((s) => ({
+          id: s.seat,
+          section: s.section,
+          row: s.row,
+          ticketType: s.ticketType ?? "",
+          entryInfo: s.entryInfo ?? "",
+          seats: [s.seat],
+        }))}
+        seatMapUrl={ticket.seatMapUrl}
+        selectedSeats={seatPickerSelection}
+        onSelectionChange={setSeatPickerSelection}
+        onConfirm={(seats) => {
+          setSelectedSeats(seats);
+          setShowSeatPicker(false);
+          showToast(`${seats.length} seat${seats.length !== 1 ? "s" : ""} selected`);
+        }}
+      />
 
       {showBarcodeModal && mounted && typeof window !== "undefined" && createPortal(
         <>

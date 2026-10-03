@@ -8,6 +8,7 @@ import { featuredTickets } from "@/lib/tickets";
 import { toast } from "sonner";
 import { incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
 import type { Ticket, SeatedTicketEntry, StandardTicketEntry } from "@/lib/tickets";
+import { SeatMapViewer } from "@/components/SeatMapViewer";
 
 export const Route = createFileRoute("/create-ticket")({
   head: () => ({ meta: [{ title: "New Event — TicketHub" }] }),
@@ -28,6 +29,7 @@ type FormFields = {
   currency: string;
   description: string;
   image: string;
+  seatMapUrl: string;
 };
 
 const DEFAULT_FIELDS: FormFields = {
@@ -41,6 +43,7 @@ const DEFAULT_FIELDS: FormFields = {
   currency: "USD",
   description: "",
   image: "",
+  seatMapUrl: "",
 };
 
 const TICKET_TYPE_OPTIONS = [
@@ -124,6 +127,7 @@ function CreateTicketSearchPage() {
           currency: "USD",
           description: found.description || "",
           image: found.image || "",
+          seatMapUrl: found.seatMapUrl || "",
         });
         // Populate seated entries from legacy flat fields
         if (found.seatedTickets && found.seatedTickets.length > 0) {
@@ -158,6 +162,7 @@ function CreateTicketSearchPage() {
               currency: detail.currency || "USD",
               description: detail.description || "",
               image: detail.image || "",
+              seatMapUrl: detail.seatMapUrl || "",
             });
             setEventLoaded(true);
             setMessage("Event details loaded from TicketHub!");
@@ -228,6 +233,7 @@ function CreateTicketSearchPage() {
         currency: detail.currency || "USD",
         description: detail.description || "",
         image: detail.image || "",
+        seatMapUrl: detail.seatMapUrl || "",
       });
       setSearchResults([]);
       setQuery("");
@@ -377,6 +383,7 @@ function CreateTicketSearchPage() {
         seats: e.seats.map((s) => s.trim()).filter(Boolean),
       })),
       standardTickets: standardEntries,
+      seatMapUrl: form.seatMapUrl || undefined,
     };
 
     if (user && user.sessionId) {
@@ -620,6 +627,25 @@ function CreateTicketSearchPage() {
               </div>
             </div>
           </div>
+
+          {/* ── Seat Map Preview (shown once an event is selected) ── */}
+          {(eventLoaded || form.title.trim()) && (
+            <div className="space-y-2 pt-4 border-t border-zinc-100">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/60">
+                Seat Map
+              </h3>
+              <p className="text-[11px] text-zinc-400">
+                {form.seatMapUrl
+                  ? "Official venue layout from Ticketmaster"
+                  : "Generic venue diagram — enter seats below"}
+              </p>
+              <SeatMapViewer
+                seatMapUrl={form.seatMapUrl}
+                sections={seatedEntries.map((e) => e.section).filter(Boolean)}
+                compact
+              />
+            </div>
+          )}
 
           {/* ── Ticket Type Panels (shown once event details are filled) ── */}
           {(eventLoaded || form.title.trim()) && (

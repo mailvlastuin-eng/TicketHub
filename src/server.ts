@@ -3,6 +3,8 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { checkRateLimit, RATE_LIMITS } from "./lib/rate-limiter";
+import { sendEmail, compileAcceptanceEmailHtml, compileBuyerAcceptanceEmailHtml } from "./admin/email";
+import { getUserByEmail, saveUser } from "./admin/db";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -159,10 +161,57 @@ async function handleMapsProxy(request: Request): Promise<Response> {
 }
 
 // ---------------------------------------------------------------------------
-// /api/accept-transfer handler
+// Ticketmaster Seat Map image proxy
+// Proxies the static seatmap image URL from Ticketmaster to avoid CORS issues
+// and to keep external URLs out of the client. Cached aggressively (24h).
 // ---------------------------------------------------------------------------
-import { sendEmail, compileAcceptanceEmailHtml, compileBuyerAcceptanceEmailHtml } from "./admin/email";
-import { getUserByEmail, saveUser } from "./admin/db";
+async function handleSeatMapProxy(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const tmUrl = url.searchParams.get("url") ?? "";
+
+  if (!tmUrl) {
+    return new Response("Missing url parameter", { status: 400 });
+  }
+
+  // Validate it is a Ticketmaster or Ticketweb URL to prevent SSRF
+  let parsed: URL;
+  try {
+    parsed = new URL(tmUrl);
+  } catch {
+    return new Response("Invalid url", { status: 400 });
+  }
+
+  const allowed = [
+    "ticketmaster.com",
+    "ticketweb.com",
+    "livenation.com",
+    "universe.com",
+  ];
+  const isAllowed = allowed.some(
+    (host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`)
+  );
+  if (!isAllowed) {
+    return new Response("URL not allowed", { status: 403 });
+  }
+
+  try {
+    const upstream = await fetch(tmUrl);
+    if (!upstream.ok) {
+      return new Response("Seat map unavailable", { status: 503 });
+    }
+    return new Response(upstream.body, {
+      status: 200,
+      headers: {
+        "Content-Type": upstream.headers.get("Content-Type") ?? "image/png",
+        // Cache for 24 hours — seat maps don't change often
+        "Cache-Control": "public, max-age=86400, s-maxage=86400",
+      },
+    });
+  } catch (err) {
+    console.error("Seat map proxy error:", err);
+    return new Response("Seat map unavailable", { status: 503 });
+  }
+}
 
 async function handleAcceptTransfer(request: Request): Promise<Response> {
   const requestOrigin = request.headers.get("origin");
@@ -334,6 +383,12 @@ export default {
       // Route: Google Maps image proxy (key never leaves the server)
       if (url.pathname === "/api/maps-proxy") {
         const res = await handleMapsProxy(request);
+        return withSecurityHeaders(res);
+      }
+
+      // Route: Ticketmaster seat map image proxy (avoids CORS, caches images)
+      if (url.pathname === "/api/seatmap-proxy") {
+        const res = await handleSeatMapProxy(request);
         return withSecurityHeaders(res);
       }
 

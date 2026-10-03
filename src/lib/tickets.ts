@@ -38,6 +38,8 @@ export type Ticket = {
   row?: string;
   entryInfo?: string;
   seats?: string[];
+  /** Static seat map image URL from Ticketmaster (proxied via /api/seatmap-proxy) */
+  seatMapUrl?: string;
   /** Structured seated ticket entries (replaces flat section/row/seats for new tickets) */
   seatedTickets?: SeatedTicketEntry[];
   /** Standard (GA-style) ticket entries */
