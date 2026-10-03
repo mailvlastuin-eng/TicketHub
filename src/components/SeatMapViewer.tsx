@@ -526,41 +526,6 @@ export function SeatMapViewer({
       <div
         className={`relative ${height} w-full overflow-hidden rounded-lg bg-white border border-zinc-200 select-none`}
       >
-        {/* Zoom controls */}
-        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-          <button
-            onClick={() => setZoom((z) => Math.min(z + 0.25, 2.5))}
-            className="w-7 h-7 rounded bg-white/95 border border-zinc-200 text-zinc-700 flex items-center justify-center hover:bg-zinc-50 shadow-sm transition-colors cursor-pointer"
-            aria-label="Zoom in"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(z - 0.25, 0.6))}
-            className="w-7 h-7 rounded bg-white/95 border border-zinc-200 text-zinc-700 flex items-center justify-center hover:bg-zinc-50 shadow-sm transition-colors cursor-pointer"
-            aria-label="Zoom out"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </button>
-          {zoom !== 1 && (
-            <button
-              onClick={() => setZoom(1)}
-              className="w-7 h-7 rounded bg-white/95 border border-zinc-200 text-zinc-700 flex items-center justify-center hover:bg-zinc-50 shadow-sm transition-colors cursor-pointer"
-              aria-label="Reset zoom"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        {/* Venue Type & Source Badge */}
-        <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded bg-white/90 backdrop-blur-sm border border-zinc-200/80 shadow-xs">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#1565C0]" />
-          <span className="text-[10px] font-semibold text-zinc-700">
-            {showTmImage ? "Official Ticketmaster Map" : venueTypeLabels[venueType]}
-          </span>
-        </div>
-
         {/* Viewport Canvas */}
         <div
           className="w-full h-full flex items-center justify-center transition-transform duration-200"

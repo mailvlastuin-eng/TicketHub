@@ -12,10 +12,11 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useUser, signIn } from "@/lib/auth";
-import { useAllTickets } from "@/lib/ticket-store";
+import { useAllTickets, updateCustomTicket } from "@/lib/ticket-store";
 import { useSettings } from "@/lib/settings-store";
 import type { Ticket, StandardTicketEntry } from "@/lib/tickets";
 import { sendTransferEmailFn } from "../admin/functions";
+import { getTMVenueSeatMap } from "@/lib/ticketmaster.functions";
 import { CachedMap } from "@/components/CachedMap";
 import { SeatMapViewer } from "@/components/SeatMapViewer";
 import { SeatPickerDrawer } from "@/components/SeatPickerDrawer";
@@ -91,6 +92,26 @@ function MyTicketDetail() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [showSeatPicker, setShowSeatPicker] = useState(false);
   const [seatPickerSelection, setSeatPickerSelection] = useState<string[]>([]);
+  const [resolvedSeatMapUrl, setResolvedSeatMapUrl] = useState<string>("");
+
+  // Dynamically resolve Ticketmaster stadium seat map if ticket lacks a static map URL
+  useEffect(() => {
+    if (!ticket) return;
+    if (ticket.seatMapUrl) {
+      setResolvedSeatMapUrl(ticket.seatMapUrl);
+      return;
+    }
+    if (ticket.venue) {
+      getTMVenueSeatMap({ data: { venueName: ticket.venue, city: ticket.city } })
+        .then((res) => {
+          if (res?.seatMapUrl) {
+            setResolvedSeatMapUrl(res.seatMapUrl);
+            updateCustomTicket({ ...ticket, seatMapUrl: res.seatMapUrl });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [ticket?.id, ticket?.seatMapUrl, ticket?.venue, ticket?.city]);
 
   useEffect(() => {
     if (transferStep === "none") {
@@ -528,7 +549,7 @@ function MyTicketDetail() {
                     <p className="text-xs text-foreground/50 mt-0.5">Venue layout for this event</p>
                     <div className="mt-3 rounded overflow-hidden border border-foreground/10">
                       <SeatMapViewer
-                        seatMapUrl={ticket.seatMapUrl}
+                        seatMapUrl={resolvedSeatMapUrl || ticket.seatMapUrl}
                         venueName={ticket.venue}
                         category={ticket.category}
                         sections={seatRows.map((s) => s.section)}
@@ -1029,7 +1050,7 @@ function MyTicketDetail() {
           entryInfo: s.entryInfo ?? "",
           seats: [s.seat],
         }))}
-        seatMapUrl={ticket.seatMapUrl}
+        seatMapUrl={resolvedSeatMapUrl || ticket.seatMapUrl}
         venueName={ticket.venue}
         category={ticket.category}
         selectedSeats={seatPickerSelection}

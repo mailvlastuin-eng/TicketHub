@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Search, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useUser, signIn } from "@/lib/auth";
-import { searchTMEvents, getTMEvent, type TMEventSummary } from "@/lib/ticketmaster.functions";
+import { searchTMEvents, getTMEvent, getTMVenueSeatMap, type TMEventSummary } from "@/lib/ticketmaster.functions";
 import { addCustomTicket, useAllTickets } from "@/lib/ticket-store";
 import { featuredTickets } from "@/lib/tickets";
 import { toast } from "sonner";
@@ -152,7 +152,14 @@ function CreateTicketSearchPage() {
         setLoading(true);
         setError(null);
         getTMEvent({ data: { id: eventId } })
-          .then((detail) => {
+          .then(async (detail) => {
+            let seatMap = detail.seatMapUrl || "";
+            if (!seatMap && detail.venue) {
+              try {
+                const vm = await getTMVenueSeatMap({ data: { venueName: detail.venue, city: detail.city } });
+                if (vm?.seatMapUrl) seatMap = vm.seatMapUrl;
+              } catch {}
+            }
             setForm({
               title: detail.name || "",
               category: detail.category || "Event",
@@ -164,7 +171,7 @@ function CreateTicketSearchPage() {
               currency: detail.currency || "USD",
               description: detail.description || "",
               image: detail.image || "",
-              seatMapUrl: detail.seatMapUrl || "",
+              seatMapUrl: seatMap,
             });
             setEventLoaded(true);
             setMessage("Event details loaded from TicketHub!");
@@ -224,6 +231,13 @@ function CreateTicketSearchPage() {
     setError(null);
     try {
       const detail = await getTMEvent({ data: { id: tmId } });
+      let seatMap = detail.seatMapUrl || "";
+      if (!seatMap && detail.venue) {
+        try {
+          const vm = await getTMVenueSeatMap({ data: { venueName: detail.venue, city: detail.city } });
+          if (vm?.seatMapUrl) seatMap = vm.seatMapUrl;
+        } catch {}
+      }
       setForm({
         title: detail.name || "",
         category: detail.category || "Event",
@@ -235,7 +249,7 @@ function CreateTicketSearchPage() {
         currency: detail.currency || "USD",
         description: detail.description || "",
         image: detail.image || "",
-        seatMapUrl: detail.seatMapUrl || "",
+        seatMapUrl: seatMap,
       });
       setSearchResults([]);
       setQuery("");
@@ -248,6 +262,21 @@ function CreateTicketSearchPage() {
       setLoading(false);
     }
   };
+
+  // Auto-resolve venue seat map directly from Ticketmaster API if venue typed manually
+  useEffect(() => {
+    if (!form.venue.trim() || form.seatMapUrl) return;
+    const timer = setTimeout(() => {
+      getTMVenueSeatMap({ data: { venueName: form.venue, city: form.city } })
+        .then((res) => {
+          if (res?.seatMapUrl) {
+            setForm((f) => ({ ...f, seatMapUrl: res.seatMapUrl }));
+          }
+        })
+        .catch(() => {});
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [form.venue, form.city, form.seatMapUrl]);
 
   const setField = <K extends keyof FormFields>(k: K, v: FormFields[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));

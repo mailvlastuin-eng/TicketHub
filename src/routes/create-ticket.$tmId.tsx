@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useUser, signIn } from "@/lib/auth";
-import { getTMEvent, type TMEventDetail } from "@/lib/ticketmaster.functions";
+import { getTMEvent, getTMVenueSeatMap, type TMEventDetail } from "@/lib/ticketmaster.functions";
 import { addCustomTicket } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { toast } from "sonner";
@@ -84,8 +84,15 @@ function CreateTicketPage() {
     let cancelled = false;
     setLoading(true);
     getTMEvent({ data: { id: tmId } })
-      .then((e) => {
-        if (!cancelled) setForm(toForm(e));
+      .then(async (e) => {
+        let seatMap = e.seatMapUrl || "";
+        if (!seatMap && e.venue) {
+          try {
+            const vm = await getTMVenueSeatMap({ data: { venueName: e.venue, city: e.city } });
+            if (vm?.seatMapUrl) seatMap = vm.seatMapUrl;
+          } catch {}
+        }
+        if (!cancelled) setForm({ ...toForm(e), seatMapUrl: seatMap });
       })
       .catch((err) => {
         if (!cancelled) setError(err?.message ?? "Failed to load event");

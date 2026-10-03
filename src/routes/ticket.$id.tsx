@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAllTickets } from "@/lib/ticket-store";
 import { useUser } from "@/lib/auth";
 import { useSettings } from "@/lib/settings-store";
+import { getTMVenueSeatMap } from "@/lib/ticketmaster.functions";
 import { SeatMapViewer } from "@/components/SeatMapViewer";
 
 export const Route = createFileRoute("/ticket/$id")({
@@ -38,6 +39,22 @@ function TicketDetail() {
   const { settings } = useSettings();
   const [qty, setQty] = useState(1);
   const [purchased, setPurchased] = useState(false);
+  const [resolvedSeatMapUrl, setResolvedSeatMapUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (!ticket) return;
+    if (ticket.seatMapUrl) {
+      setResolvedSeatMapUrl(ticket.seatMapUrl);
+      return;
+    }
+    if (ticket.venue) {
+      getTMVenueSeatMap({ data: { venueName: ticket.venue, city: ticket.city } })
+        .then((res) => {
+          if (res?.seatMapUrl) setResolvedSeatMapUrl(res.seatMapUrl);
+        })
+        .catch(() => {});
+    }
+  }, [ticket?.id, ticket?.seatMapUrl, ticket?.venue, ticket?.city]);
 
   useEffect(() => {
     if (ready && !user) navigate({ to: "/", replace: true });
@@ -100,7 +117,7 @@ function TicketDetail() {
               <p className="text-sm text-muted-foreground mb-3">Venue seating layout for {ticket.venue}</p>
               <div className="rounded-lg overflow-hidden border border-border">
                 <SeatMapViewer
-                  seatMapUrl={ticket.seatMapUrl}
+                  seatMapUrl={resolvedSeatMapUrl || ticket.seatMapUrl}
                   venueName={ticket.venue}
                   category={ticket.category}
                   sections={ticket.section ? [ticket.section] : []}
