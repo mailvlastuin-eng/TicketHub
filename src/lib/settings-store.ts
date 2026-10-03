@@ -17,6 +17,7 @@ export type AppSettings = {
   sellBtn: string;
   sellTab: string;
   tt: string;
+  seatMapView?: string;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -30,6 +31,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dark: "No",
   transferBtn: "Show",
   mapView: "Yes",
+  seatMapView: "Yes",
   orderBtn: "Show",
   barcode: "Show",
   ticketBar: "Show",

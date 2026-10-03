@@ -53,6 +53,7 @@ type FormState = {
   sellBtn: string;
   sellTab: string;
   tt: string;
+  seatMapView: string;
   eventTitle: string;
   category: string;
   venue: string;
@@ -81,6 +82,7 @@ const DEFAULTS: FormState = {
   sellBtn: "Fade",
   sellTab: "Hide",
   tt: "Yes",
+  seatMapView: "Yes",
   eventTitle: "",
   category: "",
   venue: "",
@@ -258,7 +260,7 @@ function FavoritesPage() {
   const handleUpdate = async () => {
     setIsUpdating(true);
     playSoftSound();
-    updateSettings({ name: form.name, virtualMail: form.virtualMail, cityState: form.cityState, country: form.country, currency: form.currency, gaDesign: form.gaDesign, mailDesign: form.mailDesign, dark: form.dark, transferBtn: form.transferBtn, mapView: form.mapView, orderBtn: form.orderBtn, barcode: form.barcode, ticketBar: form.ticketBar, sellBtn: form.sellBtn, sellTab: form.sellTab, tt: form.tt });
+    updateSettings({ name: form.name, virtualMail: form.virtualMail, cityState: form.cityState, country: form.country, currency: form.currency, gaDesign: form.gaDesign, mailDesign: form.mailDesign, dark: form.dark, transferBtn: form.transferBtn, mapView: form.mapView, seatMapView: form.seatMapView, orderBtn: form.orderBtn, barcode: form.barcode, ticketBar: form.ticketBar, sellBtn: form.sellBtn, sellTab: form.sellTab, tt: form.tt });
     if (user) {
       signIn({ ...user, name: form.name });
       try { await updateUserProfileFn({ data: { email: user.email, name: form.name } }); }
@@ -491,6 +493,9 @@ function FavoritesPage() {
                     <Field label="Barcode" value={form.barcode} onChange={(v) => set("barcode", v)} options={SHOW_OPTS} />
                     <Field label="Ticket Bar" value={form.ticketBar} onChange={(v) => set("ticketBar", v)} options={SHOW_OPTS} />
                     <Field label="Sell Tab" value={form.sellTab} onChange={(v) => set("sellTab", v)} options={SHOW_OPTS} />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mt-3">
+                    <Field label="Seat Map" value={form.seatMapView} onChange={(v) => set("seatMapView", v)} options={YESNO_OPTS} />
                   </div>
                 </div>
                 <button

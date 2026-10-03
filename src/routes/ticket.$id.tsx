@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Clock, MapPin, Ticket as TicketIcon } from "lucide
 import { Button } from "@/components/ui/button";
 import { useAllTickets } from "@/lib/ticket-store";
 import { useUser } from "@/lib/auth";
+import { useSettings } from "@/lib/settings-store";
 import { SeatMapViewer } from "@/components/SeatMapViewer";
 
 export const Route = createFileRoute("/ticket/$id")({
@@ -34,6 +35,7 @@ function TicketDetail() {
   const ticket = all.find((t) => t.id === id);
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const { settings } = useSettings();
   const [qty, setQty] = useState(1);
   const [purchased, setPurchased] = useState(false);
 
@@ -92,18 +94,20 @@ function TicketDetail() {
             <p className="text-muted-foreground leading-relaxed">{ticket.description}</p>
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Seat Map</h2>
-            <p className="text-sm text-muted-foreground mb-3">Venue seating layout for {ticket.venue}</p>
-            <div className="rounded-lg overflow-hidden border border-border">
-              <SeatMapViewer
-                seatMapUrl={ticket.seatMapUrl}
-                venueName={ticket.venue}
-                category={ticket.category}
-                sections={ticket.section ? [ticket.section] : []}
-              />
+          {settings.seatMapView !== "No" && (
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Seat Map</h2>
+              <p className="text-sm text-muted-foreground mb-3">Venue seating layout for {ticket.venue}</p>
+              <div className="rounded-lg overflow-hidden border border-border">
+                <SeatMapViewer
+                  seatMapUrl={ticket.seatMapUrl}
+                  venueName={ticket.venue}
+                  category={ticket.category}
+                  sections={ticket.section ? [ticket.section] : []}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <aside className="rounded-xl border p-6 bg-card h-fit lg:sticky lg:top-20 shadow-sm">

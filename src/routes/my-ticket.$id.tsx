@@ -522,33 +522,35 @@ function MyTicketDetail() {
                   </a>
                 </div>
 
-                <div className="mt-6">
-                  <p className="text-sm font-bold tracking-wide">SEAT MAP</p>
-                  <p className="text-xs text-foreground/50 mt-0.5">Venue layout for this event</p>
-                  <div className="mt-3 rounded overflow-hidden border border-foreground/10">
-                    <SeatMapViewer
-                      seatMapUrl={ticket.seatMapUrl}
-                      venueName={ticket.venue}
-                      category={ticket.category}
-                      sections={seatRows.map((s) => s.section)}
-                      onSectionClick={() => {
-                        setSeatPickerSelection(selectedSeats);
-                        setShowSeatPicker(true);
-                      }}
-                    />
+                {settings.seatMapView !== "No" && (
+                  <div className="mt-6">
+                    <p className="text-sm font-bold tracking-wide">SEAT MAP</p>
+                    <p className="text-xs text-foreground/50 mt-0.5">Venue layout for this event</p>
+                    <div className="mt-3 rounded overflow-hidden border border-foreground/10">
+                      <SeatMapViewer
+                        seatMapUrl={ticket.seatMapUrl}
+                        venueName={ticket.venue}
+                        category={ticket.category}
+                        sections={seatRows.map((s) => s.section)}
+                        onSectionClick={() => {
+                          setSeatPickerSelection(selectedSeats);
+                          setShowSeatPicker(true);
+                        }}
+                      />
+                    </div>
+                    {seatRows.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setSeatPickerSelection(selectedSeats);
+                          setShowSeatPicker(true);
+                        }}
+                        className="mt-2 w-full h-10 rounded border border-[#1A56DB] text-[#1A56DB] text-sm font-bold hover:bg-blue-50 transition-colors"
+                      >
+                        View &amp; Select Seats
+                      </button>
+                    )}
                   </div>
-                  {seatRows.length > 0 && (
-                    <button
-                      onClick={() => {
-                        setSeatPickerSelection(selectedSeats);
-                        setShowSeatPicker(true);
-                      }}
-                      className="mt-2 w-full h-10 rounded border border-[#1A56DB] text-[#1A56DB] text-sm font-bold hover:bg-blue-50 transition-colors"
-                    >
-                      View &amp; Select Seats
-                    </button>
-                  )}
-                </div>
+                )}
 
                 {related[0] && (
                   <Link

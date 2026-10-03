@@ -7,6 +7,7 @@ import { addCustomTicket } from "@/lib/ticket-store";
 import type { Ticket } from "@/lib/tickets";
 import { toast } from "sonner";
 import { incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
+import { useSettings } from "@/lib/settings-store";
 import { SeatMapViewer } from "@/components/SeatMapViewer";
 
 export const Route = createFileRoute("/create-ticket/$tmId")({
@@ -69,6 +70,7 @@ function CreateTicketPage() {
   const { tmId } = Route.useParams();
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const { settings } = useSettings();
   const [form, setForm] = useState<FormFields | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -242,18 +244,20 @@ function CreateTicketPage() {
               </div>
             </div>
 
-            <div className="pt-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-foreground/60 mb-2">
-                Seat Map
-              </p>
-              <SeatMapViewer
-                seatMapUrl={form.seatMapUrl}
-                venueName={form.venue}
-                category={form.category}
-                sections={form.section ? [form.section] : []}
-                compact
-              />
-            </div>
+            {settings.seatMapView !== "No" && (
+              <div className="pt-2">
+                <p className="text-xs font-bold uppercase tracking-wider text-foreground/60 mb-2">
+                  Seat Map
+                </p>
+                <SeatMapViewer
+                  seatMapUrl={form.seatMapUrl}
+                  venueName={form.venue}
+                  category={form.category}
+                  sections={form.section ? [form.section] : []}
+                  compact
+                />
+              </div>
+            )}
 
             <Field label="Image URL" value={form.image} onChange={(v) => set("image", v)} />
 

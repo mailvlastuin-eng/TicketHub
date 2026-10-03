@@ -8,6 +8,7 @@ import { featuredTickets } from "@/lib/tickets";
 import { toast } from "sonner";
 import { incrementTicketsCreatedFn, consumeTokenFn } from "../admin/functions";
 import type { Ticket, SeatedTicketEntry, StandardTicketEntry } from "@/lib/tickets";
+import { useSettings } from "@/lib/settings-store";
 import { SeatMapViewer } from "@/components/SeatMapViewer";
 
 export const Route = createFileRoute("/create-ticket")({
@@ -90,6 +91,7 @@ function makeStandardEntry(): StandardTicketEntry {
 function CreateTicketSearchPage() {
   const navigate = useNavigate();
   const { user, ready } = useUser();
+  const { settings } = useSettings();
   const { eventId } = Route.useSearch();
   const all = useAllTickets();
 
@@ -629,7 +631,7 @@ function CreateTicketSearchPage() {
           </div>
 
           {/* ── Seat Map Preview (shown once an event is selected) ── */}
-          {(eventLoaded || form.title.trim()) && (
+          {settings.seatMapView !== "No" && (eventLoaded || form.title.trim()) && (
             <div className="space-y-2 pt-4 border-t border-zinc-100">
               <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/60">
                 Seat Map
