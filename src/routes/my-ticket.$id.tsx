@@ -528,6 +528,8 @@ function MyTicketDetail() {
                   <div className="mt-3 rounded overflow-hidden border border-foreground/10">
                     <SeatMapViewer
                       seatMapUrl={ticket.seatMapUrl}
+                      venueName={ticket.venue}
+                      category={ticket.category}
                       sections={seatRows.map((s) => s.section)}
                       onSectionClick={() => {
                         setSeatPickerSelection(selectedSeats);
@@ -1026,6 +1028,8 @@ function MyTicketDetail() {
           seats: [s.seat],
         }))}
         seatMapUrl={ticket.seatMapUrl}
+        venueName={ticket.venue}
+        category={ticket.category}
         selectedSeats={seatPickerSelection}
         onSelectionChange={setSeatPickerSelection}
         onConfirm={(seats) => {

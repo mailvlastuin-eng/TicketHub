@@ -248,6 +248,8 @@ function CreateTicketPage() {
               </p>
               <SeatMapViewer
                 seatMapUrl={form.seatMapUrl}
+                venueName={form.venue}
+                category={form.category}
                 sections={form.section ? [form.section] : []}
                 compact
               />

@@ -98,6 +98,8 @@ function TicketDetail() {
             <div className="rounded-lg overflow-hidden border border-border">
               <SeatMapViewer
                 seatMapUrl={ticket.seatMapUrl}
+                venueName={ticket.venue}
+                category={ticket.category}
                 sections={ticket.section ? [ticket.section] : []}
               />
             </div>

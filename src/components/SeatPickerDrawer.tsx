@@ -10,6 +10,10 @@ interface SeatPickerDrawerProps {
   seatedTickets: SeatedTicketEntry[];
   /** Static seat map image URL (from Ticketmaster, optional) */
   seatMapUrl?: string;
+  /** Venue name for fallback diagram selection */
+  venueName?: string;
+  /** Event category for fallback diagram selection */
+  category?: string;
   /** Currently selected seat identifiers (e.g. ["7", "8"]) */
   selectedSeats: string[];
   /** Callback fired when selection changes */
@@ -23,6 +27,8 @@ export function SeatPickerDrawer({
   onClose,
   seatedTickets,
   seatMapUrl,
+  venueName,
+  category,
   selectedSeats,
   onSelectionChange,
   onConfirm,
@@ -95,6 +101,8 @@ export function SeatPickerDrawer({
         <div className="px-4 pt-3 pb-2 shrink-0 bg-white">
           <SeatMapViewer
             seatMapUrl={seatMapUrl}
+            venueName={venueName}
+            category={category}
             sections={seatedTickets.map((e) => e.section)}
             onSectionClick={(sec) =>
               setActiveSection((prev) => (prev === sec ? null : sec))

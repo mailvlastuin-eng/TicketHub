@@ -641,6 +641,8 @@ function CreateTicketSearchPage() {
               </p>
               <SeatMapViewer
                 seatMapUrl={form.seatMapUrl}
+                venueName={form.venue}
+                category={form.category}
                 sections={seatedEntries.map((e) => e.section).filter(Boolean)}
                 compact
               />

@@ -183,6 +183,13 @@ async function handleSeatMapProxy(request: Request): Promise<Response> {
 
   const allowed = [
     "ticketmaster.com",
+    "ticketmaster.ca",
+    "ticketmaster.co.uk",
+    "ticketmaster.com.au",
+    "ticketmaster.ie",
+    "ticketmaster.eu",
+    "tmol.io",
+    "ticketm.net",
     "ticketweb.com",
     "livenation.com",
     "universe.com",

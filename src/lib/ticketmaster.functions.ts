@@ -10,6 +10,7 @@ export type TMEventSummary = {
   date: string;
   time: string;
   priceFrom: number;
+  seatMapUrl: string;
 };
 
 export type TMEventDetail = TMEventSummary & {
@@ -19,7 +20,6 @@ export type TMEventDetail = TMEventSummary & {
   seat: string;
   currency: string;
   url: string;
-  seatMapUrl: string;
 };
 
 const BASE = "https://app.ticketmaster.com/discovery/v2";
@@ -45,6 +45,7 @@ function mapSummary(e: any): TMEventSummary {
     date: start?.localDate ?? "TBA",
     time: start?.localTime ?? "",
     priceFrom: price?.min ?? 0,
+    seatMapUrl: e?.seatmap?.staticUrl ?? "",
   };
 }
 
