@@ -91,7 +91,7 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                   
                   <!-- Connection Line 1 -->
                   <td align="center" style="vertical-align: middle; padding-bottom: 16px;">
-                    <div style="border-top: 1px solid #CCCCCC; height: 1px; width: 100%;"></div>
+                    <div style="border-top: 2px solid #0053CD; height: 2px; width: 100%;"></div>
                   </td>
                   
                   <!-- Step 2: Accepted -->
@@ -99,13 +99,13 @@ export function compileTransferEmailHtml(options: SendTransferEmailOptions): str
                     <table border="0" cellpadding="0" cellspacing="0" width="36" style="width: 36px; margin: auto;">
                       <tr>
                         <td align="center" valign="middle" width="36" height="36">
-                          <div style="border: 1.2px dashed #9CA3AF; border-radius: 50%; width: 34px; height: 34px; background-color: #ffffff; margin: 0 auto; text-align: center; line-height: 34px;">
-                            <img src="https://img.icons8.com/ios/32/9CA3AF/ok--v1.png" width="14" height="14" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Accepted" />
+                          <div style="background-color: #0053CD; border-radius: 50%; width: 36px; height: 36px; margin: 0 auto; text-align: center; line-height: 36px;">
+                            <img src="https://img.icons8.com/ios-filled/32/ffffff/ok--v1.png" width="16" height="16" style="display: inline-block; vertical-align: middle; margin-top: -2px;" alt="Accepted" />
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td align="center" style="font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; color: #9CA3AF; padding-top: 6px;">
+                        <td align="center" style="font-family: Arial, sans-serif; font-size: 10px; font-weight: bold; color: #0053CD; padding-top: 6px;">
                           Accepted
                         </td>
                       </tr>
