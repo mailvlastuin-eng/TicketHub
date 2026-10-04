@@ -11,6 +11,8 @@ export interface SendTransferEmailOptions {
   eventDetailsUrl: string;
   senderName?: string;
   senderEmail?: string;
+  ticketId?: string;
+  seats?: string[];
 }
 
 export function compileTransferEmailHtml(options: SendTransferEmailOptions): string {

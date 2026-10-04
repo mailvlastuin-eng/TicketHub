@@ -810,6 +810,28 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
       transfersCount = Math.max(0, transfersCount - 1);
     }
 
+    if (data.ticketId && Array.isArray(data.seats) && data.seats.length > 0) {
+      const seatStrs = data.seats.map(String);
+      // Remove these seats from previous records of this ticket to prevent duplicate seat assignments
+      acceptedTransfers.forEach((item: any) => {
+        if (item.ticketId === data.ticketId && Array.isArray(item.seats)) {
+          item.seats = item.seats.filter((s: string) => !seatStrs.includes(String(s)));
+        }
+      });
+      acceptedTransfers = acceptedTransfers.filter(
+        (item: any) => Array.isArray(item.seats) && item.seats.length > 0
+      );
+
+      // Append new accepted transfer record
+      acceptedTransfers.push({
+        ticketId: data.ticketId,
+        seats: seatStrs,
+        buyerName: data.buyerName || 'Buyer',
+        buyerEmail: data.buyerEmail || '',
+        acceptedAt: new Date().toISOString(),
+      });
+    }
+
     user.deviceInfo = JSON.stringify({
       device: deviceName,
       transfersCount,
@@ -829,7 +851,12 @@ export const sendTransferEmailFn = createServerFn({ method: 'POST' })
       subject: `Your ticket transfer from ${data.senderName} for ${data.ticketTitle} is on the way.`,
       html,
     });
-    return result;
+    return {
+      ...result,
+      acceptedTransfers,
+      transfersCount,
+      tokensCount,
+    };
   });
 
 // ---------------------------------------------------------------------------

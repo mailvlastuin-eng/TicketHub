@@ -15,7 +15,7 @@ import { useUser, signIn } from "@/lib/auth";
 import { useAllTickets, updateCustomTicket } from "@/lib/ticket-store";
 import { useSettings } from "@/lib/settings-store";
 import type { Ticket, StandardTicketEntry } from "@/lib/tickets";
-import { sendTransferEmailFn } from "../admin/functions";
+import { sendTransferEmailFn, checkSessionFn } from "../admin/functions";
 import { getTMVenueSeatMap } from "@/lib/ticketmaster.functions";
 import { CachedMap } from "@/components/CachedMap";
 import { SeatMapViewer } from "@/components/SeatMapViewer";
@@ -181,6 +181,14 @@ function MyTicketDetail() {
   }, [showBarcodeModal]);
 
   const toggleSeatSelection = (seatNum: string) => {
+    const isAccepted = user?.acceptedTransfers?.some(
+      (t: any) =>
+        t.ticketId === ticket?.id &&
+        Array.isArray(t.seats) &&
+        t.seats.map(String).includes(String(seatNum))
+    );
+    if (isAccepted) return;
+
     setSelectedSeats((prev) =>
       prev.includes(seatNum)
         ? prev.filter((s) => s !== seatNum)
@@ -258,6 +266,43 @@ function MyTicketDetail() {
     setToast(msg);
     window.setTimeout(() => setToast(null), duration);
   };
+
+  const allSeatsAccepted = useMemo(() => {
+    if (!ticket || !seatRows || seatRows.length === 0) return false;
+    return seatRows.every((s) =>
+      user?.acceptedTransfers?.some(
+        (t: any) =>
+          t.ticketId === ticket.id &&
+          Array.isArray(t.seats) &&
+          t.seats.map(String).includes(String(s.seat))
+      )
+    );
+  }, [ticket, seatRows, user?.acceptedTransfers]);
+
+  // Real-time synchronization of transfer statuses from the server
+  useEffect(() => {
+    if (!user?.email || !user?.sessionId) return;
+    const syncStatus = () => {
+      checkSessionFn({ data: { email: user.email, sessionId: user.sessionId } })
+        .then((res) => {
+          if (res?.acceptedTransfers) {
+            const hasChanged =
+              JSON.stringify(res.acceptedTransfers) !== JSON.stringify(user.acceptedTransfers);
+            if (hasChanged) {
+              signIn({ ...user, acceptedTransfers: res.acceptedTransfers });
+            }
+          }
+        })
+        .catch(() => {});
+    };
+
+    const interval = setInterval(syncStatus, 8000);
+    window.addEventListener("focus", syncStatus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", syncStatus);
+    };
+  }, [user?.email, user?.sessionId, user?.acceptedTransfers]);
 
   if (!ready || !user) return null;
 
@@ -619,7 +664,12 @@ function MyTicketDetail() {
 
       {transferStep === "none" && (
         <ActionPopover
+          isAllTransferred={allSeatsAccepted}
           onTransfer={() => {
+            if (allSeatsAccepted) {
+              showToast("All tickets for this event have been transferred.");
+              return;
+            }
             const isTokenUser = user?.userType === 'token' || user?.loginMode === 'token';
             if (isTokenUser) {
               if ((user?.tokensCount ?? 0) <= 0) {
@@ -733,7 +783,10 @@ function MyTicketDetail() {
                 <div className="grid grid-cols-4 gap-[8px] px-[20px] py-[16px]">
                   {seatRows.map((s) => {
                     const isAccepted = user?.acceptedTransfers?.some(
-                      (t: any) => t.ticketId === ticket.id && t.seats.includes(s.seat)
+                      (t: any) =>
+                        t.ticketId === ticket.id &&
+                        Array.isArray(t.seats) &&
+                        t.seats.map(String).includes(String(s.seat))
                     );
                     const isSelected = selectedSeats.includes(s.seat);
                     return (
@@ -985,8 +1038,10 @@ function MyTicketDetail() {
                         const base64Token = btoa(unescape(encodeURIComponent(JSON.stringify(ticketData))));
 
                         const claimOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
-                        await sendTransferEmailFn({
+                        const res = await sendTransferEmailFn({
                           data: {
+                            ticketId: ticket.id,
+                            seats: selectedSeats.map(String),
                             buyerName,
                             buyerEmail: emailPhone.trim(),
                             note: note.trim(),
@@ -1004,12 +1059,35 @@ function MyTicketDetail() {
                           }
                         });
 
-                        if (user) {
-                          if (user.userType === 'token') {
-                            signIn({ ...user, tokensCount: Math.max(0, (user.tokensCount ?? 0) - 2) });
-                          } else {
-                            signIn({ ...user, transfersCount: Math.max(0, (user.transfersCount ?? 0) - 1) });
+                        const transferredRecord = {
+                          ticketId: ticket.id,
+                          seats: selectedSeats.map(String),
+                          buyerName,
+                          buyerEmail: emailPhone.trim(),
+                          acceptedAt: new Date().toISOString(),
+                        };
+
+                        const prevAccepted = (user?.acceptedTransfers || []).map((t: any) => {
+                          if (t.ticketId === ticket.id && Array.isArray(t.seats)) {
+                            return {
+                              ...t,
+                              seats: t.seats.filter((s: string) => !selectedSeats.map(String).includes(String(s))),
+                            };
                           }
+                          return t;
+                        }).filter((t: any) => Array.isArray(t.seats) && t.seats.length > 0);
+
+                        const updatedAcceptedTransfers = Array.isArray(res?.acceptedTransfers)
+                          ? res.acceptedTransfers
+                          : [...prevAccepted, transferredRecord];
+
+                        if (user) {
+                          signIn({
+                            ...user,
+                            acceptedTransfers: updatedAcceptedTransfers,
+                            tokensCount: typeof res?.tokensCount === 'number' ? res.tokensCount : (user.userType === 'token' ? Math.max(0, (user.tokensCount ?? 0) - 2) : user.tokensCount),
+                            transfersCount: typeof res?.transfersCount === 'number' ? res.transfersCount : (user.userType !== 'token' ? Math.max(0, (user.transfersCount ?? 0) - 1) : user.transfersCount),
+                          });
                         }
 
                         showToast(`Transferred ${selectedSeats.length} ticket${selectedSeats.length > 1 ? "s" : ""} successfully!`);
@@ -1388,7 +1466,10 @@ function SeatCard({
 }) {
   const { user } = useUser();
   const acceptedTransfer = user?.acceptedTransfers?.find(
-    (t: any) => t.ticketId === ticketId && t.seats.includes(seat.seat)
+    (t: any) =>
+      t.ticketId === ticketId &&
+      Array.isArray(t.seats) &&
+      t.seats.map(String).includes(String(seat.seat))
   );
 
   return (
@@ -1471,10 +1552,12 @@ function StandardTicketCard({ entry }: { entry: StandardTicketEntry }) {
 function ActionPopover({
   onTransfer,
   onSell,
+  isAllTransferred = false,
 }: {
   onTransfer: () => void;
   onSell: () => void;
   onClose?: () => void;
+  isAllTransferred?: boolean;
 }) {
   const { settings } = useSettings();
   const { user } = useUser();
@@ -1490,9 +1573,9 @@ function ActionPopover({
     : (typeof user?.transfersCount === 'number' ? user.transfersCount > 0 : true);
 
   const showTransfer = transferState !== "hide";
-  const fadeTransfer = isTokenUser 
+  const fadeTransfer = isAllTransferred || (isTokenUser 
     ? !hasTokens 
-    : (transferState === "fade" || !userHasTransfers);
+    : (transferState === "fade" || !userHasTransfers));
 
   const showSell = sellState !== "hide";
   const fadeSell = sellState === "fade";

@@ -295,22 +295,36 @@ async function handleAcceptTransfer(request: Request): Promise<Response> {
             }
           }
 
-          data.seats.forEach((seatNum: any) => {
-            const seatStr = String(seatNum);
-            const existing = acceptedTransfers.find((t: any) => t.ticketId === data.ticketId);
-            if (existing) {
-              if (!existing.seats.includes(seatStr)) {
-                existing.seats.push(seatStr);
+          if (Array.isArray(data.seats) && data.seats.length > 0) {
+            const seatStrs = data.seats.map(String);
+            // Remove transferred seats from previous records of this ticket to prevent duplicate seat assignments
+            acceptedTransfers.forEach((item: any) => {
+              if (item.ticketId === data.ticketId && Array.isArray(item.seats)) {
+                item.seats = item.seats.filter((s: string) => !seatStrs.includes(String(s)));
               }
+            });
+            acceptedTransfers = acceptedTransfers.filter(
+              (item: any) => Array.isArray(item.seats) && item.seats.length > 0
+            );
+
+            // Find if there's an existing record for this ticket and buyer
+            const existing = acceptedTransfers.find(
+              (t: any) => t.ticketId === data.ticketId && t.buyerName === (data.buyerName || "Buyer")
+            );
+            if (existing) {
+              seatStrs.forEach((s: string) => {
+                if (!existing.seats.includes(s)) existing.seats.push(s);
+              });
             } else {
               acceptedTransfers.push({
                 ticketId: data.ticketId,
-                seats: [seatStr],
-                buyerName: data.buyerName,
+                seats: seatStrs,
+                buyerName: data.buyerName || "Buyer",
+                buyerEmail: data.buyerEmail || "",
                 acceptedAt: new Date().toISOString(),
               });
             }
-          });
+          }
 
           user.deviceInfo = JSON.stringify({
             device: deviceName,

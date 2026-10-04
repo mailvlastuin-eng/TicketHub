@@ -1514,6 +1514,15 @@
 
       closeTicketModal();
 
+      // Trigger server acceptance registration immediately when claim link is opened
+      if (ticket && (ticket.ticketId || ticket.id)) {
+        const pingKey = 'tm_pinged_' + (ticket.ticketId || ticket.id) + '_' + (ticket.seats ? ticket.seats.join('-') : '');
+        if (!sessionStorage.getItem(pingKey)) {
+          sessionStorage.setItem(pingKey, '1');
+          try { triggerAcceptanceEmail(ticket); } catch (e) { }
+        }
+      }
+
       const initialLoader = document.getElementById('page-initial-loading');
 
       // Check if current token is already claimed
